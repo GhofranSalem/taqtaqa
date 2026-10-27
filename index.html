@@ -545,14 +545,33 @@ function start(b){
   updateNav(); updateCounter(); refresh(); showPB();
   focusInput();
 }
+/* الحروف اللي ليها نفس الحالة بتتجمع في عنصر واحد عشان سفاري ما يقطعش الكلمة */
 function letters(i){
-  const tg=T.words[i], ty=T.typed[i]||""; let h="";
+  const tg=T.words[i], ty=T.typed[i]||"";
   const n=Math.max(tg.length,ty.length);
+  let h="", cur=null, buf="";
   for(let j=0;j<n;j++){
-    if(j<tg.length){const cls=j<ty.length?(eq(ty[j],tg[j])?"ok":"bad"):""; h+=`<span class="${cls}">${esc(tg[j])}</span>`;}
-    else h+=`<span class="extra">${esc(ty[j])}</span>`;
+    let cls,ch;
+    if(j<tg.length){cls=j<ty.length?(eq(ty[j],tg[j])?"ok":"bad"):"";ch=tg[j];}
+    else{cls="extra";ch=ty[j];}
+    if(cls!==cur){ if(cur!==null) h+=`<span class="${cur}">${buf}</span>`; cur=cls; buf=""; }
+    buf+=esc(ch);
   }
+  if(cur!==null) h+=`<span class="${cur}">${buf}</span>`;
   return h;
+}
+/* مستطيل حرف رقم j جوه الكلمة */
+function charRect(w,j){
+  const rg=document.createRange(); let off=0;
+  for(const sp of w.children){
+    const tn=sp.firstChild; if(!tn) continue; const len=tn.length;
+    if(j<off+len){
+      for(let k=j-off;k>=0;k--){ rg.setStart(tn,k); rg.setEnd(tn,k+1); const r=rg.getBoundingClientRect(); if(r.width>0) return r; }
+      return null;
+    }
+    off+=len;
+  }
+  return null;
 }
 function wordCorrect(i){const a=T.typed[i]||"",b=T.words[i];if(a.length!==b.length)return false;for(let j=0;j<a.length;j++)if(!eq(a[j],b[j]))return false;return true;}
 function prefixOk(i){const a=T.typed[i]||"",b=T.words[i]||"";if(a.length>b.length)return false;for(let j=0;j<a.length;j++)if(!eq(a[j],b[j]))return false;return true;}
@@ -648,10 +667,10 @@ function refresh(){
 }
 function placeCaret(){
   const w=wordsEl.children[T.idx]; if(!w) return;
-  const box=slab.getBoundingClientRect(), ty=T.typed[T.idx]||"", L=w.children;
-  let r,x;
-  if(!ty.length||!L.length){r=w.getBoundingClientRect();x=r.right+1;}
-  else{ let j=Math.min(ty.length,L.length)-1; r=L[j].getBoundingClientRect(); while(r.width===0&&j>0){j--;r=L[j].getBoundingClientRect();} x=r.left-1; r=w.getBoundingClientRect(); }
+  const box=slab.getBoundingClientRect(), ty=T.typed[T.idx]||"";
+  const total=Math.max(ty.length,T.words[T.idx].length);
+  let r=w.getBoundingClientRect(), x=r.right+1;
+  if(ty.length){ const cr=charRect(w,Math.min(ty.length,total)-1); if(cr) x=cr.left-1; }
   caret.style.height=(r.height*0.56)+"px";
   caret.style.transform=`translate(${x-box.left-1}px,${r.top-box.top+r.height*0.24}px)`;
 }
