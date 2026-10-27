@@ -545,30 +545,12 @@ function start(b){
   updateNav(); updateCounter(); refresh(); showPB();
   focusInput();
 }
-/* سفاري على ماك وآيفون مش بيوصّل الحروف العربي لما كل حرف يبقى في عنصر لوحده،
-   فبنحط حرف وصل غير مرئي (ZWJ) على الجنب اللي الحرف بيتوصل منه */
-const UA=navigator.userAgent||"";
-const NEED_ZWJ=/[?&]zwj/.test(location.search)||(/AppleWebKit/.test(UA)&&(!/(Chrome|Chromium|Edg|OPR)\//.test(UA)||/iPhone|iPad|iPod/.test(UA)))||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);
-const ZWJ="\u200D";
-const RIGHT_ONLY=new Set([..."اأإآٱدذرزوؤة"]);
-function joinType(c){
-  if(!c) return "";
-  if(RIGHT_ONLY.has(c)) return "R";
-  return /[\u0620-\u064A\u066E-\u06D3\u06FA-\u06FF\u0640]/.test(c)&&c!=="ء"?"D":"";
-}
-function glyph(chars,j){
-  const c=chars[j]; if(!NEED_ZWJ) return esc(c);
-  const me=joinType(c); if(!me) return esc(c);
-  const prev=joinType(chars[j-1]), next=joinType(chars[j+1]);
-  return (prev==="D"?ZWJ:"")+esc(c)+(me==="D"&&next?ZWJ:"");
-}
 function letters(i){
   const tg=T.words[i], ty=T.typed[i]||""; let h="";
   const n=Math.max(tg.length,ty.length);
-  const shown=[]; for(let j=0;j<n;j++) shown.push(j<tg.length?tg[j]:ty[j]);
   for(let j=0;j<n;j++){
-    if(j<tg.length){const cls=j<ty.length?(eq(ty[j],tg[j])?"ok":"bad"):""; h+=`<span class="${cls}">${glyph(shown,j)}</span>`;}
-    else h+=`<span class="extra">${glyph(shown,j)}</span>`;
+    if(j<tg.length){const cls=j<ty.length?(eq(ty[j],tg[j])?"ok":"bad"):""; h+=`<span class="${cls}">${esc(tg[j])}</span>`;}
+    else h+=`<span class="extra">${esc(ty[j])}</span>`;
   }
   return h;
 }
