@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="طقطقة: موقع تدريب على الكتابة بالعربي على أمثال مصرية وكلام مصري وحواديت وحكم وشعر.">
+<title>طقطقة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap">
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face{font-family:"TQ Sans";src:local("Thmanyah Sans"),local("thmanyah sans"),local("ThmanyahSans-Regular"),local("thmanyahsans-Regular");font-weight:400}
+@font-face{font-family:"TQ Sans";src:local("Thmanyah Sans Medium"),local("ThmanyahSans-Medium"),local("thmanyahsans-Medium");font-weight:500}
+@font-face{font-family:"TQ Sans";src:local("Thmanyah Sans Bold"),local("ThmanyahSans-Bold"),local("thmanyahsans-Bold");font-weight:700}
+@font-face{font-family:"TQ Serif";src:local("Thmanyah Serif Text"),local("ThmanyahSerifText-Regular"),local("thmanyahseriftext-Regular");font-weight:400}
+@font-face{font-family:"TQ Display";src:local("Thmanyah Serif Display Bold"),local("ThmanyahSerifDisplay-Bold"),local("thmanyahserifdisplay-Bold");font-weight:700}
+
+/* Layout: one centered column — quiet settings line, the typing text as the only loud thing, keyboard below; chrome fades while typing */
+:root{
+  --bg:#eceee9; --panel:#e2e6df; --fg:#27302f; --dim:#8a9490; --sub:#9aa39f; --accent:#8c6a26; --caret:#8c6a26; --accent-soft:rgba(140,106,38,.12);
+  --err:#b8473a; --err-dim:#8c3a2e; --line:#d3d8d0; --key:#f4f6f2; --key-fg:#3a4846; --key-edge:#c4ccc2; --scrim:rgba(20,30,28,.45);
+  --f-pinky:#c9877a; --f-ring:#b39a4c; --f-mid:#6e9d79; --f-index:#6a8db6;
+  --f-display:"TQ Display","Thmanyah Serif Display","Noto Naskh Arabic",serif;
+  --f-sans:"TQ Sans","Thmanyah Sans","IBM Plex Sans Arabic","Geeza Pro","Segoe UI",Tahoma,system-ui,sans-serif;
+  --f-serif:"TQ Serif","Thmanyah Serif Text","Noto Naskh Arabic","Geeza Pro",serif;
+  --f-text:var(--f-sans);
+  --f-ui:var(--f-sans);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171d1e; --panel:#1e2627; --fg:#e4dfd3; --dim:#7b8683; --sub:#56625f; --accent:#d2a65c; --caret:#d2a65c; --accent-soft:rgba(210,166,92,.12);
+    --err:#e07a6a; --err-dim:#9c4a3e; --line:#29322f; --key:#1d2526; --key-fg:#a3ada9; --key-edge:#101516; --scrim:rgba(0,0,0,.55);
+    --f-pinky:#c98b7d; --f-ring:#bba15a; --f-mid:#78a983; --f-index:#7898c0;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171d1e; --panel:#1e2627; --fg:#e4dfd3; --dim:#7b8683; --sub:#56625f; --accent:#d2a65c; --caret:#d2a65c; --accent-soft:rgba(210,166,92,.12);
+  --err:#e07a6a; --err-dim:#9c4a3e; --line:#29322f; --key:#1d2526; --key-fg:#a3ada9; --key-edge:#101516; --scrim:rgba(0,0,0,.55);
+  --f-pinky:#c98b7d; --f-ring:#bba15a; --f-mid:#78a983; --f-index:#7898c0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--fg);transition:background .2s,color .2s}
+body{font-family:var(--f-ui);font-size:15px;line-height:1.65;min-height:100%;-webkit-font-smoothing:antialiased}
+html{--tsz:clamp(24px,3.2vw,31px)}
+html.ts-s{--tsz:clamp(20px,2.6vw,25px)}
+html.ts-l{--tsz:clamp(28px,4vw,38px)}
+html.tf-serif .words,html.tf-serif .quote-done{font-family:var(--f-serif)}
+.page{max-width:1040px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:12px}
+.logo{font-family:var(--f-display);font-weight:700;font-size:34px;color:var(--fg);line-height:1}
+.logo b{color:var(--accent);font-weight:700}
+.tag{color:var(--sub);font-size:14px}
+.hright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pb{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums}
+.pb strong{color:var(--fg);font-weight:600}
+.themebtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:8px;background:var(--panel);color:var(--fg);border:0;border-radius:999px;padding:5px 12px 5px 10px;cursor:pointer}
+.themebtn .dots{display:inline-flex;gap:3px}
+.themebtn .dots i{width:8px;height:8px;border-radius:50%;display:block}
+
+.config{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;background:var(--panel);border-radius:10px;padding:6px 10px}
+.group{display:flex;flex-wrap:wrap;gap:2px;align-items:center}
+.group + .group{border-inline-start:1px solid var(--line);padding-inline-start:14px}
+.seg button{font:inherit;font-size:13.5px;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;transition:color .15s}
+.seg button:hover{color:var(--fg)}
+.seg button.on{color:var(--accent);font-weight:600}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg .tog::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;margin-inline-end:6px;vertical-align:1px}
+.seg .tog.on::before{background:currentColor}
+
+.stage{position:relative}
+.meta{display:flex;justify-content:space-between;align-items:baseline;min-height:34px;margin-bottom:6px;gap:12px}
+.counter{font-family:var(--f-sans);font-weight:500;font-size:24px;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1}
+.live{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums}
+.slab{position:relative;overflow:hidden;cursor:text;height:calc(3 * var(--lh,72px))}
+.words{display:flex;flex-wrap:wrap;column-gap:.38em;row-gap:0;font-family:var(--f-text);font-size:var(--tsz);line-height:2.1;direction:rtl;user-select:none;transition:filter .2s,opacity .2s}
+.w{color:var(--dim);white-space:nowrap;border-bottom:2px solid transparent}
+.w .ok{color:var(--fg)}
+.w .bad{color:var(--err)}
+.w .extra{color:var(--err-dim)}
+.w.err{border-bottom-color:var(--err)}
+.caret{position:absolute;top:0;left:0;width:2.5px;border-radius:2px;background:var(--caret);transition:transform .08s linear;pointer-events:none}
+.caret.idle{animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.slab.blur .words{filter:blur(5px);opacity:.5}
+.slab.blur .caret{opacity:0}
+.focus-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--fg);pointer-events:none;text-align:center}
+.under{margin-top:6px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:13.5px;min-height:22px}
+.navhint{font-variant-numeric:tabular-nums}
+#ti{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;border:0;padding:0;resize:none;color:transparent;background:transparent;caret-color:transparent;z-index:2}
+
+/* keyboard */
+.kbwrap{display:flex;flex-direction:column;gap:10px}
+.kbhead{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;color:var(--sub);font-size:13px}
+.kbhead .seg{background:var(--panel);border-radius:8px;padding:2px}
+.kb{direction:ltr;display:flex;flex-direction:column;gap:5px;max-width:860px;width:100%;margin:0 auto}
+.row{display:grid;gap:5px}
+.r0{grid-template-columns:repeat(13,1fr) 2fr}
+.r1{grid-template-columns:1.5fr repeat(12,1fr) 1.5fr}
+.r2{grid-template-columns:1.8fr repeat(11,1fr) 2.2fr}
+.r3{grid-template-columns:2.35fr repeat(10,1fr) 2.65fr}
+.r4{grid-template-columns:3.5fr 7fr 3.5fr}
+.k{position:relative;background:var(--key);color:var(--key-fg);border-radius:6px;box-shadow:0 2px 0 var(--key-edge);height:clamp(32px,5vw,46px);display:flex;align-items:center;justify-content:center;font-family:var(--f-sans);font-size:clamp(13px,1.9vw,18px);transition:background .12s,color .12s,transform .06s;min-width:0}
+.k .lat{position:absolute;top:2px;left:5px;font-family:var(--f-ui);font-size:clamp(8px,1.1vw,10px);color:var(--sub);line-height:1.2}
+.k .sh{position:absolute;bottom:1px;left:5px;font-size:clamp(9px,1.2vw,12px);color:var(--sub);line-height:1.2}
+.k .fn{font-family:var(--f-ui);font-size:clamp(9px,1.25vw,12px);color:var(--sub)}
+.k::after{content:"";position:absolute;bottom:4px;right:6px;width:5px;height:5px;border-radius:50%;background:var(--fc,transparent);opacity:.85}
+.k.next{background:var(--accent);color:var(--bg)}
+.k.next .lat,.k.next .sh,.k.next .fn{color:var(--bg)}
+.k.press{transform:translateY(2px);box-shadow:0 0 0 var(--key-edge)}
+.k.flashbad{background:var(--err);color:var(--bg)}
+.fp{--fc:var(--f-pinky)} .fr{--fc:var(--f-ring)} .fm{--fc:var(--f-mid)} .fi{--fc:var(--f-index)}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;color:var(--sub);font-size:12.5px}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-inline-end:6px}
+
+/* results */
+.results{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:22px 32px;align-items:start}
+.big{display:flex;flex-direction:column;gap:14px}
+.stat .lbl{color:var(--sub);font-size:13px}
+.stat .val{font-family:var(--f-sans);font-weight:500;font-size:58px;line-height:1.05;color:var(--accent);font-variant-numeric:tabular-nums}
+.stat .val.sm{font-size:44px}
+.newpb{color:var(--accent);font-weight:600;font-size:14px}
+.chartbox{min-width:0}
+canvas{display:block;width:100%;height:190px}
+.small{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:12px 36px}
+.small .v{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--fg)}
+.small .v i{font-style:normal;color:var(--sub);font-weight:400}
+.quote-done{grid-column:1 / -1;font-family:var(--f-text);font-size:19px;line-height:1.95;max-width:62ch;color:var(--fg);border-inline-start:3px solid var(--accent);padding-inline-start:14px}
+.quote-done small{display:block;font-family:var(--f-ui);font-size:13px;color:var(--sub)}
+.actions{grid-column:1 / -1;display:flex;gap:10px;flex-wrap:wrap}
+.actions button{font:inherit;font-size:14px;border-radius:8px;padding:8px 16px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
+.actions button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+kbd{font-family:var(--f-ui);font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--fg)}
+.actions kbd{background:transparent;border-color:currentColor;color:inherit;opacity:.8;margin-inline-start:6px}
+footer{color:var(--sub);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px}
+footer .keys{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center}
+footer a{color:var(--sub)}
+
+/* theme picker */
+.tpanel{position:fixed;inset:0;z-index:20;background:var(--scrim);display:flex;align-items:flex-start;justify-content:center;padding-block:calc(40px + env(safe-area-inset-top,0px)) 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tbox{background:var(--bg);color:var(--fg);border-radius:14px;width:min(760px,100%);max-height:calc(100vh - 80px);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+.thead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.thead input{flex:1 1 180px;min-width:0;font:inherit;font-size:15px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 12px;direction:ltr;text-align:left}
+.thead .seg{background:var(--panel);border-radius:8px;padding:2px}
+.thead .x{font:inherit;background:none;border:0;color:var(--sub);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px}
+.tgrid{overflow:auto;padding:12px 16px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.tcard{font:inherit;font-size:13px;direction:ltr;text-align:left;border-radius:8px;padding:9px 11px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;border:2px solid transparent;min-width:0}
+.tcard span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcard.cur{border-color:var(--accent)}
+.tcard .dots{display:flex;gap:3px;flex:none}
+.tcard .dots i{width:9px;height:9px;border-radius:50%;display:block}
+.tcount{color:var(--sub);font-size:12.5px;padding:0 16px 12px}
+
+/* وضع التركيز: الإطار بيهدى وانت بتكتب */
+header,.config,footer,.kbhead,.legend,.under,.live{transition:opacity .35s ease}
+body.typing header,body.typing .config,body.typing footer,body.typing .kbhead,body.typing .legend{opacity:0;pointer-events:none}
+body.typing .under,body.typing .live{opacity:.55}
+@media (max-width:640px){
+  .results{grid-template-columns:minmax(0,1fr)}
+  .big{flex-direction:row;gap:28px}
+  .stat .val,.stat .val.sm{font-size:46px}
+  .group + .group{border-inline-start:0;padding-inline-start:0}
+  .config{gap:4px 10px}
+  .tag{display:none}
+}
+@media (prefers-reduced-motion:reduce){.caret{transition:none}.caret.idle{animation:none}html,body,header,.config,footer,.kbhead,.legend,.under,.live{transition:none}}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}</style>
+</head>
+<body>
+
+<div class="page" dir="rtl" lang="ar">
+  <header>
+    <div class="brand"><div class="logo">طقطقة<b>.</b></div><div class="tag">اتمرن على الكتابة بالعربي</div></div>
+    <div class="hright">
+      <div class="pb" id="pb"></div>
+      <button class="themebtn" id="themebtn" type="button"><span class="dots" id="tdots"></span><span id="tname">طقطقة</span></button>
+    </div>
+  </header>
+
+  <nav class="config" id="config" aria-label="إعدادات الاختبار">
+    <div class="group seg" data-k="src">
+      <button type="button" data-v="masry">أمثال مصرية</button>
+      <button type="button" data-v="kalam">كلام مصري</button>
+      <button type="button" data-v="hawadit">حواديت</button>
+      <button type="button" data-v="hekam">حكم وتراث</button>
+      <button type="button" data-v="sheer">شعر</button>
+      <button type="button" data-v="mix">مكس</button>
+      <button type="button" data-v="words">كلمات</button>
+    </div>
+    <div class="group seg" data-k="mode">
+      <button type="button" data-v="time">وقت</button>
+      <button type="button" data-v="words">عدد كلمات</button>
+      <button type="button" data-v="quote">اقتباس</button>
+    </div>
+    <div class="group seg" data-k="time" id="g-time">
+      <button type="button" data-v="15">١٥</button><button type="button" data-v="30">٣٠</button><button type="button" data-v="60">٦٠</button><button type="button" data-v="120">١٢٠</button>
+    </div>
+    <div class="group seg" data-k="words" id="g-words">
+      <button type="button" data-v="10">١٠</button><button type="button" data-v="25">٢٥</button><button type="button" data-v="50">٥٠</button><button type="button" data-v="100">١٠٠</button>
+    </div>
+    <div class="group seg" data-k="qlen" id="g-qlen">
+      <button type="button" data-v="all">الكل</button><button type="button" data-v="s">قصير</button><button type="button" data-v="m">متوسط</button><button type="button" data-v="l">طويل</button><button type="button" data-v="xl">طويل جدا</button>
+    </div>
+    <div class="group seg">
+      <button type="button" class="tog" data-t="lenient" title="أ إ آ = ا ، ة = ه ، ى = ي">تساهل في الهمزات</button>
+      <button type="button" class="tog" data-t="punct">علامات الترقيم</button>
+      <button type="button" class="tog" data-t="kb">الكيبورد</button>
+    </div>
+    <div class="group seg" data-k="tfont" title="خط النص اللي بتكتبه">
+      <button type="button" data-v="sans">ثمانية</button><button type="button" data-v="serif">ثمانية سيريف</button>
+    </div>
+    <div class="group seg" data-k="tsize" title="حجم النص">
+      <button type="button" data-v="s" style="font-size:12px" aria-label="صغير">أ</button><button type="button" data-v="m" style="font-size:14.5px" aria-label="عادي">أ</button><button type="button" data-v="l" style="font-size:17px" aria-label="كبير">أ</button>
+    </div>
+  </nav>
+
+  <section class="stage" id="stage">
+    <div class="meta"><div class="counter" id="counter"></div><div class="live" id="live"></div></div>
+    <div class="slab" id="slab">
+      <div class="words" id="words"></div>
+      <div class="caret idle" id="caret"></div>
+      <div class="focus-msg" id="fmsg" hidden>اضغط هنا أو اكتب أي حرف عشان تبدأ</div>
+      <textarea id="ti" dir="rtl" lang="ar" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="اكتب هنا"></textarea>
+    </div>
+    <div class="under"><span id="src"></span><span class="navhint" id="navhint"></span></div>
+  </section>
+
+  <section id="results" hidden></section>
+
+  <section class="kbwrap" id="kbwrap">
+    <div class="kbhead">
+      <span>ترتيب الكيبورد</span>
+      <div class="seg" data-k="layout" id="g-layout">
+        <button type="button" data-v="pc">ويندوز (Arabic PC)</button>
+        <button type="button" data-v="mac">ماك</button>
+      </div>
+    </div>
+    <div class="kb" id="kb"></div>
+    <div class="legend">
+      <span style="--c:var(--f-pinky)">الخنصر</span><span style="--c:var(--f-ring)">البنصر</span><span style="--c:var(--f-mid)">الوسطى</span><span style="--c:var(--f-index)">السبابة</span>
+    </div>
+  </section>
+
+  <footer>
+    <div class="keys"><span><kbd>Tab</kbd> النص اللي بعده</span><span><kbd>Shift</kbd>+<kbd>Tab</kbd> النص اللي قبله</span><span><kbd>Esc</kbd> إعادة نفس النص</span><span><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> الثيمات</span></div>
+    <div>الخط: ثمانية لو متسطّب على جهازك. الثيمات وترتيب ماك وجزء من النصوص من <a href="https://github.com/monkeytypegame/monkeytype" target="_blank" rel="noopener">Monkeytype</a>، برخصة <bdi>GPL-3.0</bdi></div>
+  </footer>
+</div>
+
+<div class="tpanel" id="tpanel" hidden>
+  <div class="tbox" role="dialog" aria-label="الثيمات">
+    <div class="thead">
+      <input id="tsearch" type="search" placeholder="search…" aria-label="دور على ثيم" autocomplete="off">
+      <div class="seg" data-k="tfilter" id="g-tf">
+        <button type="button" data-v="dark">غامق</button><button type="button" data-v="light">فاتح</button><button type="button" data-v="all">الكل</button>
+      </div>
+      <button type="button" class="x" id="tclose" aria-label="قفل">×</button>
+    </div>
+    <div class="tcount" id="tcount"></div>
+    <div class="tgrid" id="tgrid"></div>
+  </div>
+</div>
+
+<script>
+const MT={"MT_PD":[["أكرم ضيفك وإن كان حقيراً، وقم على مجلسك لأبيك ومعلمك وإن كنت أميراً.","علي بن أبي طالب"],["ذهاب النظر خير من النظر إلى ما يوجب الفتنة. صحبة الأخيار تكسب الخير، كالريح إذا مرت بالطيب حملت طيباً.","علي بن أبي طالب"],["مسرة الكرام في بذل العطاء، ومسرة اللئام في سوء الجزاء.","علي بن أبي طالب"],["من لم يمت بالسيف مات بغيره، تعددت الأسباب والموت واحد","أبو الطيب المتنبي"],["ما كل ما يتمنى المرء يدركه، تجري الرياح بما لا تشتهي السفن.","أبو الطيب المتنبي"],["من سمع بأذنه صار حاكياً، ومن أصغى بقلبه كان واعياً، ومن وعظ بفعله كان هادياً.","محمد بن ادريس الشافعي"],["دع الأيام تفعل ما تشاء، وطب نفساً إذا حكم القضاء. ولا تجزع لحادثة الليالي، فما لحوادث الدنيا بقاء. وكن رجلاً على الأهوال جلداً، وشيمتك السماحة والوفاء.","محمد بن ادريس الشافعي"],["من صدق في أخيه، قبل علله، وسد خلله، وغفر زلله.","محمد بن ادريس الشافعي"],["إذا اعتذر إليكَ معتذرٌ، فتلقهُ بوجهٍ مشرقٍ وبِشرٍ ولسانٍ طلقٍ إلا أن يكونَ ممن قطيعتهُ غنيمة.","عبد الله بن المقفع"],["إن كل نظرية تحتمل التصديق والتكذيب لا يصح الأخذ بها إلا مع الدليل القاطع.","جابر بن حيان"],["من كان دؤوباً كان عالماً حقاً، ومن لم يكن دؤوباً لم يكن عالماً، وحسبك بالدربة في جميع الصنائع. إن الصناعي الدرب يحذق، وغير الدرب يعطل.","جابر بن حيان"],["إن العلم سابق أول، والعمل متأخر مستأنف، وكل من لم يسبق إلى العلم لم يمكنه إتيان العمل.","جابر بن حيان"],["إننا نذكر في هذا الكتاب خواص ما رأيناه فقط، دون ما سمعناه، أو قيل لنا أو قرأناه، بعد أن امتحناه وجربناه، فما صحّ أوردناه، وما بطل رفضناه، وما استخرجناه نحن أيضا قايسناه على أحوال هؤلاء القوم.","جابر بن حيان"],["واعلم أنها صنعة تحتاج إلى دربة، بل هي أعظم، لأنها غير موجودة في الحس، وإنما هي شيء قائم في العقل، فمن أطال درسه كانت سرعته في التراكيب على قدر ذلك ومن قصّر كان على حالته.","جابر بن حيان"],["إني أحرض أهل البخل كلهم، لو كان ينفع أهل البخل تحريضي. ما قل مالي إلا زادني كرماً، حتى يكون برزق الله تعويضي.","المقنع الكندي"],["من بخل بالعلم ابتلى بثلاث: إما موت فيذهب علمه، إما ينسى، وإما يصحب فيذهب عمله","عبد الله بن المبارك"],["من صبر فما أقل ما يصبر، ومن جزع فما أقل ما يتمتع","عبد الله بن المبارك"],["يا بني إياك والكسل والضجر، فإنهما مفتاح كل شر، إنك إن كسلت لم تؤد حقاً، وإن ضجرت لم تصبر على حق.","محمد بن علي بن الحسين بن علي أبي طالب"],["إذا رأيت الرجل يعمل الحسنة، فاعلم أن لها عنده أخوات، وإذا رأيته يعمل السيئة، فاعلم أن لها عنده أخوات، فإن الحسنة تدل على أختها، وإن السيئة تدل على أختها","عروة بن الزبير"],["مكتوب في الحكمة: لتكن كلمتك طيبة، وليكن وجهك بسطاً، تكن أحب إلى الناس ممن يعطيهم العطاء.","عروة بن الزبير"],["الكلام الحسن حسن، وأحسن من الكلام معناه، وأحسن من معناه استعماله، وأحسن من استعماله ثوابه، وأحسن من ثوابه رضا من يعمل له.","يحيى بن معاذ الرازي"],["الناس ثلاثة رجال: رجل شغله معاده عن معاشه، ورجل شغله معاشه عن معاده، ورجل مشغول بهما جميعاً، فالأولى درجة الفائزين، والثانية درجة الهالكين، والثالثة درجة المخاطرين.","يحيى بن معاذ الرازي"],["عجبت ممن يحزن على نقصان ماله كيف لا يحزن على نقصان عمره.","يحيى بن معاذ الرازي"],["الزهد ثلاثة أشياء: القلة، والخلوة، والجوع، وكان يقول: جوع التوابين تجربة، وجوع الزاهدين سياسة، وجوع الصديقين تكرمة.","يحيى بن معاذ الرازي"],["يا بني احذر الصرعة على الغفلة، حين لا تستجاب الدعوة، ولا سبيل إلى الرجعة، ولا تغترن بطول العافية، فإنما هو أجل ليس دونه فناء، ولا بعد أن تستكمله بقاء.","عمر بن عبد العزيز"],["يقال: إن استطعت فكن عالماً، فإن لم تستطع فكن متعلماً، فإن لم تستطع فأحبهم، فإن لم تستطع فلا تبغضهم.","عون بن عبد الله"],["الله لم يعصم العلماء من الخطأ، ولم يحمِ العلم من القصور والنقص، لو كان هذا هو الحال، لما اختلف العلماء على أيّ من مسائل العلم.","الحسن بن الهيثم"],["الحقائق غامضة، والغايات خفية، والشبهات كثيرة، والأفهام كدرة، والمقاييس مختلفة، والمقدمات ملتقطة من الحواس، والحواس التي هي العدد غير مأمونة الغلط. طريق النظر معفى الأثر، والباحث المجتهد غير معصوم من الزلل؛ فلذلك تكثر الحيرة عند المباحث اللطيفة، وتتشتت الآراء، وتفترق الظنون، وتختلف النتائج، ويتعذر اليقين.","الحسن بن الهيثم"]],"MT_EGY":["الحياة زي لعبة الشطرنج، لازم تفكر كام خطوة لقدام، لكن في الآخر اللي بيحدد مين يفوز مش بس العقل، ده القلب اللي بيستحمل الخسارة.","الصبر مش بس إنك تستنى، ده إنك تقدر تحلم وسط الوجع، وتفضل شايف النور حتى لو الدنيا كلها بتقولك إن مفيش حاجة هتتغير.","الوحدة مش إنك تبقى لوحدك، دي إنك تحس إنك غريب وسط ناس بتحبهم، ومع ذلك تقدر تبتسم عشان ما تحسسهمش إنك تايه جواك.","الناس بتشوف اللي عينيها شايفاه، لكن اللي بيفهم الحقيقة هو اللي بيسمع الصوت اللي ورا الكلام، اللي الكل بيعدي عليه من غير ما ياخد باله.","الحلم مش حاجة تشتريها، ده حاجة تبنيها جواك حجر حجر، ولو وقعت لازم تكون عندك الشجاعة إنك تبدأ من الأول من غير ما تلوم الزمن.","الخوف زي الضل، لو هربت منه بيطلع أكبر، لكن لو وقفت وقابلته بيختفي، والسر إنك تعرف إن اللي بيخوفك هو نفسك مش اللي قدامك.","السعادة مش حاجة تدور عليها برا، دي زي بذرة جواك، لو سقيتها بحب وصبر هتنبت، لكن لو سبتها للنسيان هتموت من غير ما تاخد خبر.","الزمن مش عدوك، ده مرايتك، بيوريك اللي كنت عايز تبقاه واللي فعلاً بقيته، والحكمة إنك تتعلم منه من غير ما تكرهه على اللي فات.","الكدبة اللي بنصدقها عن نفسنا أخطر من أي كدبة حد يقولها، لأنها بتبني سجن جواك، وبتخليك عايش في حياة مش بتاعتك أصلاً.","النهاية مش دايماً خسارة، أحياناً تكون بداية لطريق ماكنتش شايفه، لكن لازم عينيك تكون مفتوحة عشان تلحق تشوف الفرصة وهي جاية.","الحب مش كلام حلو وخلاص، ده اختبار للقلب، لو قدر يستحمل الجرح ويفضل يدي، يبقى ده الحب اللي يستاهل إنك تعيش عشان تفهمه.","اللي بيسيب أثره في الدنيا مش اللي بيتكلم كتير، ده اللي بيعمل حاجة صغيرة لكنها بتفضل عايشة في قلوب الناس حتى لو هو مش موجود.","القوة مش في إنك تكسر اللي قدامك، دي في إنك تقدر تبني نفسك من جديد كل ما تحس إنك وقعت، وتفضل ماشي مهما الطريق كان صعب.","الصوت اللي جواك لو سمعته كويس هيوديك للحقيقة، لكن لو سبت ضوضاء الدنيا تغطي عليه، هتفضل تايه بين اختيارات مش بتاعتك أصلاً.","الدنيا زي الموج، ساعة بترفعك وساعة بتهدك، والحكمة إنك تتعلم تسبح معاها من غير ما تخاف، لأن اللي بيخاف بيغرق في الأول.","اللي بيخلّص من خوفه من الناس بيلاقي نفسه، لأن أكبر قيد في الحياة هو إنك تعيش عشان ترضي غيرك وتنسى إنت مين في الأساس.","الفرح مش حاجة كبيرة دايماً، أحياناً بيكون لحظة صغيرة، لكن لو عرفت تتمسك بيها هتحس إن الدنيا كلها بقت ملكك لثانية واحدة.","اللي بيفكر إن الحياة هتستناه غلطان، الزمن بيجري ومش بيرحم، واللي عايز يعيش لازم يلحق يعمل حاجة قبل ما الستارة تنزل عليه.","القلب اللي بيستحمل الصعاب من غير ما يكره الدنيا هو اللي بيستاهل النور، لأن اللي بيكره بيخسر فرصة إنه يشوف الجمال تاني.","الحقيقة زي المية، لو حاولت تخبيها هتفضل تدور على طريق تطلع منه، والشاطر اللي يعرف يشوفها قبل ما تغرقه وهو مش داري.","اللي بيحلم كتير بيخاف أقل، لأن الحلم بيديله أمل يشيل بيه الخوف، واللي ما بيحلمش بيسيب الخوف يقعد جنبه كل يوم زي ضيفه.","الطريق الصح مش دايماً اللي الناس بتمدحه، أحياناً بيكون اللي محدش شايفه، لكن قلبك هو اللي بيحس إنه هو ده اللي ليك.","الصبر نبع مش بينشف.","العقل زينة والقلب بوصلة.","خليك نخلة، واقفة في وش الريح.","الكلمة الحلوة مفتاح القلوب المقفولة.","ما تخافش من الغلط، خاف من عدم المحاولة.","العتمة بتخوف بس مبتقتلش، الخوف هو اللي بيقتل.","السكوت مش ضعف، أحياناً بيكون أقوى من أي صراخ.","القلب العطشان بيشرب من أي بير، والعاقل بيختار مية الينبوع.","الحياة مش هدية، دي أمانة لازم نعرف نرجعها أحسن ما استلمناها.","اللي بيكتب قصته بإيده ما بيحتاجش حد يحكي عنه في غيابه.","الفكرة اللي بتخطر في بالك لحظة ما تصحى من النوم ممكن تكون هي اللي تغير حياتك كلها، بس لازم تاخد بالك منها وتكتبها قبل ما الدنيا تشغلك وتخليك تنساها. الأفكار زي الفرص، مش بتيجي كتير، وأحياناً بتيجي مرة واحدة بس، واللي بيعرف يمسكها هو اللي بيعرف يغير مساره وبالتالي يغير حياته، لكن اللي بيسيبها تروح مع الريح بيفضل في نفس المكان سنين طويلة من غير ما يحس.","الانكسار مش نهاية الحكاية، ده أحياناً بيكون أحلى جزء فيها، لما تتجمع من بعد التكسير، وتعمل من نفسك حاجة جديدة مختلفة. اللي اتكسر مرة بيبقى عارف إن الدنيا مش مستاهلة الخوف، وإن اللي بنخاف منه ممكن يكون هو سبب قوتنا بعدين. كل واحد فينا فيه قطع مكسورة، بس الفرق مش في الكسر، الفرق في طريقة لمها وإعادة تشكيلها من جديد.","اللي بيكتب على المية بيستغرب ليه الكلام ما بيثبتش، واللي بيزرع في الصخر بيستغرب ليه البذرة ما طلعتش، واللي بيرمي في الناس قنابل كراهية بيستغرب ليه الناس بتبعد عنه. كل حاجة في الدنيا دي ليها قانونها، زي الجاذبية كده، ما بتستأذنش حد ولا بتميز بين غني وفقير، واللي بيرمي حاجة لفوق لازم يستنى رجوعها لتحت، والسؤال مش هترجع ولا لأ، السؤال هترجع على دماغ مين.","الكلمة اللي بتقولها النهاردة ممكن تطلع بكرة من بعيد زي عصفور، تيجي تحط على كتفك وتفكرك بيها، أو تيجي زي حجر يخبط في دماغك. إحنا بنرمي الكلام في الهوا وبننساه، لكن الكلام ما بينساش طريقه لصاحبه. قبل ما تتكلم على حد، افتكر إن الكلام طاقة مش مجرد أصوات، وكل طاقة لازم تعمل شغل، يا إما هتبني يا إما هتهد، والاختيار في النهاية بيكون بتاعك.","الخسارة هي أعظم معلم في الحياة، بتقولك مين بيحبك بجد ومين كان معاك عشان مصلحة، بتعرفك قد إيه أنت قوي لما تقدر تقف من تاني، وبتوريك إن الدنيا مش نهايتها تقف. وأحياناً اللي بتعتبره خسارة النهاردة بتلاقيه بكرة كان نعمة ما شفتهاش، زي الباب اللي بيتقفل في وشك عشان يجبرك تفتح باب تاني ما كنتش تعرف حتى إنه موجود، والسر إنك في وقت الخسارة تفضل فاكر إن فيه حكمة، حتى لو مش شايفها.","الطريق اللي بتمشي فيه لوحدك هو اللي هيعلمك أقوى الدروس، مش الطريق اللي مليان ناس. لما تتوه لوحدك وتلاقي طريقك، بتتعلم تثق في نفسك. لما تقع من غير ما حد يشوفك وتقوم تاني، بتتعلم إن الوقوع مش عيب. لما تقابل خوفك من غير ما حد يسندك، بتتعلم إنك أقوى مما كنت فاكر. الوحدة مش نقمة زي ما الناس فاكرة، دي نعمة لو عرفت تستغلها صح، لأنها بتجبرك تشوف نفسك على حقيقتها من غير أي فلاتر.","المسامحة مش معناها تقبل الظلم، ولا معناها تنسى اللي حصل، ولا حتى معناها إنك ترجع العلاقة زي الأول. المسامحة معناها إنك تحرر نفسك من التعلق بالألم، وتسيب مكان لحاجات جديدة تيجي في حياتك. كتير مننا بيفتكر إن المسامحة هدية للي أذاك، وده خطأ كبير، لأن المسامحة الحقيقية مش للتاني، دي ليك إنت، عشان ما تفضلش حامل جوه قلبك سم بيأذيك إنت الأول قبل أي حد.","النجاح مش هدف، ده رحلة بتتغير معالمها كل يوم. اللي بيحط النجاح قدامه كنقطة وصول وبيربط سعادته بيها بيفضل يجري طول عمره من غير ما يحس بطعم الحياة. النجاح الحقيقي إنك تطور نفسك كل يوم شوية، تبقى أحسن من امبارح، وتقدر تحب مين حواليك، وتعمل حاجة مفيدة للناس. لما بتقيس نجاحك بالمقارنة بغيرك، فاكر إنك مش هتوصل أبداً للي نفسك فيه، لكن لما بتقيسه بالمقارنة بنفسك، هتكتشف قد إيه إنت بتتطور كل يوم.","الحب مش كلمة واحدة، ده آلاف الكلمات اللي ما اتقالتش، وآلاف اللحظات اللي اتعاشت في سكون، من غير تصوير أو إعلان. الحب هو الراجل اللي بيسمع مراته وهي بتتكلم عن يومها كل يوم بنفس الاهتمام. الحب هو الست اللي بتدعي لجوزها وهو نايم جنبها. الحب هو الابن اللي لما يكبر يفضل فاكر تعب أمه وأبوه. الحب مش مجرد مشاعر، ده قرار بتاخده كل يوم، مليون مرة، في المواقف الصغيرة قبل الكبيرة.","الحياة مش محطة واحدة كبيرة تنزل فيها وتستنى، دي رحلة فيها آلاف المحطات، كل محطة ليها طعم مختلف، ومناظر مختلفة، وناس مختلفة. والسر في الرحلة دي إنك تتعلم تستمتع باللحظة اللي إنت فيها، من غير ما تستعجل المحطة اللي جاية، أو تفضل حاسس بالحنين للمحطة اللي فاتت. عمر ما كانت الحياة برواز واحد وخلاص، دي لوحة بتتكون قدامك كل يوم، وأحياناً أحلى جزء فيها هو اللي لسه ما اترسمش."],"MT_WORDS":["بلاش","بسرعة","اوعى","انبسط","انفعل","اتفرج","كوبري","اتعصب","اتخانق","اتجنن","اتكسف","اتاخر","اتنرفز","فلافل","سيف","اتهد","ارتاح","اترعب","جاب","ورا","زعق","ازعل","ما","تروحش","تقولش","تعملش","تشيلش","هم","تاخدش","بالك","تسمعش","كلام","تشيرش","تتوقعش","تعرفش","تقدرش","تجدش","تتكلمش","مش","قادر","على","قد","اقدر","تقلقش","تخافش","تزعلش","كده","تنساش","تتفكرش","تكبرش","الموضوع","تلفش","الدنيا","تيجيش","استنى","استغل","استخدم","استعجل","استعبط","فاق","غيبوبة","استقل","استمتع","استمر","سرسجي","استنجد","استوعب","اشترى","اشتاق","اشتكى","اشترك","اشتبك","عايز","إيه","شجع","اصحى","اضحك","اطلع","افطر","اقتنع","سرايا","كنبة","اكتشف","التزم","العب","مرهم","امبارح","انتقم","انشرح","انصح","انطق","انقذ","اهتم","ايجار","ايميل","ابعد","اتاسف","اتجاهل","اتحرك","اتخلى","اتزود","اتسحلنا","اطمئن","اتعاقب","بعضه","اخرس","اتعدى","حدودك","العادي","اتغدى","اتفضل","اتقدم","اتمرن","علق","سليم","السريع","تكة","اتهرشت","اسلك","خبرة","مزاجي","خربان","اتمنى","اتنفس","اتهزأ","اتوصى","اجمد","اجيب","اخلص","اخلي","شغال","اخوفك","اديني","اروح","اسالك","اسكت","اسمعني","اسمه","اسود","اشوفك","اصفر","اعرفك","افتكر","افوت","جمل","اقفل","اكيد","البس","الناحية","الورق","امشي","انزل","اهرب","اوكي","ايدي","ايوه","بأمانة","بإيدك","بإيدي","باخد","بشوف","باظ","بقول","البيت","بالذمة","بالراحة","بالزبط","بالعكس","بالليل","بالنهار","لابتوب","بوتاجاز","تعبان","بنزل","بهرب","باي","بتاعنا","بتتكلم","كوشة","بتدور","بتشوف","بتعملي","ابلة","بتقول","بتلاقي","بتمشي","بتنزل","بتهرب","بتهم","بجيب","بخاف","بخلص","بيخلي","بدات","بدأنا","بدور","برجع","برضه","بركة","برمي","بره","بزعل","بسكت","بسمع","بص","بصي","بطلع","بطل","بعدين","بعرف","بعرفك","بعلم","بعيدي","بعيط","بغلط","بفتكر","بفوت","بقرف","بقولك","بكتب","بلغ","بموت","بنام","بنبسط","بنجيب","بندور","بنرجع","بنرمي","بنزعل","بنسكت","بنسمع","بنشوف","بنطلع","بنعدي","بنعيط","بنغلط","بنفتكر","بنفوت","بنقرف","بنقول","بنكتب","بنموت","بهتم","بوظ","بيجيب","بيخاف","بيخلص","بيدور","بيرجع","بيرمي","بيزعل","بيسكت","بيسمع","بيشوف","بيعيط","بيغلط","بيفتكر","بيفوت","بيقرف","بيقول","بيكتب","بيموت","بيهتم","تاخير","تبقى","تحط","تخلص","تدي","ترمي","تسكت","تعرف","تعرفني","تعلميني","تغلط","تقرف","تموت","توظ","ثانية","جايب","جبت","جبنا","جرب","جعان","جلس","جمع","جنن","جهز","حابب","حاسس","حافظ","حاكم","حاول","حاير","حبك","حتى","حرام","حر","حرك","حس","حسي","حطيت","ايه","العمل","هنعمل","حل","مصلحة","حواليك","حوش","حلوة","حلوين","حي","خايف","محلولة","خالصة","خبر","خبط","خدت","خدنا","خد","خرب","خرج","خليك","خليني","خليت","خليته","خليتيني","خليتهم","خلينا","خميس","خناقة","خنق","داخ","داهية","دايم","دبر","دخل","دخن","دعك","دغدغ","دقيقة","دلع","دمر","دورنا","دوري","دولي","اتديرت","عندها","هبد","ذنب","راجل","راحت","راخر","راضي","راقب","راكب","راكد","بالغلط","احا","رن","ربط","ربع","ربك","ربي","رتب","رجعت","رجعته","رجعتيني","رجعتهم","رجعنا","رحت","رحنا","رد","ردي","رزع","رسم","رشاش","رصيف","رطب","جنينة","رعب","رغب","رف","رفع","ركب","ركز","ركع","رمم","روحت","روحته","روحتيني","روحتهم","روحنا","زابط","زبط","زبطت","زبطته","زبطتيني","زبطتهم","زبطنا","زعلت","زعلنا","زغزغ","زق","زكى","زل","زود","زودت","زودته","زودتيني","زودتهم","زودنا","زين","زينت","زينته","زينتيني","زينتهم","زيننا","سالت","سالنا","ساب","ساق","ساير","سب","سبح","سبق","سجل","سد","سرح","سرع","سطر","سقط","فشخ","سكن","سلف","سلك","سلم","سم","سمح","سمر","سمعت","سمعته","سمعتيني","سمعتهم","سمعنا","شارك","شايف","شايل","شد","شرح","شرد","شطب","شطر","شغل","شغلت","شغلته","شغلتيني","شغلتهم","شغلنا","شفت","شفته","شفتيني","شفتهم","برضو","منفوخ","شنطة","فرحان","صحاب","شفنا","كمين","أمل","عاش","شق","شك","شكرا","العفو","شغلانة","شم","شمر","شمس","شمع","شروق","غروب","شنب","سنين","شن","شهد","شوح","شوش","شوفت","شوفته","شوفتيني","شوفتهم","شوفنا","شيد","شيط","شيلت","شيلته","شيلتيني","شيلتهم","شيلنا","صاحبي","صاعد","صب","صبر","صحح","صحصح","صدقت","صدقته","صدقتيني","صدقتهم","صدقنا","صرح","صرف","صغير","صف","صلح","الاجواء","مصحصح","صلحته","اتصالحنا","اتخاصمنا","صالحتهم","صالحنا","صمم","صنف","صور","صورت","صورته","صيح","صيد","ضارب","ضايق","ضايع","ضب","ضحكت","ضحكته","ضحكتيني","ضحكتهم","ضحكنا","ضر","مفك","صاروخ","اتسوح","اتسوحنا","ضرب","بحر","ضربت","ضربته","ضربتيني","ضربتهم","ضربنا","ضعف","ضم","ضمن","طار","طايش","طالب","هاودته","يا","خفيف","طبخ","طبق","طبل","طخ","طحن","نار","طرح","طرد","طرش","طفش","طفشت","طفشته","طفشتيني","طفشتهم","طفشنا","هطل","طلق","طلقت","طلقتها","طلقتيني","طلقتهم","طلقنا","طمنتي","طمنته","طمنتيني","طمنتهم","طمننا","طنش","طنشت","طنشته","طنشتيني","طنشتهم","طنشنا","طوب","طوح","اتطورنا","طارت","طيرته","طيرتيني","طيرتهم","طيرنا","ظابط","ظبط","ظبطت","ظبطته","ظبطتيني","ظبطتهم","ظبطنا","ظهرت","ظهرنا","ظل","ظلم","عاجب","غارز","عاطف","عاقب","عاقبت","عاقبته","عاقبتيني","عاقبتهم","عاقبنا","عالج","عالجت","عالجته","عالجتيني","عالجتهم","عالجنا","عام","عايم","عب","عبد","عبر","عبرت","عبرته","عبرتيني","عبرتهم","عبرنا","عبرني","عجبني","عجل","عد","عدل","عدلت","عدلته","عدلتيني","عدلتهم","عدلنا","عرتنا","عرب","عزمت","عزمته","عزمتيني","عزمتهم","عزمنا","غش","عشش","عط","عطس","عطشت","عطشته","عطشتيني","عطشتهم","عطشنا","عفر","بسيطة","متستبسطهاش","منشفش","متكلمش","عفريت","شوفان","عفن","عقب","عقد","عقدت","عقدتها","علقت","علقته","علقتيني","علقتهم","علقنا","علمت","علمته","علمتيني","علمتهم","علمنا","عمد","عمر","عمرته","عمري","عفرتهم","عند","عنف","عود","زهقان","عوض","عوضت","عوضته","عوضتيني","عوضتهم","عوضنا","عين","عينت","عينته","عينتيني","عينتهم","عيننا","غاب","غار","زعلان","غازل","مدايق","غامر","غاير","في","سليمة","قرفت","قرف","غدر","قلد","قلدته","قلدتيني","غرب","غرد","غرق","غرقت","غرقته","غرقتيني","غرقتهم","غرقنا","غز","غسل","غسلت","غسلته","غسلتيني","اتقمص","قملت","غسلتهم","غشش","غطا","غطس","غلب","غلطت","غلطته","غلطتيني","غلطتهم","غمض","غمضت","غنا","غنيت","غنينا","غور","غيرت","غيرته","فجاة","فات","فاجئ","فار","فاسد","فاض","فاضي","فاطر","فاكر","فالح","فايتك","فايدة","فايق","فته","فتحت","شط","فتش","فتشت","فتشته","فتشتيني","فتشتهم","فتشنا","فجر","فخ","فحص","دايرة","فحصت","فحصته","افك","اصطباح","وحشة","فداك","جرى","فرج","فرحت","فرحته","فرحتيني","فرحتهم","فرحنا","فرد","فرش","فصل","فصلت","فصلته","فصلتيني","فضل","فضلت","لاجئ","لاحظ","لاخر","لازق","لازمني","لاسع","لاعب","لاغي","لاغيني","فضلتهم","فضلنا","فطر","فطرت","فطرته","فطرتيني","فطرتهم","فطرنا","فقد","فقر","فرقنا","قرفتهم","فقرنا","فكك","فكر","فكرت","فكرته","فكرتيني","فكرتهم","فكرنا","فل","فلس","فلست","فلسته","فلستيني","فلستهم","فلسنا","فن","فهم","فهمت","فهمته","فهمتيني","فهمتهم","فهمنا","فيض","مركبة","قابض","قارب","قارن","قاسي","قاسم","قاضي","قاطع","قاعد","قافل","قال","قالك","قاموس","قبض","قبضت","قبضته","قبضتيني","اوعدك","غبي","يخربيت","زي","منتا","شكلها","بايظ","هتصدق","مشروع","كفاية","ممتع","اضرب","وش","لوش","وشوش","محتار","ببلاش","متاخر","بلح","بلع","جدا","قبضتهم","فضيحة","قبضنا","قبل","قبلت","قبلته","قبلنا","كح","قدر","قدرت","قدرته","قدرتيني","قدرنا","قرب","قربت","خالصين","اشطا","يسطا","عبط","كداب","نجم","يعمي","مظبوط","شعبولى","عارف","عارفة","عارفين","كتاكيت","باشا","قعدة","زميلي","يع","كفتة","محشي","سن","سند","سوق","سوا","او","سيد","سير","جد","ممنوع","مفيش","ماشية","مبروك","لسه","لما","كمان","كدة","قبلي","حياة","حركة","حقيقة","خلي","دور","دكتور","رجلي","زبالة","سكة","شيك","صباح","ضهر","عيني","غباء","فرقة","فلوس","قرش","كوكب","لون","مادة","مستشفى","التدخين","موبايلات","ناس","هدوم","هنا","هنبقى","رب","ست","عم","ياد","يخرب","بيتك","يومية","ابن","ابو","اخوات","اسم","بنت","بواب","جار","جيران","خال","صديق","عيل","عيلة","مراتي","موزة","ولاد","اتجوز","اتخطب","اتطلق","بوسة","حضن","خطوبة","جواز","فرحي","مدام","مراته","طلقها","عريس","عروسة","قفش","برده","كويسة","لأ","لابس","لابسة","متجوز","هيصة","عامل","مخلص","مراتك","يالا","هينفع","ابني","حبيبي","ريس","ابيض","احمر","اخضر","ازرق","بمبي","بني","رمادي","كحلي","موف","نيلي","بيج","تركواز","فضي","دهبي","برتقالي","بنفسجي","زهري","بلطي","جرجير","جزر","خيار","طماطم","فلفل","بطاطس","بصل","توم","بتنجان","كوسة","بامية","ملوخية","فراخ","لحمة","سمك","جمبري","كبدة","بيض","جبنة","زبدة","زيت","سكر","ملح","كمون","بهارات","عيش","رز","شوربة","سلطة","الكلام","موز","تفاح","برتقال","مانجا","جوافة","خوخ","كريز","عنب","بطيخ","شمام","رمان","تين","بازوكا","جاتوه","شوكولاتة","ايس","كريم","حلاوة","كيك","كنافة","بسبوسة","زلابية","بليلة","لب","سوداني","لوز","بندق","كاجو","فيشار","ترمس","حمص","لبن","رايب","زبادي","كريمة","عسل","مربى","صوص","كاتشب","مايونيز","خردل","طحينة","خل","عناب","نبق","توت","فراولة","يوسفي","ليمون","نعناع","بقدونس","كسبرة","شبت","ريحان","زعتر","روزماري","اتنيل","نفسيته","كرفس","أوضة","كرنب","قرنبيط","فاصوليا","لوبيا","عدس","جيلي","كاسترد","مهلبية","بلبن","سموذي","نسكافيه","كابتشينو","إسبرسو","شاي","كركديه","يانسون","قرفة","حلبة","تمر","هندي","سحلب","عرقسوس","شبعان","دوم","سوبيا","قصب","فيروز","شويبس","الطريق","كوكتيل","اصول","ازيك","ايوة","لا","تمام","عايزة","بتاع","بتاعة","يلا","فين","امتى","شقيق","ليه","وحياتك","فكرة","طيب","يعني","مختلفناش","خالص","بارد","اهو","بقى","بيعمل","ودا","ودي","دي","هبل","معصلج","ده","كلنا","دول","انت","انتي","احنا","انا","هما","هي","هو","شكلك","جامد","حلو","وحش","قدام","يمين","شمال","قهوة","مياه","عصير","جوا","برا","فوق","تحت","اوي","شوية","قوي","بتاعي","بتاعك","حبيبتي","امي","بابا","واحد","اتنين","تلاتة","اربعة","خمسة","ستة","سبعة","تمانية","تسعة","عشرة","مية","الف","زمان","دلوقتي","بكرة","النهاردة","الصبح","المغرب","ساعة","يوم","شهر","سنة","اسبوع","جنيه","مطعم","محل","شارع","بيت","شقة","اوضة","حمام","مطبخ","باب","شباك","مكتب","كرسي","طاولة","تلاجة","موبايل","عربية","تاكسي","اكل","شرب","نوم","مشي","وقف","قعد","قام","راح","جاي","رجع","طلع","نزل","فتح","قفل","شال","حط","اخد","سيب","دق","اتصل","كلم","كل","سمع","شاف","سال","كتب","قرا","غنى","رقص","لعب","اشتغل","درس","علم","سافر","حب","كره","خاف","فرح","زعل","ضحك","بكى","حاجة","شيء","مكان","وقت","طول","عرض","كتير","قليل","كويس","جميل","كبير","طويل","قصير","غالي","رخيص","جديد","قديم","عادي","غريب","معروف","ممكن","صعب","سهل","قريب","بعيد","داخل","خارج","تليفون","ضد","مع","من","غير","اللي","اي","كام","عشان","ماشي","مهلك","خلاص","بس","روح","مواعيد","امتحان","فاهم","كله","رايح","كشري","فول","طعمية","مكرونة","بيتزا","كباب"],"THEMES":[["8008",true,["#333a45","#f44c7f","#f44c7f","#939eae","#2e343d","#e9ecf0","#da3333","#791717"]],["80s_after_dark",true,["#1b1d36","#fca6d1","#99d6ea","#99d6ea","#17182c","#e1e7ec","#fffb85","#fffb85"]],["alduin",true,["#1c1c1c","#dfd7af","#e3e3e3","#444444","#242424","#f5f3ed","#af5f5f","#4d2113"]],["alpine",false,["#6c687f","#ffffff","#585568","#9994b8","#77738c","#ffffff","#e32b2b","#a62626"]],["anti_hero",true,["#00002e","#ffadad","#ffffff","#ff3d8b","#060548","#f1deef","#8fecff","#558cab"]],["arch",true,["#0c0d11","#7ebab5","#7ebab5","#454864","#171a25","#f6f5f5","#ff4754","#b02a33"]],["bento",true,["#2d394d","#ff7a90","#ff7a90","#4a768d","#263041","#fffaf8","#ee2a3a","#f04040"]],["bliss",true,["#262727","#f0d3c9","#f0d3c9","#665957","#343231","#fff","#bd4141","#883434"]],["blue_dolphin",true,["#003950","#ffcefb","#00bcd4","#00e4ff","#014961","#82eaff","#ffbde6","#ff8188"]],["botanical",false,["#7b9c98","#eaf1f3","#abc6c4","#495755","#72908d","#eaf1f3","#f6c9b4","#f59a71"]],["bouquet",true,["#173f35","#eaa09c","#eaa09c","#408e7b","#1f4e43","#e9e0d2","#d44729","#8f2f19"]],["breeze",false,["#e8d5c4","#7d67a9","#7d67a9","#3a98b9","#f6e6da","#1b4c5e","#7d67a9","#9f3e6d"]],["bushido",true,["#242933","#ec4c56","#ec4c56","#596172","#1c222d","#f6f0e9","#ec4c56","#9b333a"]],["cafe",false,["#ceb18d","#14120f","#14120f","#d4d2d1","#bba180","#14120f","#c82931","#ac1823"]],["carbon",true,["#313131","#f66e0d","#f66e0d","#616161","#2b2b2b","#f5e6c8","#e72d2d","#7e2a33"]],["cherry_blossom",true,["#323437","#d65ccc","#ffffff","#787d82","#2d2f31","#d1d0c5","#ca4754","#d32738"]],["comfy",true,["#4a5b6e","#f8cdc6","#9ec1cc","#9ec1cc","#425366","#f5efee","#c9465e","#c9465e"]],["copper",true,["#442f29","#b46a55","#c25c42","#7ebab5","#50362e","#e7e0de","#a32424","#ec0909"]],["creamsicle",false,["#ff9869","#fcfcf8","#fcfcf8","#ff661f","#fe8954","#fcfcf8","#6a0dad","#6a0dad"]],["cy_red",true,["#6e2626","#e55050","#541d1d","#ff6060","#3f1616","#ffaaaa","#919fd9","#4d5d9e"]],["cyberspace",true,["#181c18","#00ce7c","#00ce7c","#9578d3","#131613","#c2fbe1","#ff5f5f","#d22a2a"]],["dark",true,["#111","#eee","#eee","#444","#191919","#eee","#da3333","#791717"]],["dark_magic_girl",true,["#091f2c","#f5b1cc","#a288d9","#93e8d3","#071823","#a288d9","#e45c96","#e45c96"]],["darling",false,["#fec8cd","#ffffff","#ffffff","#a30000","#f2babd","#ffffff","#2e7dde","#2e7dde"]],["deku",false,["#058b8c","#b63530","#b63530","#255458","#0e7d7e","#f7f2ea","#b63530","#530e0e"]],["dev",true,["#1b2028","#23a9d5","#4b5975","#4b5975","#151a21","#ccccb5","#b81b2c","#84131f"]],["diner",false,["#537997","#c3af5b","#ad5145","#445c7f","#4d6f8b","#dfdbc8","#ad5145","#7e2a33"]],["dino",false,["#ffffff","#40d672","#40d672","#d5d5d5","#cafad8","#1d221f","#ff5f5f","#d22a2a"]],["discord",true,["#313338","#5a65ea","#5a65ea","#565861","#2b2d31","#dcdee3","#df4f4b","#df4f4b"]],["dollar",false,["#e4e4d4","#6b886b","#424643","#8a9b69","#cbd0bf","#555a56","#d60000","#f68484"]],["drowning",true,["#191826","#4a6fb5","#4f85e8","#50688c","#1e1f2f","#9393a7","#be555f","#7e2a33"]],["earthsong",true,["#292521","#509452","#1298ba","#f5ae2d","#1d1b18","#e6c7a8","#7e2a33","#ff645a"]],["everblush",true,["#141b1e","#8ccf7e","#6cbfbf","#838887","#232a2d","#dadada","#e57474","#ef7e7e"]],["evil_eye",false,["#0084c2","#f7f2ea","#f7f2ea","#01589f","#0c79be","#171718","#ca4754","#7e2a33"]],["fledgling",true,["#3b363f","#fc6e83","#474747","#8e5568","#332e38","#e6d5d3","#f52443","#bd001c"]],["fleuriste",false,["#c6b294","#405a52","#8a785b","#64374d","#b4a389","#091914","#990000","#8a1414"]],["floret",true,["#00272c","#ffdd6d","#c3bd40","#779097","#173033","#e5e5e5","#8a4000","#00708d"]],["frozen_llama",false,["#9bf2ea","#6d44a6","#ffffff","#b690fd","#7fe7dd","#ffffff","#e42629","#e42629"]],["github",true,["#212830","#41ce5c","#41ce5c","#788386","#141b23","#ccdae6","#c23e3a","#c23e3a"]],["godspeed",false,["#eae4cf","#9abbcd","#f4d476","#ada998","#ded9c9","#646669","#ca4754","#7e2a33"]],["grand_prix",true,["#36475c","#c0d036","#c0d036","#5c6c80","#42536b","#c1c7d7","#fc5727","#fc5727"]],["gruvbox_dark",true,["#282828","#d79921","#fabd2f","#665c54","#212121","#ebdbb2","#fb4934","#cc241d"]],["gruvbox_light",false,["#fbf1c7","#689d6a","#689d6a","#a89984","#daceae","#3c3836","#cc241d","#9d0006"]],["hammerhead",true,["#030613","#4fcdb9","#4fcdb9","#213c53","#0a1928","#e2f1f5","#e32b2b","#a62626"]],["hanok",false,["#d8d2c3","#513a2a","#513a2a","#8b6f5c","#cdc0af","#393b3b","#ca4754","#7e2a33"]],["hedge",true,["#415e31","#6a994e","#f2efbb","#ede5b4","#38502a","#f7f1d6","#ca3d3f","#782832"]],["honey",false,["#f2aa00","#fff546","#795200","#a66b00","#e19e00","#f3eecb","#df3333","#6d1f1f"]],["husqy",true,["#000000","#c58aff","#c58aff","#972fff","#1e001e","#ebd7ff","#da3333","#791717"]],["iceberg_dark",true,["#161821","#84a0c6","#d2d4de","#595e76","#232531","#c6c8d1","#e27878","#e2a478"]],["iceberg_light",false,["#e8e9ec","#2d539e","#262a3f","#adb1c4","#ccceda","#33374c","#cc517a","#cc3768"]],["iv_clover",false,["#a0a0a0","#573e40","#8d8d8d","#353535","#bebebe","#3b2d3b","#937173","#987678"]],["iv_spade",true,["#0c0c0c","#b7976a","#bebebe","#404040","#121212","#d3c2c3","#9d7b7d","#a78587"]],["joker",true,["#1a0e25","#99de1e","#99de1e","#7554a3","#14081f","#e9e2f5","#e32b2b","#a62626"]],["laser",true,["#221b44","#009eaf","#009eaf","#b82356","#1e173b","#dbe7e8","#a8d400","#668000"]],["leather",false,["#a86948","#ffe4bc","#ef6d49","#81482b","#9a5f3f","#ffe4bc","#ca4754","#7e2a33"]],["lilac_mist",false,["#fffbfe","#b94189","#e099d6","#e094c2","#ecdcee","#5c2954","#ff6f69","#ff6f69"]],["lime",false,["#7c878e","#93c247","#93c247","#4b5257","#737d82","#bfcfdc","#ea4221","#7e2a33"]],["luna",true,["#221c35","#f67599","#f67599","#5a3a7e","#2f2346","#ffe3eb","#efc050","#c5972c"]],["macroblank",false,["#b2d2c8","#c13117","#766f71","#717977","#c6ddd3","#490909","#c13117","#fff5f5"]],["magic_girl",false,["#ffffff","#f5b1cc","#e45c96","#93e8d3","#f2f2f2","#00ac8c","#ffe495","#e45c96"]],["mashu",true,["#2b2b2c","#76689a","#76689a","#d8a0a6","#27242c","#f1e2e4","#d44729","#8f2f19"]],["matcha_moccha",true,["#523525","#7ec160","#7ec160","#9e6749","#422b1e","#ecddcc","#fb4934","#cc241d"]],["material",true,["#263238","#80cbc4","#80cbc4","#4c6772","#2e3c43","#e6edf3","#fb4934","#cc241d"]],["matrix",true,["#000000","#15ff00","#15ff00","#006500","#032000","#d1ffcd","#da3333","#791717"]],["menthol",false,["#00c18c","#ffffff","#99fdd8","#186544","#17ae7d","#ffffff","#e03c3c","#b12525"]],["metaverse",true,["#232323","#d82934","#d82934","#5e5e5e","#1d1d1d","#e8e8e8","#da3333","#791717"]],["mexican",false,["#f8ad34","#b12189","#eee","#333","#f9b951","#eee","#da3333","#791717"]],["miami",false,["#f35588","#05dfd7","#a3f7bf","#94294c","#db4979","#f0e9ec","#fff591","#b9b269"]],["miami_nights",true,["#18181a","#e4609b","#e4609b","#47bac0","#0f0f10","#fff","#fff591","#b6af68"]],["midnight",true,["#0b0e13","#60759f","#60759f","#394760","#141a24","#9fadc6","#c27070","#c28b70"]],["mint",true,["#05385b","#5cdb95","#5cdb95","#20688a","#07324e","#edf5e1","#f35588","#a3385a"]],["mizu",false,["#afcbdd","#fcfbf6","#fcfbf6","#85a5bb","#9fc1d4","#1a2633","#bf616a","#793e44"]],["modern_dolch",true,["#2d2e30","#7eddd3","#7eddd3","#54585c","#242527","#e3e6eb","#d36a7b","#994154"]],["modern_dolch_light",false,["#dbdbdb","#8fd1c3","#8fd1c3","#a3a2a2","#e8e8e8","#454545","#ea8a9a","#e0556d"]],["monokai",true,["#272822","#a6e22e","#66d9ef","#e6db74","#1f201b","#e2e2dc","#f92672","#fd971f"]],["mountain",true,["#0f0f0f","#e7e7e7","#f5f5f5","#4c4c4c","#1a1a1a","#e7e7e7","#ac8c8c","#c49ea0"]],["ms_cupcakes",false,["#ffffff","#5ed5f3","#303030","#d64090","#edf8fa","#0a282f","#a4dd32","#90bd34"]],["muted",true,["#525252","#c5b4e3","#b1e4e3","#939eae","#494949","#b1e4e3","#edc1cd","#edc1cd"]],["nautilus",true,["#132237","#ebb723","#ebb723","#0b4c6c","#0e1a29","#1cbaac","#da3333","#791717"]],["nebula",true,["#212135","#be3c88","#78c729","#19b3b8","#191928","#838686","#ca4754","#7e2a33"]],["night_runner",true,["#212121","#feff04","#feff04","#5c4a9c","#1a1a1a","#e8e8e8","#da3333","#791717"]],["nord",true,["#242933","#88c0d0","#eceff4","#929aaa","#2e3440","#d8dee9","#bf616a","#793e44"]],["nord_light",false,["#eceff4","#8fbcbb","#8fbcbb","#6a7791","#d8dee9","#8fbcbb","#bf616a","#793e44"]],["norse",true,["#242425","#2b5f6d","#2b5f6d","#505b5e","#303333","#ccc2b1","#7e2a2a","#771d1d"]],["olive",false,["#e9e5cc","#92946f","#92946f","#b7b39e","#d4cfbc","#373731","#cf2f2f","#a22929"]],["olivia",true,["#1c1b1d","#deaf9d","#deaf9d","#4e3e3e","#262223","#f2efed","#bf616a","#793e44"]],["onedark",true,["#2f343f","#61afef","#61afef","#eceff4","#262b34","#98c379","#e06c75","#d62436"]],["our_theme",true,["#ce1226","#fcd116","#fcd116","#6d0f19","#9f1020","#ffffff","#fcd116","#fcd116"]],["pale_nimbus",true,["#433e4c","#94ffc2","#9efffd","#ffaca3","#694f5e","#feffdb","#ff5c5c","#ff0000"]],["paper",false,["#eeeeee","#444444","#444444","#b2b2b2","#dddddd","#444444","#d70000","#d70000"]],["passion_fruit",true,["#7c2142","#f4a3b4","#ffffff","#9994b8","#833c5e","#ffffff","#deb80b","#deb80b"]],["pastel",false,["#e0b2bd","#fbf4b6","#fbf4b6","#b4e9ff","#d29fab","#6d5c6f","#ff6961","#c23b22"]],["peach_blossom",true,["#292929","#99b898","#616161","#616161","#2a363b","#fecea8","#ff6961","#e84a5f"]],["peaches",false,["#e0d7c1","#dd7a5f","#dd7a5f","#e7b28e","#e2caaf","#5f4c41","#ff6961","#c23b22"]],["pink_lemonade",false,["#f6d992","#f6a192","#fcfcf8","#f6b092","#f6cc93","#fcfcf8","#ff6f69","#ff6f69"]],["pulse",true,["#181818","#17b8bd","#17b8bd","#53565a","#121212","#e5f4f4","#da3333","#791717"]],["purpleish",true,["#1e1e32","#7a52cc","#7a52cc","#5c5c99","#181829","#a3a3cc","#ff6666","#ff6666"]],["red_dragon",true,["#1a0b0c","#ff3a32","#ff3a32","#e2a528","#0e0506","#4a4d4e","#771b1f","#591317"]],["red_samurai",true,["#84202c","#c79e6e","#c79e6e","#55131b","#751d26","#e2dad0","#33bbda","#176b79"]],["repose_dark",true,["#2f3338","#d6d2bc","#d6d2bc","#8f8e84","#3a3c3d","#d6d2bc","#ff4a59","#c43c53"]],["repose_light",false,["#efead0","#5f605e","#5f605e","#8f8e84","#dbd6c4","#333538","#c43c53","#a52632"]],["retro",false,["#dad3c1","#1d1b17","#1d1b17","#918b7d","#c8c3b3","#1d1b17","#bf616a","#793e44"]],["rose_pine",true,["#1f1d27","#9ccfd8","#f6c177","#c4a7e7","#282533","#e0def4","#eb6f92","#ebbcba"]],["rose_pine_dawn",false,["#fffaf3","#56949f","#ea9d34","#c4a7e7","#f0e9df","#286983","#b4637a","#d7827e"]],["rose_pine_moon",true,["#2a273f","#9ccfd8","#f6c177","#c4a7e7","#211f32","#e0def4","#eb6f92","#ebbcba"]],["rudy",true,["#1a2b3e","#af8f5c","#af8f5c","#3a506c","#152231","#c9c8bf","#bf616a","#793e44"]],["ryujinscales",true,["#081426","#f17754","#ef6d49","#ffbc90","#040e1d","#ffe4bc","#ca4754","#7e2a33"]],["serika",false,["#e1e1e3","#e2b714","#e2b714","#aaaeb3","#d1d3d8","#323437","#da3333","#791717"]],["serika_dark",true,["#323437","#e2b714","#e2b714","#646669","#2c2e31","#d1d0c5","#ca4754","#7e2a33"]],["shoko",false,["#ced7e0","#81c4dd","#81c4dd","#7599b1","#b7cada","#3b4c58","#bf616a","#793e44"]],["slambook",false,["#fffdde","#03001c","#367e18","#1c82ad","#c6dce4","#13005a","#f900bf","#ce1212"]],["soaring_skies",false,["#fff9f2","#55c6f0","#1e107a","#1e107a","#e5ddd4","#1d1e1e","#fb5745","#b03c30"]],["solarized_dark",true,["#002b36","#859900","#dc322f","#2aa198","#00222b","#268bd2","#d33682","#9b225c"]],["solarized_light",false,["#fdf6e3","#859900","#dc322f","#2aa198","#e2d8be","#181819","#d33682","#9b225c"]],["sonokai",true,["#2c2e34","#9ed072","#f38c71","#e7c664","#232429","#e2e2e3","#fc5d7c","#ecac6a"]],["spiderman",true,["#0d1219","#e23636","#e23636","#0476f2","#0b1c2e","#f0f0f0","#0476f2","#0353a8"]],["strawberry",false,["#f37f83","#fcfcf8","#fcfcf8","#e53c58","#ef6e77","#fcfcf8","#fcd23f","#d7ae1e"]],["striker",true,["#124883","#d7dcda","#d7dcda","#0f2d4e","#104176","#d6dbd9","#fb4934","#cc241d"]],["superuser",true,["#262a33","#43ffaf","#43ffaf","#526777","#1f232c","#e5f7ef","#ff5f5f","#d22a2a"]],["sweden",true,["#0058a3","#ffcc02","#b5b5b5","#57abdb","#024f8e","#ffffff","#e74040","#a22f2f"]],["tangerine",false,["#ffede0","#fe5503","#5d8500","#ff9562","#fdd3bf","#3d1705","#7fb500","#5f8700"]],["terminal",true,["#191a1b","#79a617","#79a617","#48494b","#141516","#e7eae0","#a61717","#731010"]],["terra",true,["#0c100e","#89c559","#89c559","#436029","#0f1d18","#f0edd1","#d3ca78","#89844d"]],["terror_below",true,["#0b1e1a","#66ac92","#66ac92","#015c53","#041715","#dceae5","#bf616a","#793e44"]],["tiramisu",false,["#cfc6b9","#c0976f","#7d5448","#c0976f","#d0bca7","#7d5448","#e9632d","#e9632d"]],["tron_orange",true,["#0d1c1c","#f0e800","#f0e800","#ff6600","#9c9191","#ffffff","#ff0000","#ff0000"]],["vaporwave",false,["#a4a7ea","#e368da","#28cafe","#7c7faf","#989bd9","#f1ebf1","#573ca9","#3d2b77"]],["vesper",true,["#101010","#ffc799","#99ffe4","#a0a0a0","#1c1c1c","#ffffff","#ff8080","#b25959"]],["vesper_light",false,["#ffffff","#fb7100","#067a6e","#a0a0a0","#fff8f4","#000000","#ed2839","#ff6c72"]],["viridescent",true,["#2c3333","#95d5b2","#f0d3c9","#84a98c","#232828","#e9f5db","#ff4646","#ab2f2f"]],["voc",true,["#190618","#e0caac","#e0caac","#4c1e48","#2c0c28","#eeeae4","#af3735","#7e2a29"]],["vscode",true,["#1e1e1e","#007acc","#569cd6","#4d4d4d","#191919","#d4d4d4","#f44747","#f44747"]],["watermelon",true,["#1f4437","#d6686f","#d6686f","#3e7a65","#244d3f","#cdc6bc","#c82931","#ac1823"]],["wavez",true,["#1c292f","#6bde3b","#6bde3b","#1f5e6b","#1b3238","#e9efe6","#ca4754","#7e2a33"]],["witch_girl",false,["#f3dbda","#56786a","#afc5bd","#ddb4a7","#e7c8be","#56786a","#b29a91","#b29a91"]]]};
+</script>
+<script>
+(function(){
+"use strict";
+/* ============ المحتوى ============ */
+const MASRY = [
+"اللي ميعرفش يقول عدس","اللي اختشوا ماتوا","ابن الوز عوام","اللي فات مات","القرد في عين أمه غزال",
+"إن كان حبيبك عسل ماتلحسوش كله","اللي يحضر العفريت يصرفه","اللي على راسه بطحة بيحسس عليها",
+"اقلب القدرة على فمها تطلع البنت لأمها","الباب اللي يجيلك منه الريح سده واستريح",
+"اللي ما يشوفش من الغربال يبقى أعمى","ياما جاب الغراب لأمه","الحركة بركة",
+"اللي بنى مصر كان في الأصل حلواني","يا بخت من بات مغلوب ولا باتش غالب",
+"اللي يعوزه البيت يحرم على الجامع","على قد لحافك مد رجليك","اللي ميرضاش بالخوخ يرضى بشرابه",
+"اللي يتلسع من الشوربة ينفخ في الزبادي","جت الحزينة تفرح ملقتلهاش مطرح","الجار قبل الدار",
+"اسأل مجرب ولا تسأل حكيم","ما يقعش إلا الشاطر","ضرب الحبيب زي أكل الزبيب","الطيور على أشكالها تقع",
+"عصفور في الإيد ولا عشرة على الشجرة","اللي له ضهر ما ينضربش على بطنه","دخول الحمام مش زي خروجه",
+"الكلام ليكي يا كنة واسمعي يا جارة","يا واخد القرد على ماله، يروح المال ويفضل القرد على حاله",
+"اللي ما يعرفكش يجهلك","كل فولة وليها كيال","اللي تعرفه أحسن من اللي ما تعرفوش",
+"البعيد عن العين بعيد عن القلب","القرش الأبيض ينفع في اليوم الأسود","إن فاتك الميري اتمرغ في ترابه",
+"يا ما في الجراب يا حاوي","اللي في القدرة تطلعه المغرفة","اللي ما لوش كبير يشتريله كبير",
+"ابعد عن الشر وغنيله","الضفر عمره ما يطلع من اللحم","اللي بيته من إزاز ما يحدفش الناس بالطوب",
+"الحلو ما يكملش","سبع صنايع والبخت ضايع","خد الحكمة من أفواه المجانين","ودن من طين وودن من عجين",
+"اللي يتجوز أمي أقوله يا عمي","يا داخل بين البصلة وقشرتها ما ينوبك إلا صنتها","مش كل مرة تسلم الجرة",
+"الدنيا دوارة","حبيبك يبلعلك الزلط وعدوك يتمنالك الغلط","لاقيني ولا تغديني","زي الأطرش في الزفة",
+"إيش تعمل الماشطة في الوش العكر","قيراط حظ ولا فدان شطارة","من قدم السبت يلاقي الحد قدامه",
+"الفاضي يعمل قاضي","الجواب بيبان من عنوانه","اللي يعيش ياما يشوف","اتلم المتعوس على خايب الرجا",
+"جاور السعيد تسعد","إن جالك الطوفان حط ابنك تحت رجليك","زي المنشار، طالع واكل نازل واكل",
+"العين ما تعلاش على الحاجب","لبس البوصة تبقى عروسة","اللي أوله شرط آخره نور","كل ممنوع مرغوب",
+"اسمع كلام اللي يبكيك ولا تسمع كلام اللي يضحكك","اللي ما يطولش العنب يقول عليه حامض",
+"يموت الزمار وصوابعه بتلعب","جحا أولى بلحم توره","هي الحداية بترمي كتاكيت",
+"اللي له أول له آخر","كتر الهم يضحك","خد من التل يختل",
+"الدهن في العتاقي","زيتنا في دقيقنا","المية تكدب الغطاس","اللي يحب ربنا يرفع إيده",
+"اللي يشيل قربة مخرومة تخر على دماغه","آخرة المعروف ضرب الكفوف",
+"امشي عدل يحتار عدوك فيك","أكل ومرعى وقلة صنعة",
+"اللي اتكتب على الجبين لازم تشوفه العين","قالوا للحرامي احلف، قال جالك الفرج",
+"قالوا يا فرعون مين فرعنك، قال ملقتش حد يردني","اللي ييجي سهل يروح سهل","إن كبر ابنك خاويه",
+"اللي ما لوش قديم ما لوش جديد","ما محبة إلا بعد عداوة","الطمع يقل ما جمع","القفة أم ودنين يشيلوها اتنين",
+"الأصل غلاب","كل واحد بيغني على ليلاه","الحيطان ليها ودان","ما تقولش فول إلا لما يبقى في المكيول",
+"الغايب حجته معاه","اللي ما يعرفش الصقر يشويه","يا مآمنة للرجال يا مآمنة للمية في الغربال",
+"اللي يشتري يتفرج","حاميها حراميها","أسمع كلامك أصدقك، أشوف أمورك أستعجب",
+"جبتك يا عبد المعين تعيني، لقيتك يا عبد المعين عايز تتعان","أول القصيدة كفر","آخر خدمة الغز علقة",
+"كتر الدق يفك اللحام","بعد ما شاب ودوه الكتاب","المال السايب يعلم السرقة","اللي يطلع من داره يتقل مقداره",
+"ضيف المسا ما لوش عشا","إيد لوحدها ما تسقفش","تيجي تصيده يصيدك","عيش ندل تموت مستور",
+"اللي يقول لمراته يا عورة، يلعبوا بيها الناس الكورة","الصبر طيب","خليها على الله"
+];
+const KALAM = [
+"صباح الفل يا جماعة، حد شاف مفاتيح العربية؟","أنا نازل أجيب عيش وفول، حد عايز حاجة من بره؟",
+"الزحمة النهارده مش طبيعية، هتأخر نص ساعة على الأقل","خلي بالك من نفسك ومتسهرش كتير",
+"الشاي بالنعناع ده عمل دماغ عالية","يا عم ركز معايا شوية، الموضوع مش صعب زي ما انت فاكر",
+"هو احنا هنفضل مستنيين كده لحد امتى؟","كلمني لما توصل عشان أطمن عليك",
+"الواد ده دمه خفيف بس بيتأخر في كل حاجة","مفيش أحلى من قعدة على النيل بالليل",
+"ابعتلي اللوكيشن وأنا هجيلك علطول","اتفقنا نتقابل الساعة سبعة قدام المحطة",
+"الأكل ده تحفة، تسلم إيدك يا ست الكل","متقلقش، كل حاجة هتبقى تمام إن شاء الله",
+"الجو حر نار، محتاجين نروح المصيف بقى","الكيبورد الجديد صوته حلو أوي وأنا بكتب",
+"لو اتمرنت كل يوم ربع ساعة هتبقى سريع جدا","ماما بتقول الأكل هيبرد، تعالوا بسرعة",
+"العربية عطلت تاني، شكلها عايزة ميكانيكي شاطر","مش هقدر أجي النهارده، عندي شغل لحد بالليل",
+"فاكر أيام المدرسة لما كنا بنهرب من الحصة الأخيرة؟","الفول والطعمية دول أحلى فطار في الدنيا",
+"خلص الشغل الأول وبعدين نتكلم براحتنا","يا جماعة الاجتماع اتأجل لبكرة الساعة عشرة",
+"هو فيه حد بيرد على التليفون في البيت ده؟","بطل كلام كتير واشتغل، الوقت بيجري",
+"كوباية شاي وشوية هدوء وأنا تمام","بص يا سيدي، الموضوع ببساطة إن مفيش وقت",
+"الكشري اللي على الناصية ده مفيش زيه","يلا بينا نلحق المترو قبل ما يقفل",
+"العميل غير الديزاين تالت مرة، وعايز التسليم بكرة الصبح","الإضاءة في البوث محتاجة تتظبط قبل الافتتاح",
+"النهارده الصبح صحيت متأخر، لبست بسرعة ونزلت من غير فطار، ولما وصلت الشغل لقيت الاجتماع اتلغى. قعدت أضحك على نفسي وطلبت كوباية شاي وقلت خلاص، يوم وهيعدي.",
+"لو عايز تتعلم الكتابة السريعة، متبصش على الكيبورد. خلي صوابعك على الصف الأوسط، وابدأ بالراحة، والسرعة هتيجي لوحدها مع التمرين.",
+"إمبارح كنا قاعدين على القهوة، والكلام جاب بعضه لحد ما افتكرنا أيام الجامعة وأول مرة سافرنا إسكندرية من غير ما نقول لأهالينا.",
+"أحسن حاجة في رمضان اللمة، الكل قاعد على السفرة مستني المدفع، والعيال بتجري في الشارع بالفوانيس، والجو كله ريحة كنافة وقطايف.",
+"كل ما أروح بيت جدتي ألاقي نفس الريحة، ريحة العيش البلدي والسمنة والكمون. تقعد تحكيلنا عن أيام زمان، لما كانت القاهرة فاضية والترام ماشي في الشوارع، والجيران كلهم عارفين بعض بالاسم. وفي الآخر تقوم تجيب الصينية وتقول كلوا يا ولاد، انتو ضعفانين أوي.",
+"يوم الماتش الكبير الشارع كله بيقف. القهاوي مليانة لحد بره، والكراسي طالعة على الرصيف، وكل واحد عامل نفسه مدرب ومحلل. أول ما الجون يدخل تسمع الصريخ من البلكونات، وبعد الماتش العربيات تلف بالأعلام والكلاكسات لحد نص الليل، والناس اللي ما بتعرفش بعض بتحضن بعض.",
+"في إسكندرية الصبح بدري ليه طعم تاني. الهوا فيه ريحة البحر، والصيادين راجعين بالشباك، وبتاع الفول واقف بعربيته على الكورنيش. تاخد سندوتشين وتقعد على السور، تبص للموج وهو بيخبط في الصخر، وتحس إن الدنيا كلها هادية لحد ما الزحمة تبدأ الساعة تسعة.",
+"تجهيز معرض في ليلة الافتتاح حاجة كده لوحدها. النجارين بيخلصوا آخر لوح، وبتوع الإضاءة طالعين على السلالم بيظبطوا الكشافات، والجرافيك لسه جاي من المطبعة. والعميل كل شوية يعدي ويقول عايز اللوجو أكبر شوية. وفي الآخر كله بيخلص قبل الفجر بساعة، وتقف تبص على البوث وتقول الحمد لله، طلع حلو.",
+"المترو الساعة تمانية الصبح ده تجربة لازم كل واحد يعيشها. تقف على الرصيف ومعاك ألف واحد، والقطر يدخل مليان أصلا، وفجأة تلاقي نفسك جوه من غير ما تعرف إزاي. واحد بيقرا جرنال، وواحدة بتكلم في التليفون بصوت عالي، وعيل صغير بيبصلك ومبتسم، والمحطات بتعدي واحدة ورا التانية.",
+"الشغل من البيت شكله سهل بس هو مش كده خالص. تصحى تقول هبدأ بدري، تعمل قهوة، تفتح اللابتوب، وفجأة تلاقي الساعة بقت اتنين ولسه بالبيجامة. الموبايل بيرن، والغسالة بتزمر، والجيران بيكسروا في الحيطة. السر إنك تعمل لنفسك مكان ثابت للشغل وتقفل عليك الباب كأنك في مكتب.",
+"العيد عندنا بيبدأ من ليلة الوقفة. الستات في المطبخ بيعملوا الكحك والبسكوت، والريحة مالية العمارة كلها. الصبح بدري الكل لابس جديد ورايح الصلاة، وبعدها العيدية والزيارات، وكل بيت تدخله لازم تاكل حاجة حتى لو شبعان، لأن الرفض عيب.",
+"اتعلمت أكتب على الكيبورد من غير ما أبص لما بطلت أستعجل. كنت عايز أبقى سريع من أول يوم، فكنت بغلط كتير وأتضايق. بعدين قررت أكتب ببطء بس صح، عشر دقايق كل يوم، ومع الوقت صوابعي حفظت الأماكن لوحدها، والسرعة جت من غير ما أحس.",
+"أول ما وصلنا القرية كانت الشمس لسه طالعة، والغيطان خضرا على مد البصر. عم حسن كان مستنينا على باب الدار بالجلابية، وفطرنا جبنة قديمة وعيش شمسي وبيض بلدي. بعد الفطار نزلنا الترعة، والعيال بيعوموا ويضحكوا، والجاموسة واقفة تبص علينا ولا كأن الموضوع يخصها.",
+"الفرح المصري عبارة عن دوشة حلوة. الزفة داخلة بالطبل والمزمار، والعروسة نازلة على السلم والكل بيصقف، والدي جي مشغل أغاني من كل الأجيال. خالتك اللي ما شفتهاش من خمس سنين جاية تبوسك وتسألك امتى هنفرح بيك، والأكل بييجي متأخر بس بيبقى يستاهل.",
+"أول يوم في الشغل الجديد دايما بيبقى غريب. ما تعرفش الحمام فين، ولا مين بيشرب شاي ومين بيشرب قهوة، ولا مين اللي لازم تسلم عليه بالإيد. بتقعد على المكتب وتعمل نفسك مشغول وانت بتقرا نفس الإيميل عشر مرات. وبعد أسبوع واحد بس تلاقي نفسك بتهزر مع الناس كأنك معاهم من سنين.",
+"الطريق الصحراوي بالليل له هيبة. الأسفلت ممدود قدامك ومفيش غير نور العربية، وكل شوية تعدي عليك عربية نقل كبيرة بتهز الدنيا. بتشغل حاجة تسمعها وتفتح الشباك شوية عشان الهوا يصحيك، ولما تشوف نور الاستراحة من بعيد تحس إنك لقيت كنز، تقف تشرب شاي وتاكل فطيرة وتكمل.",
+"ستي كانت بتقول إن البيت اللي فيه عيش وملح عمره ما يخرب. كانت بتصحى قبل الفجر، تعجن وتخبز وتسقي الزرع اللي في البلكونة، وتعمل الفطار لكل اللي في البيت. ولما حد فينا يزعل، كانت تقعده جنبها وتحكيله حدوتة، وفي آخر الحدوتة دايما فيه درس، بس من غير ما تقوله إنه درس.",
+"لما بتشتغل على ديزاين لعميل، أصعب حاجة مش البرنامج ولا الرندر، أصعب حاجة إنك تفهم هو عايز إيه بجد. ساعات يقولك عايز حاجة بسيطة، وتطلع في الآخر عايز كل حاجة في حتة واحدة. عشان كده اتعلمت أسأل كتير في الأول، وأرسم سكتشات سريعة قبل ما أبدأ، ده بيوفر أيام من التعديلات.",
+"وسط البلد بالليل ليها روح مختلفة. العمارات القديمة بالبلكونات الحديد، والمكتبات اللي لسه فاتحة، وريحة الكبدة والسجق طالعة من عربية على الناصية. تمشي في شارع طلعت حرب وتبص فوق، تلاقي تفاصيل في المباني عمرك ما خدت بالك منها بالنهار، وتحس إن المدينة دي شافت حكايات كتير قبلك.",
+"كل سنة نقول السنة دي هنعمل رجيم، وبعدين ييجي رمضان بالكنافة والقطايف، وبعده العيد بالكحك، وبعده عزومة عند خالتي، وبعدها فرح بنت الجيران. وفي الآخر نقول خلاص، من أول الشهر الجاي إن شاء الله، والشهر الجاي بييجي ومعاه مناسبة جديدة.",
+"الامتحانات في مصر كانت حالة طوارئ في البيت. التليفزيون يتقفل، والزيارات تتأجل، وأمك تعملك كوباية لبن كل ساعتين. تذاكر طول الليل وتنام ساعتين، وتصحى تراجع في المواصلات. ولما تطلع من اللجنة الكل يسألك حليت إيه، وانت مش فاكر حاجة غير إنك عايز تنام.",
+"لو عايز تتعلم أي حاجة جديدة، ابدأ صغير. ربع ساعة كل يوم أحسن من خمس ساعات مرة في الأسبوع. الدماغ بيحب التكرار، والصوابع كمان. أول أسبوعين هتحس إنك مش بتتقدم خالص، وبعدين فجأة هتلاقي نفسك عملت حاجة كانت مستحيلة من شهر، والسر كله إنك ما تبطلش.",
+"بياع الفول اللي تحت البيت عنده نظام محدش يقدر يغيره. الفول بالزيت الحار للي مستعجل، وبالطحينة للي بيحب يتدلع، وبالبيض للي جاي من سهرة. بيعرف كل زبون بالاسم، ويعرف مين بياخد بصل زيادة ومين ما بيحبش الليمون، وبيفتح من الفجر وما بيقفلش غير لما الحلة تخلص.",
+"أحلى حاجة في السفر إنك ترجع. تفضل أسبوعين تتفرج وتاكل أكل غريب وتتوه في شوارع ما تعرفهاش، وأول ما الطيارة تنزل وتسمع حد بيقول حمد الله على السلامة بلهجتك، تحس إن قلبك ارتاح. حتى الزحمة والدوشة بيوحشوك، وتقعد أول يوم تاكل محشي كأنك ما كلتش من سنة."
+];
+const HAWADIT = [
+["جحا وابنه كانوا ماشيين في السوق ومعاهم حمار. جحا ركب وابنه ماشي، فالناس قالت شوف الراجل القاسي راكب وسايب العيل يتعب. نزل جحا وركب ابنه، قالوا شوف الولد قليل الأدب راكب وأبوه العجوز ماشي. ركبوا الاتنين، قالوا يا حرام على الحمار الغلبان. نزلوا الاتنين ومشيوا جنبه، قالوا شوف الأغبيا معاهم حمار وماشيين على رجليهم. ساعتها جحا بص لابنه وقال: شفت؟ رضا الناس غاية لا تدرك.","حدوتة جحا والحمار"],
+["جحا باع بيته لواحد وقاله شرط واحد بس، المسمار اللي في الحيطة ده يفضل بتاعي. الراجل وافق وقال ده مسمار يعني. تاني يوم جحا خبط على الباب وقال جاي أطمن على مسماري. وبعده بيوم جه علق عليه جلابية، وبعدها علق عليه قفة، ولما الراجل زهق، جحا جاب حمار ميت وعلقه في المسمار. الراجل ساب البيت وخرج، ومن ساعتها اللي يسيب حجة صغيرة يرجع بيها يقولوا عليها مسمار جحا.","حدوتة مسمار جحا"],
+["جحا استلف قدرة من جاره، ورجعهاله ومعاها قدرة صغيرة. الجار استغرب، فقاله جحا مبروك يا جاري، القدرة بتاعتك ولدت. الجار فرح وأخد الاتنين. بعد شوية جحا استلف القدرة تاني وما رجعهاش، والجار راح يسأل عليها، قاله جحا البقية في حياتك، القدرة ماتت. الجار زعق وقال هي القدرة بتموت؟ رد جحا وقال: صدقت إنها بتولد، ومش مصدق إنها تموت؟","حدوتة قدرة جحا"],
+["جحا راح فرح بهدومه القديمة، محدش عبره ولا قعده في مكان كويس. رجع البيت لبس أحسن جبة عنده ورجع تاني، الناس قامتله وقعدوه في الصدارة وحطوا قدامه الأكل. جحا بدأ يمسك الأكل ويحطه في كمه ويقول كل يا كمي، كل يا كمي. الناس سألوه بتعمل إيه يا جحا؟ قال: ما هو العزومة دي للجبة مش ليا، يبقى هي اللي تاكل.","حدوتة كل يا كمي"],
+["مرة واحد فقير قعد جنب مطعم كبير، وطلع رغيف عيش ناشف وقعد ياكله على ريحة الشوي. صاحب المطعم خرج ومسكه وقاله ادفع تمن الريحة. راحوا لجحا يحكم بينهم. جحا طلع كيس فيه فلوس ورنه جنب ودن صاحب المطعم، وقاله خلاص، خدت حقك. الراجل قال إزاي؟ قاله جحا: هو شم ريحة أكلك، وانت سمعت صوت فلوسه، تبقوا خالصين.","حدوتة جحا وريحة الشوي"],
+["جحا كان راجع من السوق ومعاه عشر حمير. ركب واحد منهم وعدهم لقاهم تسعة. نزل وعدهم تاني لقاهم عشرة. ركب وعدهم لقاهم تسعة. فضل يطلع وينزل لحد ما تعب، وفي الآخر قال: خلاص، أمشي على رجلي وأكسب حمار أحسن ما أركب وأخسر واحد.","حدوتة جحا والحمير العشرة"],
+["طلبوا من جحا يخطب في الناس، طلع على المنبر وسألهم: تعرفوا أنا هقول إيه؟ قالوا لأ. قال طب إزاي أكلم ناس ما يعرفوش أنا هقول إيه؟ ونزل. تاني جمعة سألهم نفس السؤال، قالوا آه عارفين. قال طالما عارفين يبقى مفيش داعي أتكلم، ونزل. التالتة اتفقوا يقسموا نفسهم، نص يقول عارفين ونص يقول مش عارفين. جحا قال حلو أوي، اللي يعرف يقول للي ما يعرفش. ونزل.","حدوتة خطبة جحا"],
+["جار جحا جه يستلف منه الحبل. جحا قاله آسف، الحبل مش فاضي، أنا بنشر عليه دقيق. الجار استغرب وقال حد ينشر دقيق على حبل؟ قاله جحا: لما الواحد ما يكونش عايز يسلف حاجة، أي حجة بتنفع.","حدوتة حبل جحا"],
+["جحا كان بيدور على حاجة في الشارع تحت عمود النور. واحد سأله بتدور على إيه يا جحا؟ قال على خاتمي. قعدوا يدوروا معاه ساعة ومش لاقيين. سألوه هو وقع منك فين بالظبط؟ قال جوه البيت. قالوا طب ليه بتدور هنا؟ قال: ما هو هنا فيه نور، وجوه البيت ضلمة.","حدوتة خاتم جحا"],
+["جحا كان قاضي البلد، جاله راجل اشتكى من جاره، جحا سمعه وقاله عندك حق. جه الجار وحكى حكايته، جحا قاله وانت كمان عندك حق. مرات جحا كانت بتسمع، قالتله إزاي الاتنين عندهم حق؟ لازم واحد فيهم غلطان. جحا بصلها وقال: وانتي كمان عندك حق.","حدوتة جحا القاضي"],
+["مرة جحا وقف في وسط السوق وقال يا ناس، اللي يجيب لي حماري اللي ضاع هديله الحمار هدية. الناس استغربت وقالوا هتدي الحمار للي يلاقيه؟ طب بتدور عليه ليه؟ قال: انتو ما تعرفوش حلاوة إن الواحد يلاقي حاجة ضاعت منه.","حدوتة حمار جحا الضايع"],
+["جحا طبخ أكلة حلوة وعزم صحابه، وقبل ما يقعدوا قالهم مين فيكم عنده سنان؟ كل واحد قال أنا. قالهم طب حد عنده سنان وعنده كمان صبر يستنى الأكل يبرد؟ محدش رد. فجحا قعد ياكل لوحده وقال: الأكل للي عنده الاتنين.","حدوتة عزومة جحا"],
+["جحا كان بيعدي النهر بالمركب مع واحد نحوي متكبر. النحوي سأله: يا جحا انت قريت النحو؟ قال لأ. قاله: يبقى ضاع نص عمرك. بعد شوية الموج علي والمركب بدأت تغرق، جحا بص للنحوي وقاله: انت اتعلمت العوم؟ قال لأ. قاله جحا: يبقى ضاع عمرك كله.","حدوتة جحا والنحوي"],
+["جحا ضاع منه حماره، فقعد يحمد ربنا بصوت عالي. الناس استغربت وقالوا بتحمد ربنا على إيه وحمارك ضاع؟ قال: بحمده إني ما كنتش راكب عليه، وإلا كنت ضعت معاه.","حدوتة حمد جحا"],
+["واحد قال لجحا: شفت الصينية اللي فيها الأكل اللي عدت من هنا؟ قال جحا: وأنا مالي. قاله: ده كانت داخلة بيتك. قال جحا: وانت مالك. وكمل مشيه وهو مبسوط، لأن عنده قاعدة: الخبر اللي ما يخصكش ما تسألش عليه، واللي يخصك هيوصلك.","حدوتة صينية جحا"],
+["جحا كان راكب حماره بالمقلوب، وشه ناحية ديل الحمار. الناس ضحكت وسألته ليه راكب كده يا جحا؟ قال: أنا مش راكب بالمقلوب، الحمار هو اللي ماشي بالمقلوب. ولما زنوا عليه قال: بصراحة لو ركبت عدل هديكم ضهري، ولو مشيت قدامكم هتبقوا ورايا، فالأحسن أفضل باصص لكم وأنا ماشي.","حدوتة جحا والحمار المقلوب"]
+];
+const HEKAM = [
+["الصبر مفتاح الفرج","حكمة عربية"],["العلم في الصغر كالنقش على الحجر","حكمة عربية"],
+["من جد وجد، ومن زرع حصد","حكمة عربية"],["الوقت كالسيف، إن لم تقطعه قطعك","حكمة عربية"],
+["خير الكلام ما قل ودل","حكمة عربية"],["إذا كان الكلام من فضة فالسكوت من ذهب","حكمة عربية"],
+["ليس كل ما يلمع ذهبا","حكمة عربية"],["في التأني السلامة، وفي العجلة الندامة","حكمة عربية"],
+["رب أخ لك لم تلده أمك","حكمة عربية"],["لكل جواد كبوة، ولكل عالم هفوة","حكمة عربية"],
+["اتق شر من أحسنت إليه","حكمة عربية"],["من شب على شيء شاب عليه","حكمة عربية"],
+["كل إناء بما فيه ينضح","حكمة عربية"],["إن غدا لناظره قريب","حكمة عربية"],
+["لا تؤجل عمل اليوم إلى الغد","حكمة عربية"],["الجار قبل الدار، والرفيق قبل الطريق","حكمة عربية"],
+["يد واحدة لا تصفق","حكمة عربية"],["درهم وقاية خير من قنطار علاج","حكمة عربية"],
+["القناعة كنز لا يفنى","حكمة عربية"],["من حفر حفرة لأخيه وقع فيها","حكمة عربية"],
+["لكل مقام مقال","حكمة عربية"],["عند الامتحان يكرم المرء أو يهان","حكمة عربية"],
+["سبق السيف العذل","مثل عربي قديم"],["خير الأمور أوسطها","حكمة عربية"],["آفة العلم النسيان","حكمة عربية"],
+["كما تدين تدان","حكمة عربية"],["البطنة تذهب الفطنة","حكمة عربية"],["أول الغضب جنون، وآخره ندم","حكمة عربية"],
+["من طلب العلا سهر الليالي","حكمة عربية"],["لا تكن رطبا فتعصر، ولا يابسا فتكسر","حكمة عربية"],
+["من أمن العقوبة أساء الأدب","حكمة عربية"],["إذا عرف السبب بطل العجب","حكمة عربية"],
+["الحاجة أم الاختراع","حكمة عربية"],["الوحدة خير من جليس السوء","حكمة عربية"],
+["لا يلدغ المؤمن من جحر مرتين","حديث شريف"],["الكلمة الطيبة صدقة","حديث شريف"],
+["قيمة كل امرئ ما يحسنه","منسوب لعلي بن أبي طالب"],["الناس أعداء ما جهلوا","منسوب لعلي بن أبي طالب"],
+["رضا الناس غاية لا تدرك","حكمة عربية"],["رجع بخفي حنين","مثل عربي قديم"],
+["إذا أردت أن تطاع فاسأل ما يستطاع","حكمة عربية"],["من سار على الدرب وصل","حكمة عربية"],
+["ليس الفتى من يقول كان أبي، إن الفتى من يقول ها أنا ذا","حكمة عربية"],
+["الظلم مؤذن بخراب العمران","ابن خلدون، المقدمة"],
+["المغلوب مولع أبدا بالاقتداء بالغالب في شعاره وزيه ونحلته وسائر أحواله وعوائده","ابن خلدون، المقدمة"],
+["الإنسان مدني بالطبع، أي لا بد له من الاجتماع الذي هو المدينة في اصطلاحهم وهو معنى العمران","ابن خلدون، المقدمة"],
+["والكتاب هو الجليس الذي لا يطريك، والصديق الذي لا يغريك، والرفيق الذي لا يملك، والمستميح الذي لا يستريثك، والجار الذي لا يستبطئك، والصاحب الذي لا يريد استخراج ما عندك بالملق، ولا يعاملك بالمكر، ولا يخدعك بالنفاق، ولا يحتال لك بالكذب","الجاحظ، الحيوان"]
+];
+const SHEER = [
+["الخيل والليل والبيداء تعرفني، والسيف والرمح والقرطاس والقلم","المتنبي"],
+["على قدر أهل العزم تأتي العزائم، وتأتي على قدر الكرام المكارم. وتعظم في عين الصغير صغارها، وتصغر في عين العظيم العظائم","المتنبي"],
+["أنا الذي نظر الأعمى إلى أدبي، وأسمعت كلماتي من به صمم","المتنبي"],
+["إذا أنت أكرمت الكريم ملكته، وإن أنت أكرمت اللئيم تمردا","المتنبي"],
+["أعز مكان في الدنى سرج سابح، وخير جليس في الزمان كتاب","المتنبي"],
+["إذا غامرت في شرف مروم، فلا تقنع بما دون النجوم","المتنبي"],
+["وإذا أتتك مذمتي من ناقص، فهي الشهادة لي بأني كامل","المتنبي"],
+["ومن يك ذا فم مر مريض، يجد مرا به الماء الزلالا","المتنبي"],
+["إذا رأيت نيوب الليث بارزة، فلا تظنن أن الليث يبتسم","المتنبي"],
+["ومن نكد الدنيا على الحر أن يرى، عدوا له ما من صداقته بد","المتنبي"],
+["عيد بأية حال عدت يا عيد، بما مضى أم بأمر فيك تجديد","المتنبي"],
+["الخيل والليل والبيداء تعرفني، والسيف والرمح والقرطاس والقلم. أنا الذي نظر الأعمى إلى أدبي، وأسمعت كلماتي من به صمم","المتنبي"],
+["نعيب زماننا والعيب فينا، وما لزماننا عيب سوانا","الإمام الشافعي"],
+["ولرب نازلة يضيق لها الفتى ذرعا، وعند الله منها المخرج. ضاقت فلما استحكمت حلقاتها، فرجت وكنت أظنها لا تفرج","الإمام الشافعي"],
+["ما في المقام لذي عقل وذي أدب، من راحة فدع الأوطان واغترب. سافر تجد عوضا عمن تفارقه، وانصب فإن لذيذ العيش في النصب. إني رأيت وقوف الماء يفسده، إن ساح طاب وإن لم يجر لم يطب. والأسد لولا فراق الأرض ما افترست، والسهم لولا فراق القوس لم يصب","الإمام الشافعي"],
+["شكوت إلى وكيع سوء حفظي، فأرشدني إلى ترك المعاصي. وأخبرني بأن العلم نور، ونور الله لا يهدى لعاصي","الإمام الشافعي"],
+["إذا المرء لا يرعاك إلا تكلفا، فدعه ولا تكثر عليه التأسفا","الإمام الشافعي"],
+["وإنما الأمم الأخلاق ما بقيت، فإن هم ذهبت أخلاقهم ذهبوا","أحمد شوقي"],
+["وما نيل المطالب بالتمني، ولكن تؤخذ الدنيا غلابا","أحمد شوقي"],
+["وطني لو شغلت بالخلد عنه، نازعتني إليه في الخلد نفسي","أحمد شوقي"],
+["أنا البحر في أحشائه الدر كامن، فهل سألوا الغواص عن صدفاتي","حافظ إبراهيم"],
+["وقف الخلق ينظرون جميعا، كيف أبني قواعد المجد وحدي. وبناة الأهرام في سالف الدهر، كفوني الكلام عند التحدي. أنا تاج العلاء في مفرق الشرق، ودراته فرائد عقدي","حافظ إبراهيم، مصر تتحدث عن نفسها"],
+["هلا سألت الخيل يا ابنة مالك، إن كنت جاهلة بما لم تعلمي","عنترة بن شداد"],
+["لا يحمل الحقد من تعلو به الرتب، ولا ينال العلا من طبعه الغضب","عنترة بن شداد"],
+["سئمت تكاليف الحياة ومن يعش، ثمانين حولا لا أبا لك يسأم. وأعلم ما في اليوم والأمس قبله، ولكنني عن علم ما في غد عم. رأيت المنايا خبط عشواء من تصب، تمته ومن تخطئ يعمر فيهرم","زهير بن أبي سلمى"],
+["ومهما تكن عند امرئ من خليقة، وإن خالها تخفى على الناس تعلم","زهير بن أبي سلمى"],
+["ستبدي لك الأيام ما كنت جاهلا، ويأتيك بالأخبار من لم تزود","طرفة بن العبد"],
+["السيف أصدق أنباء من الكتب، في حده الحد بين الجد واللعب","أبو تمام"],
+["نقل فؤادك حيث شئت من الهوى، ما الحب إلا للحبيب الأول. كم منزل في الأرض يألفه الفتى، وحنينه أبدا لأول منزل","أبو تمام"],
+["ألا ليت الشباب يعود يوما، فأخبره بما فعل المشيب","أبو العتاهية"],
+["وإني وإن كنت الأخير زمانه، لآت بما لم تستطعه الأوائل","أبو العلاء المعري"],
+["قفا نبك من ذكرى حبيب ومنزل، بسقط اللوى بين الدخول فحومل","امرؤ القيس"],
+["مكر مفر مقبل مدبر معا، كجلمود صخر حطه السيل من عل","امرؤ القيس"],
+["سيذكرني قومي إذا جد جدهم، وفي الليلة الظلماء يفتقد البدر","أبو فراس الحمداني"],
+["أضحى التنائي بديلا من تدانينا، وناب عن طيب لقيانا تجافينا","ابن زيدون"],
+["ألا كل شيء ما خلا الله باطل، وكل نعيم لا محالة زائل","لبيد بن ربيعة"],
+["لكل شيء إذا ما تم نقصان، فلا يغر بطيب العيش إنسان. هي الأمور كما شاهدتها دول، من سره زمن ساءته أزمان. وهذه الدار لا تبقي على أحد، ولا يدوم على حال لها شان","أبو البقاء الرندي"],
+["عيون المها بين الرصافة والجسر، جلبن الهوى من حيث أدري ولا أدري","علي بن الجهم"],
+["إذا كنت في كل الأمور معاتبا، صديقك لم تلق الذي لا تعاتبه","بشار بن برد"]
+];
+/* من Monkeytype: اقتباسات تراثية + اقتباسات مصرية */
+MT.MT_PD.forEach(([t,s])=>{ const verse=/المتنبي|المقنع/.test(s)||t.startsWith("دع الأيام"); (verse?SHEER:HEKAM).push([t,s.replace("محمد بن ادريس الشافعي","الإمام الشافعي").replace("أبو الطيب المتنبي","المتنبي")]); });
+const MT_EGY = MT.MT_EGY;
+const WORDS = Array.from(new Set(("في من على إلى عن مع هو هي احنا انتو هما أنا انت كان قال عايز لازم ممكن النهارده بكرة امبارح دلوقتي بعدين كده ليه فين امتى مين إزاي إيه أيوه خلاص طيب ماشي يلا شوية كتير حلو البيت الشغل الشارع العربية الأكل المية الشاي القهوة الصبح بالليل الناس صاحبي الكتاب القلم المدرسة الجامعة المكتب السوق الفلوس الوقت الدنيا مصر القاهرة النيل الشمس القمر البحر الكيبورد الكتابة سريع جديد كبير صغير سهل صعب").split(" ").concat(MT.MT_WORDS)));
+
+/* ============ إعدادات ============ */
+const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"",tfilter:"dark",tfont:"sans",tsize:"m"};
+let cfg = Object.assign({},DEF);
+try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
+function saveCfg(){try{localStorage.setItem("tq-cfg",JSON.stringify(cfg));}catch(e){}}
+function getPBs(){try{return JSON.parse(localStorage.getItem("tq-pb")||"{}");}catch(e){return {};}}
+function setPBs(o){try{localStorage.setItem("tq-pb",JSON.stringify(o));}catch(e){}}
+
+const $=id=>document.getElementById(id);
+const wordsEl=$("words"), caret=$("caret"), slab=$("slab"), ti=$("ti"), fmsg=$("fmsg");
+const AR_NUM=n=>String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
+
+/* ============ مساعدات النص ============ */
+const TASHKEEL=/[ً-ْٰـ]/g;
+function clean(t){
+  t=t.replace(TASHKEEL,"").replace(/\.{2,}/g,"،").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
+  if(!cfg.punct) t=t.replace(/[،؛؟!.:,"«»\-]/g," ");
+  return t.replace(/\s+/g," ").trim();
+}
+const NMAP={"أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ة":"ه","ى":"ي","ؤ":"و","ئ":"ي"};
+function N(c){return cfg.lenient?(NMAP[c]||c):c;}
+function eq(a,b){return a===b||N(a)===N(b);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(c){return c==="<"?"&lt;":c===">"?"&gt;":c==="&"?"&amp;":c;}
+const CATS={
+  masry:()=>MASRY.map(t=>({t,s:"مثل شعبي مصري"})),
+  kalam:()=>KALAM.map(t=>({t,s:"كلام مصري"})).concat(MT_EGY.map(t=>({t,s:"كلام مصري · من اقتباسات Monkeytype"}))),
+  hawadit:()=>HAWADIT.map(([t,s])=>({t,s})),
+  hekam:()=>HEKAM.map(([t,s])=>({t,s})),
+  sheer:()=>SHEER.map(([t,s])=>({t,s}))
+};
+function allQuotes(){
+  const keys=(cfg.src==="mix"||cfg.src==="words")?Object.keys(CATS):[cfg.src];
+  return keys.flatMap(k=>CATS[k]());
+}
+function lenCat(t){const n=t.length;return n<70?"s":n<180?"m":n<320?"l":"xl";}
+
+/* شنطة بتلف على كل النصوص قبل ما تكرر */
+const bags={};
+function draw(key,list){
+  let b=bags[key]; if(!b||!b.length) b=bags[key]=shuffle(list);
+  return b.pop();
+}
+let gen=null;
+function makeGen(){
+  if(cfg.src==="words"){
+    let last="";
+    return ()=>{const out=[];for(let i=0;i<20;i++){let w;do{w=WORDS[Math.random()*WORDS.length|0];}while(w===last);last=w;out.push(clean(w));}return out.join(" ").split(" ").filter(Boolean);};
+  }
+  const qs=allQuotes(), key="stream-"+cfg.src;
+  return ()=>clean(draw(key,qs).t).split(" ").filter(Boolean);
+}
+
+/* ============ حالة الاختبار ============ */
+let T;
+function fresh(words,quote){
+  return {words,typed:[""],idx:0,started:false,done:false,t0:0,ok:0,bad:0,secKeys:0,secErr:0,samples:[],nextSec:1,timer:null,quote};
+}
+function buildWords(){
+  gen=makeGen();
+  if(cfg.mode==="quote"){
+    let qs=allQuotes(); if(cfg.qlen!=="all"){const f=qs.filter(q=>lenCat(q.t)===cfg.qlen); if(f.length) qs=f;}
+    const q=draw("q-"+cfg.src+"-"+cfg.qlen,qs);
+    return {words:clean(q.t).split(" ").filter(Boolean),quote:q,count:qs.length};
+  }
+  const need=cfg.mode==="words"?cfg.words:90; let w=[];
+  while(w.length<need) w=w.concat(gen());
+  if(cfg.mode==="words") w=w.slice(0,cfg.words);
+  return {words:w,quote:null};
+}
+/* تاريخ النصوص: Tab للي بعده، Shift+Tab للي قبله */
+let hist=[], hpos=-1;
+function go(dir){
+  if(dir===0&&hpos>=0){ /* نفس النص */ }
+  else if(dir<0){ if(hpos>0) hpos--; else return flashNav("ده أول نص"); }
+  else if(hpos<hist.length-1){ hpos++; }
+  else { hist.push(buildWords()); if(hist.length>50) hist.shift(); hpos=hist.length-1; }
+  start(hist[hpos]);
+}
+function resetHistory(){ hist=[]; hpos=-1; go(1); }
+function flashNav(msg){ $("navhint").textContent=msg; clearTimeout(flashNav.t); flashNav.t=setTimeout(updateNav,1200); }
+function updateNav(){
+  const b=hist[hpos]; let s="";
+  if(cfg.mode==="quote"&&b&&b.count) s="نص "+AR_NUM(hpos+1)+" · فيه "+AR_NUM(b.count)+" نص في القسم ده";
+  $("navhint").textContent=s;
+}
+function start(b){
+  if(T&&T.timer) clearInterval(T.timer);
+  setTyping(false);
+  gen=makeGen();
+  T=fresh(b.words.slice(),b.quote);
+  $("results").hidden=true; $("stage").hidden=false;
+  wordsEl.style.transform="";
+  wordsEl.innerHTML=T.words.map((_,i)=>`<span class="w">${letters(i)}</span>`).join("");
+  ti.value="";
+  $("src").textContent=T.quote?("— "+T.quote.s):"";
+  $("live").textContent="";
+  updateNav(); updateCounter(); refresh(); showPB();
+  focusInput();
+}
+function letters(i){
+  const tg=T.words[i], ty=T.typed[i]||""; let h="";
+  const n=Math.max(tg.length,ty.length);
+  for(let j=0;j<n;j++){
+    if(j<tg.length){const cls=j<ty.length?(eq(ty[j],tg[j])?"ok":"bad"):""; h+=`<span class="${cls}">${esc(tg[j])}</span>`;}
+    else h+=`<span class="extra">${esc(ty[j])}</span>`;
+  }
+  return h;
+}
+function wordCorrect(i){const a=T.typed[i]||"",b=T.words[i];if(a.length!==b.length)return false;for(let j=0;j<a.length;j++)if(!eq(a[j],b[j]))return false;return true;}
+function prefixOk(i){const a=T.typed[i]||"",b=T.words[i]||"";if(a.length>b.length)return false;for(let j=0;j<a.length;j++)if(!eq(a[j],b[j]))return false;return true;}
+function updateWord(i){
+  const el=wordsEl.children[i]; if(!el) return;
+  el.innerHTML=letters(i);
+  el.classList.toggle("err", i<T.idx && !wordCorrect(i));
+}
+function appendWords(){
+  let add=[]; while(add.length<40) add=add.concat(gen());
+  const startI=T.words.length; T.words=T.words.concat(add);
+  const frag=document.createDocumentFragment();
+  for(let i=startI;i<T.words.length;i++){const s=document.createElement("span");s.className="w";s.innerHTML=letters(i);frag.appendChild(s);}
+  wordsEl.appendChild(frag);
+}
+
+/* ============ الإدخال ============ */
+function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); }
+function setTyping(on){ document.body.classList.toggle("typing",!!on); }
+document.addEventListener("mousemove",e=>{ if(Math.abs(e.movementX)+Math.abs(e.movementY)>3) setTyping(false); });
+function setTyped(nv){
+  const old=T.typed[T.idx]; if(nv===old) return;
+  if(!T.started&&nv.length) startTest();
+  const tg=T.words[T.idx];
+  let k=0; while(k<old.length&&k<nv.length&&old[k]===nv[k]) k++;
+  for(let j=k;j<nv.length;j++){
+    const good=j<tg.length&&eq(nv[j],tg[j]);
+    if(good)T.ok++;else{T.bad++;T.secErr++;flashBad();}
+    T.secKeys++;
+  }
+  T.typed[T.idx]=nv; updateWord(T.idx);
+  if(cfg.mode!=="time"&&T.idx===T.words.length-1&&wordCorrect(T.idx)) finish();
+}
+function commitWord(){
+  const i=T.idx, good=wordCorrect(i);
+  if(good)T.ok++;else{T.bad++;T.secErr++;}
+  T.secKeys++;
+  if(i===T.words.length-1&&cfg.mode!=="time"){finish();return;}
+  T.idx++; T.typed[T.idx]="";
+  updateWord(i); updateWord(T.idx);
+  if(cfg.mode==="time"&&T.words.length-T.idx<40) appendWords();
+}
+ti.addEventListener("input",()=>{
+  if(T.done){ti.value="";return;}
+  if(T.started) setTyping(true);
+  let v=ti.value.replace(/\n/g," ").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
+  if(cfg.lenient) v=v.replace(TASHKEEL,"");
+  const parts=v.split(" ");
+  for(let p=0;p<parts.length;p++){
+    setTyped(parts[p]); if(T.done) break;
+    if(p<parts.length-1){ if(!T.typed[T.idx].length) continue; commitWord(); if(T.done) break; }
+  }
+  ti.value=T.done?"":T.typed[T.idx];
+  refresh();
+});
+ti.addEventListener("keydown",e=>{
+  if(e.key==="Backspace"&&ti.value===""&&T.idx>0&&!T.done&&!wordCorrect(T.idx-1)){
+    e.preventDefault(); T.typed[T.idx]=""; updateWord(T.idx); T.idx--; ti.value=T.typed[T.idx];
+    updateWord(T.idx); refresh();
+  }
+});
+ti.addEventListener("focus",()=>{slab.classList.remove("blur");fmsg.hidden=true;});
+ti.addEventListener("blur",()=>{ if(!T.done){slab.classList.add("blur");fmsg.hidden=false;} });
+function focusInput(){ if(!$("tpanel").hidden) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
+
+document.addEventListener("keydown",e=>{
+  const panelOpen=!$("tpanel").hidden;
+  if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.code==="KeyP")){e.preventDefault(); panelOpen?closeThemes(true):openThemes(); return;}
+  if(panelOpen){
+    if(e.key==="Escape"){e.preventDefault();closeThemes(false);}
+    return;
+  }
+  pressKey(e.code,true);
+  if(e.key==="Tab"){ e.preventDefault(); go(e.shiftKey?-1:1); return; }
+  if(e.key==="Escape"){ e.preventDefault(); go(0); return; }
+  if(!$("results").hidden&&e.key==="Enter"&&document.activeElement.tagName!=="BUTTON"){e.preventDefault();go(1);return;}
+  if(document.activeElement!==ti&&$("results").hidden&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&document.activeElement.tagName!=="BUTTON"&&document.activeElement.tagName!=="INPUT") focusInput();
+});
+document.addEventListener("keyup",e=>pressKey(e.code,false));
+window.addEventListener("blur",()=>document.querySelectorAll(".k.press").forEach(k=>k.classList.remove("press")));
+
+/* ============ العرض ============ */
+let caretIdle;
+function refresh(){
+  if(!T||T.done) return;
+  const w=wordsEl.children[T.idx]; if(!w) return;
+  for(let i=Math.max(0,T.idx-60);i<T.idx;i++) wordsEl.children[i].classList.toggle("err",!wordCorrect(i));
+  const lh=w.offsetHeight||72; slab.style.setProperty("--lh",lh+"px");
+  const shift=Math.max(0,w.offsetTop-lh);
+  wordsEl.style.transform=shift?`translateY(${-shift}px)`:"";
+  placeCaret(); updateCounter(); updateKb();
+  caret.classList.remove("idle"); clearTimeout(caretIdle); caretIdle=setTimeout(()=>caret.classList.add("idle"),600);
+}
+function placeCaret(){
+  const w=wordsEl.children[T.idx]; if(!w) return;
+  const box=slab.getBoundingClientRect(), ty=T.typed[T.idx]||"", L=w.children;
+  let r,x;
+  if(!ty.length||!L.length){r=w.getBoundingClientRect();x=r.right+1;}
+  else{ let j=Math.min(ty.length,L.length)-1; r=L[j].getBoundingClientRect(); while(r.width===0&&j>0){j--;r=L[j].getBoundingClientRect();} x=r.left-1; r=w.getBoundingClientRect(); }
+  caret.style.height=(r.height*0.56)+"px";
+  caret.style.transform=`translate(${x-box.left-1}px,${r.top-box.top+r.height*0.24}px)`;
+}
+function updateCounter(){
+  const c=$("counter");
+  if(cfg.mode==="time"){
+    const el=T.started?(performance.now()-T.t0)/1000:0;
+    c.textContent=AR_NUM(Math.max(0,Math.ceil(cfg.time-el)));
+  } else c.textContent=AR_NUM(T.idx)+" / "+AR_NUM(T.words.length);
+}
+function correctChars(){
+  let n=0; for(let i=0;i<T.idx;i++) if(wordCorrect(i)) n+=T.words[i].length+1;
+  if(prefixOk(T.idx)) n+=(T.typed[T.idx]||"").length;
+  return n;
+}
+function tick(){
+  if(T.done) return;
+  const el=(performance.now()-T.t0)/1000;
+  while(el>=T.nextSec){ pushSample(T.nextSec); T.nextSec++; }
+  updateCounter();
+  if(el>=1) $("live").textContent=AR_NUM(Math.round(correctChars()/5/(el/60)))+" كلمة/دقيقة";
+  if(cfg.mode==="time"&&el>=cfg.time) finish();
+}
+function pushSample(s){ T.samples.push({s,wpm:correctChars()/5/(s/60),raw:T.secKeys*12,err:T.secErr}); T.secKeys=0;T.secErr=0; }
+
+/* ============ النتيجة ============ */
+function finish(){
+  if(T.done) return; T.done=true; clearInterval(T.timer); setTyping(false);
+  let el=cfg.mode==="time"?cfg.time:(performance.now()-T.t0)/1000;
+  el=Math.max(el,0.5);
+  const frac=el-(T.nextSec-1);
+  if(frac>0.4||!T.samples.length){T.samples.push({s:+el.toFixed(1),wpm:correctChars()/5/(el/60),raw:T.secKeys*(60/Math.max(frac,0.5))/5,err:T.secErr});}
+  const cc=correctChars();
+  const wpm=cc/5/(el/60), total=T.ok+T.bad, raw=total/5/(el/60), acc=total?T.ok/total*100:0;
+  let c=0,b=0,x=0,m=0;
+  for(let i=0;i<=T.idx&&i<T.words.length;i++){
+    const tg=T.words[i],ty=T.typed[i]||"";
+    for(let j=0;j<Math.max(tg.length,ty.length);j++){
+      if(j>=tg.length)x++;else if(j>=ty.length){if(i<T.idx||cfg.mode!=="time")m++;}else if(eq(ty[j],tg[j]))c++;else b++;
+    }
+  }
+  const key=pbKey(), pbs=getPBs(), prev=pbs[key];
+  const isPB=wpm>0&&acc>=75&&(!prev||wpm>prev.wpm);
+  if(isPB){pbs[key]={wpm:Math.round(wpm),acc:Math.round(acc)};setPBs(pbs);}
+  showResults({wpm,raw,acc,c,b,x,m,el,isPB,prev});
+  ti.blur(); updateKb();
+}
+const SRC_NAME={masry:"أمثال مصرية",kalam:"كلام مصري",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",mix:"مكس",words:"كلمات"};
+function modeLabel(){
+  const m=cfg.mode==="time"?AR_NUM(cfg.time)+" ثانية":cfg.mode==="words"?AR_NUM(cfg.words)+" كلمة":"اقتباس "+({all:"",s:"قصير",m:"متوسط",l:"طويل",xl:"طويل جدا"}[cfg.qlen]);
+  return m.trim()+" · "+SRC_NAME[cfg.src];
+}
+function pbKey(){return [cfg.mode,cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,cfg.src].join("-");}
+function showPB(){
+  const p=getPBs()[pbKey()];
+  $("pb").innerHTML=p?`أحسن رقم ليك هنا: <strong>${AR_NUM(p.wpm)}</strong> كلمة/دقيقة · دقة ${AR_NUM(p.acc)}٪`:modeLabel();
+}
+function showResults(r){
+  $("stage").hidden=true;
+  const R=$("results"); R.hidden=false; R.className="results";
+  const q=T.quote?`<div class="quote-done">${clean(T.quote.t)}<small>— ${T.quote.s}</small></div>`:"";
+  R.innerHTML=`
+    <div class="big">
+      <div class="stat"><div class="lbl">كلمة في الدقيقة</div><div class="val">${AR_NUM(Math.round(r.wpm))}</div></div>
+      <div class="stat"><div class="lbl">الدقة</div><div class="val sm">${AR_NUM(Math.round(r.acc))}٪</div></div>
+      ${r.isPB?`<div class="newpb">رقم قياسي جديد ليك${r.prev?` (كان ${AR_NUM(r.prev.wpm)})`:""}</div>`:""}
+    </div>
+    <div class="chartbox"><canvas id="chart" aria-label="السرعة على مدار الاختبار" role="img"></canvas></div>
+    <div class="small">
+      <div><div class="stat"><div class="lbl">السرعة الخام</div></div><div class="v">${AR_NUM(Math.round(r.raw))}</div></div>
+      <div><div class="stat"><div class="lbl">الحروف: صح / غلط / زيادة / ناقصة</div></div><div class="v">${AR_NUM(r.c)} <i>/</i> ${AR_NUM(r.b)} <i>/</i> ${AR_NUM(r.x)} <i>/</i> ${AR_NUM(r.m)}</div></div>
+      <div><div class="stat"><div class="lbl">الوقت</div></div><div class="v">${AR_NUM(Math.round(r.el))} <i>ث</i></div></div>
+      <div><div class="stat"><div class="lbl">الاختبار</div></div><div class="v" style="font-size:16px">${modeLabel()}</div></div>
+    </div>
+    ${q}
+    <div class="actions">
+      <button type="button" class="primary" id="b-new">النص اللي بعده<kbd>Tab</kbd></button>
+      <button type="button" id="b-same">نفس النص تاني<kbd>Esc</kbd></button>
+      <button type="button" id="b-prev">اللي قبله<kbd>Shift+Tab</kbd></button>
+    </div>`;
+  $("b-new").onclick=()=>go(1);
+  $("b-same").onclick=()=>go(0);
+  $("b-prev").onclick=()=>go(-1);
+  drawChart(); showPB();
+}
+function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function drawChart(){
+  const cv=$("chart"); if(!cv||!T) return;
+  const S=T.samples; const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth,H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const pl=34,pr=10,pt=10,pb=24, iw=W-pl-pr, ih=H-pt-pb;
+  const mx=Math.max(10,...S.map(s=>Math.max(s.wpm,s.raw)));
+  const top=Math.ceil(mx*1.1/10)*10;
+  const n=S.length; const X=i=>pl+(n<=1?iw/2:i/(n-1)*iw); const Y=v=>pt+ih-(v/top)*ih;
+  ctx.font="11px "+tok("--f-ui"); ctx.fillStyle=tok("--sub"); ctx.strokeStyle=tok("--line"); ctx.lineWidth=1;
+  ctx.textAlign="right"; ctx.textBaseline="middle";
+  for(let g=0;g<=4;g++){const v=top*g/4,y=Y(v);ctx.beginPath();ctx.moveTo(pl,y);ctx.lineTo(W-pr,y);ctx.stroke();ctx.fillText(Math.round(v),pl-6,y);}
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  const step=Math.max(1,Math.ceil(n/8));
+  S.forEach((s,i)=>{if(i%step===0||i===n-1)ctx.fillText(Math.round(s.s),X(i),H-pb+6);});
+  ctx.strokeStyle=tok("--sub"); ctx.lineWidth=1.5; ctx.beginPath(); S.forEach((s,i)=>i?ctx.lineTo(X(i),Y(s.raw)):ctx.moveTo(X(i),Y(s.raw))); ctx.stroke();
+  const acc=tok("--accent");
+  ctx.globalAlpha=.13; ctx.fillStyle=acc; ctx.beginPath(); ctx.moveTo(X(0),Y(0)); S.forEach((s,i)=>ctx.lineTo(X(i),Y(s.wpm))); ctx.lineTo(X(n-1),Y(0)); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+  ctx.strokeStyle=acc; ctx.lineWidth=2.5; ctx.lineJoin="round"; ctx.beginPath(); S.forEach((s,i)=>i?ctx.lineTo(X(i),Y(s.wpm)):ctx.moveTo(X(i),Y(s.wpm))); ctx.stroke();
+  if(n){ctx.fillStyle=acc;ctx.beginPath();ctx.arc(X(n-1),Y(S[n-1].wpm),3.5,0,7);ctx.fill();}
+  ctx.fillStyle=tok("--err");
+  S.forEach((s,i)=>{if(s.err){ctx.beginPath();ctx.arc(X(i),pt+6,Math.min(2+s.err,6),0,7);ctx.fill();}});
+}
+window.addEventListener("resize",()=>{ if(T&&T.done) drawChart(); else if(T) refresh(); });
+
+/* ============ الكيبورد ============ */
+/* [code, base, shift, latin, finger] — الصف الأول والأزرار الجانبية مشتركة */
+const F={Backquote:"fp",Digit1:"fp",Digit2:"fr",Digit3:"fm",Digit4:"fi",Digit5:"fi",Digit6:"fi",Digit7:"fi",Digit8:"fm",Digit9:"fr",Digit0:"fp",Minus:"fp",Equal:"fp",
+  KeyQ:"fp",KeyW:"fr",KeyE:"fm",KeyR:"fi",KeyT:"fi",KeyY:"fi",KeyU:"fi",KeyI:"fm",KeyO:"fr",KeyP:"fp",BracketLeft:"fp",BracketRight:"fp",Backslash:"fp",
+  KeyA:"fp",KeyS:"fr",KeyD:"fm",KeyF:"fi",KeyG:"fi",KeyH:"fi",KeyJ:"fi",KeyK:"fm",KeyL:"fr",Semicolon:"fp",Quote:"fp",
+  KeyZ:"fp",KeyX:"fr",KeyC:"fm",KeyV:"fi",KeyB:"fi",KeyN:"fi",KeyM:"fi",Comma:"fm",Period:"fr",Slash:"fp"};
+const LAT={KeyQ:"Q",KeyW:"W",KeyE:"E",KeyR:"R",KeyT:"T",KeyY:"Y",KeyU:"U",KeyI:"I",KeyO:"O",KeyP:"P",BracketLeft:"[",BracketRight:"]",
+  KeyA:"A",KeyS:"S",KeyD:"D",KeyF:"F",KeyG:"G",KeyH:"H",KeyJ:"J",KeyK:"K",KeyL:"L",Semicolon:";",Quote:"'",
+  KeyZ:"Z",KeyX:"X",KeyC:"C",KeyV:"V",KeyB:"B",KeyN:"N",KeyM:"M",Comma:",",Period:".",Slash:"/",Backquote:"`"};
+const CODES=[
+  ["Backquote","Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0","Minus","Equal"],
+  ["KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight","Backslash"],
+  ["KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon","Quote"],
+  ["KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash"]
+];
+/* الترتيبين زي ما هما في Monkeytype: arabic_101.json و arabic_mac.json */
+const LAYOUTS={
+  pc:[
+    [["ذ","ّ"],["1","!"],["2","@"],["3","#"],["4","$"],["5","%"],["6","^"],["7","&"],["8","*"],["9",")"],["0","("],["-","_"],["=","+"]],
+    [["ض","َ"],["ص","ً"],["ث","ُ"],["ق","ٌ"],["ف","لإ"],["غ","إ"],["ع","‘"],["ه","÷"],["خ","×"],["ح","؛"],["ج","<"],["د",">"],["\\","|"]],
+    [["ش","ِ"],["س","ٍ"],["ي","]"],["ب","["],["ل","لأ"],["ا","أ"],["ت","ـ"],["ن","،"],["م","/"],["ك",":"],["ط","\""]],
+    [["ئ","~"],["ء","ْ"],["ؤ","}"],["ر","{"],["لا","لآ"],["ى","آ"],["ة","’"],["و",","],["ز","."],["ظ","؟"]]
+  ],
+  mac:[
+    [["§","±"],["1","!"],["2","@"],["3","#"],["4","$"],["5","%"],["6","^"],["7","&"],["8","*"],["9","("],["0",")"],["-","_"],["=","+"]],
+    [["ض","َ"],["ص","ً"],["ث","ِ"],["ق","ٍ"],["ف","ُ"],["غ","ٌ"],["ع","ْ"],["ه","ّ"],["خ","]"],["ح","["],["ج","}"],["ة","{"],["\\","|"]],
+    [["ش","«"],["س","»"],["ي","ى"],["ب",""],["ل",""],["ا","آ"],["ت",""],["ن","٫"],["م","٬"],["ك",":"],["؛","\""]],
+    [["ظ","'"],["ط",""],["ذ","ئ"],["د","ء"],["ز","أ"],["ر","إ"],["و","ؤ"],["،",">"],[".","<"],["/","؟"]]
+  ]
+};
+let KMAP={};
+function buildKb(){
+  const L=LAYOUTS[cfg.layout]||LAYOUTS.pc; KMAP={};
+  const key=(code,b,s)=>{
+    const lat=LAT[code]&&code!=="Backquote"?`<span class="lat">${LAT[code]}</span>`:"";
+    if(b&&!(b in KMAP)) KMAP[b]={code,shift:false};
+    if(s&&!(s in KMAP)) KMAP[s]={code,shift:true};
+    return `<div class="k ${F[code]||""}" data-code="${code}">${lat}${s?`<span class="sh">${esc(s)}</span>`:""}${esc(b)}</div>`;
+  };
+  const fn=(code,label)=>`<div class="k" data-code="${code}"><span class="fn">${label}</span></div>`;
+  let h="";
+  h+=`<div class="row r0">${CODES[0].map((c,i)=>key(c,L[0][i][0],L[0][i][1])).join("")}${fn("Backspace","⌫")}</div>`;
+  h+=`<div class="row r1">${fn("Tab","Tab")}${CODES[1].map((c,i)=>key(c,L[1][i][0],L[1][i][1])).join("")}</div>`;
+  h+=`<div class="row r2">${fn("CapsLock","Caps")}${CODES[2].map((c,i)=>key(c,L[2][i][0],L[2][i][1])).join("")}${fn("Enter","Enter")}</div>`;
+  h+=`<div class="row r3">${fn("ShiftLeft","Shift")}${CODES[3].map((c,i)=>key(c,L[3][i][0],L[3][i][1])).join("")}${fn("ShiftRight","Shift")}</div>`;
+  h+=`<div class="row r4">${fn("AltLeft",cfg.layout==="mac"?"⌥":"Alt")}${fn("Space","مسافة")}${fn("AltRight",cfg.layout==="mac"?"⌥":"Alt")}</div>`;
+  $("kb").innerHTML=h;
+  KMAP[" "]={code:"Space",shift:false};
+}
+function kEl(code){return document.querySelector(`.k[data-code="${code}"]`);}
+function pressKey(code,down){const k=kEl(code);if(k)k.classList.toggle("press",down);}
+let badT;
+function flashBad(){ if(!cfg.kb) return; const k=kEl("Backspace"); if(!k) return; k.classList.add("flashbad"); clearTimeout(badT); badT=setTimeout(()=>k.classList.remove("flashbad"),180); }
+function updateKb(){
+  document.querySelectorAll(".k.next").forEach(k=>k.classList.remove("next"));
+  if(!cfg.kb||!T||T.done) return;
+  const tg=T.words[T.idx]||"", ty=T.typed[T.idx]||"";
+  let mark=[];
+  if(!prefixOk(T.idx)) mark=["Backspace"];
+  else if(ty.length>=tg.length) mark=["Space"];
+  else{
+    const ch=tg[ty.length];
+    const m=KMAP[ch]||KMAP[N(ch)];
+    if(m){ mark=[m.code]; if(m.shift) mark.push("ShiftLeft","ShiftRight"); }
+  }
+  mark.forEach(c=>{const k=kEl(c);if(k)k.classList.add("next");});
+}
+
+/* ============ الثيمات (من Monkeytype) ============ */
+const THEMES=MT.THEMES; /* [name, isDark, [bg,main,caret,sub,subAlt,text,error,errorExtra]] */
+const VARS=["--bg","--panel","--fg","--sub","--accent","--caret","--accent-soft","--err","--err-dim","--line","--key","--key-fg","--key-edge","--scrim"];
+function prettyName(n){return n.replace(/_/g," ");}
+function applyTheme(name){
+  const root=document.documentElement.style;
+  const t=THEMES.find(x=>x[0]===name);
+  if(!t){ VARS.forEach(v=>root.removeProperty(v)); root.removeProperty("color-scheme"); }
+  else{
+    const [bg,main,car,sub,subAlt,text,err,errX]=t[2];
+    const set={"--bg":bg,"--panel":subAlt,"--fg":text,"--sub":sub,"--accent":main,"--caret":car,"--accent-soft":main+"24",
+      "--err":err,"--err-dim":errX,"--line":subAlt,"--key":subAlt,"--key-fg":text,"--key-edge":t[1]?"rgba(0,0,0,.45)":sub+"80","--scrim":"rgba(0,0,0,.5)"};
+    for(const k in set) root.setProperty(k,set[k]);
+    root.setProperty("color-scheme",t[1]?"dark":"light");
+  }
+  const tt=THEMES.find(x=>x[0]===name);
+  $("tname").textContent=tt?prettyName(name):"طقطقة";
+  $("tdots").innerHTML=tt?[tt[2][1],tt[2][3],tt[2][5]].map(c=>`<i style="background:${c}"></i>`).join(""):`<i style="background:var(--accent)"></i><i style="background:var(--sub)"></i><i style="background:var(--fg)"></i>`;
+  if(T&&T.done) drawChart(); else if(T) refresh();
+}
+function renderThemes(){
+  const q=$("tsearch").value.trim().toLowerCase().replace(/\s+/g,"_");
+  const list=THEMES.filter(t=>(cfg.tfilter==="all"||(cfg.tfilter==="dark")===t[1])&&(!q||t[0].includes(q)));
+  const def=(!q&&cfg.tfilter!=="light")?`<button type="button" class="tcard${cfg.theme===""?" cur":""}" data-name="" style="background:#121b1b;color:#e8e2d3"><span>taqtaqa (default)</span><span class="dots"><i style="background:#e2aa3f"></i><i style="background:#5d6c69"></i><i style="background:#e8e2d3"></i></span></button>`:"";
+  $("tgrid").innerHTML=def+list.map(t=>{const c=t[2];return `<button type="button" class="tcard${cfg.theme===t[0]?" cur":""}" data-name="${t[0]}" style="background:${c[0]};color:${c[5]}"><span>${prettyName(t[0])}</span><span class="dots"><i style="background:${c[1]}"></i><i style="background:${c[3]}"></i><i style="background:${c[5]}"></i></span></button>`;}).join("");
+  $("tcount").textContent=AR_NUM(list.length)+" ثيم · عدّي بالماوس عشان تشوفه قبل ما تختار";
+  document.querySelectorAll("#g-tf button").forEach(b=>b.classList.toggle("on",b.dataset.v===cfg.tfilter));
+}
+function openThemes(){ $("tpanel").hidden=false; $("tsearch").value=""; renderThemes(); setTimeout(()=>$("tsearch").focus(),0); }
+function closeThemes(keep){ $("tpanel").hidden=true; applyTheme(cfg.theme); focusInput(); }
+$("themebtn").onclick=openThemes;
+$("tclose").onclick=()=>closeThemes();
+$("tpanel").addEventListener("mousedown",e=>{ if(e.target.id==="tpanel") closeThemes(); });
+$("tsearch").addEventListener("input",renderThemes);
+$("tsearch").addEventListener("keydown",e=>{ if(e.key==="Enter"){const f=$("tgrid").querySelector(".tcard"); if(f){cfg.theme=f.dataset.name;saveCfg();closeThemes();}} });
+$("g-tf").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;cfg.tfilter=b.dataset.v;saveCfg();renderThemes();});
+$("tgrid").addEventListener("click",e=>{const b=e.target.closest(".tcard");if(!b)return;cfg.theme=b.dataset.name;saveCfg();closeThemes();});
+$("tgrid").addEventListener("mouseover",e=>{const b=e.target.closest(".tcard");if(b)applyTheme(b.dataset.name);});
+$("tgrid").addEventListener("focusin",e=>{const b=e.target.closest(".tcard");if(b)applyTheme(b.dataset.name);});
+$("tgrid").addEventListener("mouseleave",()=>applyTheme(cfg.theme));
+
+/* ============ أزرار الإعدادات ============ */
+function syncConfig(){
+  if(cfg.mode==="quote"&&cfg.src==="words") cfg.src="mix";
+  document.querySelectorAll(".config .group[data-k], #g-layout").forEach(g=>{
+    const k=g.dataset.k;
+    g.querySelectorAll("button").forEach(b=>{ const on=String(cfg[k])===b.dataset.v; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
+  });
+  document.querySelectorAll(".tog").forEach(b=>{b.classList.toggle("on",!!cfg[b.dataset.t]);b.setAttribute("aria-pressed",!!cfg[b.dataset.t]);});
+  const counts={s:0,m:0,l:0,xl:0}; allQuotes().forEach(q=>counts[lenCat(q.t)]++);
+  if(cfg.qlen!=="all"&&!counts[cfg.qlen]) cfg.qlen="all";
+  document.querySelectorAll("#g-qlen button").forEach(b=>{ const v=b.dataset.v; if(v!=="all"){ b.disabled=!counts[v]; b.title=counts[v]?AR_NUM(counts[v])+" نص":"مفيش نصوص بالطول ده هنا"; } b.classList.toggle("on",cfg.qlen===v); });
+  $("g-time").hidden=cfg.mode!=="time"; $("g-words").hidden=cfg.mode!=="words"; $("g-qlen").hidden=cfg.mode!=="quote";
+  document.querySelector('.group[data-k="src"] button[data-v="words"]').disabled=cfg.mode==="quote";
+  $("kbwrap").hidden=!cfg.kb;
+  const de=document.documentElement;
+  de.classList.toggle("tf-serif",cfg.tfont==="serif");
+  de.classList.remove("ts-s","ts-l"); if(cfg.tsize!=="m") de.classList.add("ts-"+cfg.tsize);
+}
+$("config").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b||b.disabled) return;
+  const g=b.closest(".group[data-k]");
+  if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words")?+b.dataset.v:b.dataset.v; }
+  else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
+  saveCfg(); syncConfig(); b.blur();
+  if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
+  if(g&&(g.dataset.k==="tfont"||g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
+  if(b.dataset.t==="lenient"&&T&&!T.done){ for(let i=0;i<=T.idx;i++) updateWord(i); refresh(); focusInput(); return; }
+  resetHistory();
+});
+$("g-layout").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  cfg.layout=b.dataset.v; saveCfg(); syncConfig(); buildKb(); b.blur(); updateKb(); if(T&&!T.done) focusInput();
+});
+slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focusInput();} });
+
+syncConfig(); buildKb(); applyTheme(cfg.theme);
+resetHistory();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
+})();
+</script>
+
+</body>
+</html>
