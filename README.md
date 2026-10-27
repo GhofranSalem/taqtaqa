@@ -22,7 +22,7 @@
 
 ## الخط
 
-الصفحة بتستخدم خط **ثمانية** لو كان متسطّب على جهازك ([font.thmanyah.com](https://font.thmanyah.com)). ملفات الخط مش موجودة في الريبو، لأن رخصته مش بتسمح بنشرها. لو الخط مش متسطّب، الصفحة بتستخدم IBM Plex Sans Arabic و Noto Naskh Arabic من Google Fonts.
+الموقع مكتوب بخط **ثمانية** ([font.thmanyah.com](https://font.thmanyah.com))، وحقوق الخط لثمانية.
 
 ## المصادر والرخصة
 
