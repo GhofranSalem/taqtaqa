@@ -123,7 +123,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .w.err{border-bottom-color:var(--err)}
 .caret{position:absolute;top:0;left:0;width:2.5px;border-radius:2px;background:var(--caret);transition:transform .08s linear;pointer-events:none}
 .caret.idle{animation:blink 1s step-end infinite}
-.caret.ghost{background:var(--sub);opacity:.75;transition:transform .12s linear}
+.caret.ghost{background:var(--sub);opacity:.75;transition:none}
 .metaend{display:flex;align-items:baseline;gap:14px;min-width:0}
 .lastrun{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:7px}
 .lastrun::before{content:"";width:2.5px;height:13px;border-radius:2px;background:var(--sub);opacity:.75}
@@ -1367,17 +1367,35 @@ function placeGhost(){
   const g=$("ghost");
   if(!ghostOn()||!T.started){ g.hidden=true; return; }
   const el=(performance.now()-T.t0)/1000;
-  let n=Math.floor(el*T.last.w*5/60), wi=0;
-  while(wi<T.words.length&&n>T.words[wi].length){ n-=T.words[wi].length+1; wi++; }
-  if(wi>=T.words.length){ wi=T.words.length-1; n=T.words[wi].length; }
-  const w=wordsEl.children[wi]; if(!w){ g.hidden=true; return; }
-  const box=slab.getBoundingClientRect(), r=w.getBoundingClientRect();
-  let x=r.right+1; if(n>0){ const cr=charRect(w,Math.min(n,T.words[wi].length)-1); if(cr) x=cr.left-1; }
-  const y=r.top-box.top+r.height*0.24;
-  if(r.top<box.top-2||r.bottom>box.bottom+2){ g.hidden=true; return; }
+  let c=el*T.last.w*5/60, wi=0;
+  const box=slab.getBoundingClientRect();
+  /* مكان المؤشر بعد n حرف جوه كلمة رقم i */
+  const at=(i,n)=>{
+    const w=wordsEl.children[i]; if(!w) return null;
+    const r=w.getBoundingClientRect(); let x=r.right+1;
+    if(n>0){ const cr=charRect(w,Math.min(n,T.words[i].length)-1); if(cr) x=cr.left-1; }
+    return {x,top:r.top,h:r.height,bottom:r.bottom};
+  };
+  let p=null;
+  while(wi<T.words.length){
+    const L=T.words[wi].length;
+    if(c<=L){
+      const n0=Math.floor(c), f=c-n0, a=at(wi,n0), b=n0<L?at(wi,n0+1):a;
+      if(a) p={x:a.x+((b?b.x:a.x)-a.x)*f,top:a.top,h:a.h,bottom:a.bottom};
+      break;
+    }
+    if(c<L+1){ /* المسافة اللي بعد الكلمة */
+      const a=at(wi,L), b=at(wi+1,0), f=c-L;
+      if(a) p=(b&&Math.abs(b.top-a.top)<2)?{x:a.x+(b.x-a.x)*f,top:a.top,h:a.h,bottom:a.bottom}:a;
+      break;
+    }
+    c-=L+1; wi++;
+  }
+  if(!p){ const i=T.words.length-1; p=at(i,T.words[i].length); }
+  if(!p||p.top<box.top-2||p.bottom>box.bottom+2){ g.hidden=true; return; }
   g.hidden=false;
-  g.style.height=(r.height*0.56)+"px";
-  g.style.transform=`translate(${x-box.left-1}px,${y}px)`;
+  g.style.height=(p.h*0.56)+"px";
+  g.style.transform=`translate(${p.x-box.left-1}px,${p.top-box.top+p.h*0.24}px)`;
 }
 function runGhost(){
   cancelAnimationFrame(ghostRAF);
