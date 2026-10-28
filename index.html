@@ -121,7 +121,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .k .lat{position:absolute;top:2px;left:5px;font-family:var(--f-ui);font-size:clamp(8px,1.1vw,10px);color:var(--sub);line-height:1.2}
 .k .sh{position:absolute;bottom:1px;left:5px;font-size:clamp(9px,1.2vw,12px);color:var(--sub);line-height:1.2}
 .k .fn{font-family:var(--f-ui);font-size:clamp(9px,1.25vw,12px);color:var(--sub)}
-.k::after{content:"";position:absolute;bottom:4px;right:6px;width:5px;height:5px;border-radius:50%;background:var(--fc,transparent);opacity:.85}
 .k.next{background:var(--accent);color:var(--bg)}
 .k.next .lat,.k.next .sh,.k.next .fn{color:var(--bg)}
 .k.press{transform:translateY(2px);box-shadow:0 0 0 var(--key-edge)}
@@ -168,12 +167,27 @@ footer a{color:var(--sub)}
 .tcard .dots i{width:9px;height:9px;border-radius:50%;display:block}
 .tcount{color:var(--sub);font-size:12.5px;padding:0 16px 12px}
 
+/* قايمة الإعدادات */
+.setbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.setbtn:hover,.setbtn[aria-expanded="true"]{color:var(--fg)}
+.setbtn .badge{font-size:11.5px;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 8px}
+.popmenu{position:fixed;z-index:24;width:min(320px,calc(100vw - 32px));max-height:min(70vh,520px);overflow:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:6px 6px 10px}
+.popmenu h4{margin:0;padding:10px 10px 4px;font-size:12px;font-weight:500;color:var(--sub)}
+.setmenu .togs{display:flex;flex-direction:column;gap:2px}
+.setmenu .togs .tog{display:flex;align-items:center;gap:10px;text-align:start;width:100%;padding:7px 10px;color:var(--fg)}
+.setmenu .togs .tog::before{flex:none;margin:0}
+.setmenu .togs .tog .tt{display:flex;flex-direction:column;min-width:0}
+.setmenu .togs .tog small{font-size:11.5px;color:var(--sub);font-weight:400}
+.setmenu .togs .tog.on{color:var(--accent)}
+.setmenu .togs .tog:hover{background:var(--panel)}
+.setmenu .fontpick{padding:0 2px}
+.setmenu .group{justify-content:flex-start;padding:0 2px}
 /* قايمة الخطوط */
 .fontpick{display:flex;align-items:center}
-.fontbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--accent);font-weight:600;padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fontbtn{font:inherit;font-size:14px;line-height:1.5;background:var(--panel);border:0;color:var(--fg);font-weight:500;padding:7px 12px;width:100%;justify-content:space-between;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .fontbtn::after{content:"";width:6px;height:6px;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(-45deg)}
 .fontbtn[aria-expanded="true"]::after{transform:translateY(2px) rotate(135deg)}
-.fontmenu{position:fixed;z-index:25;width:min(320px,calc(100vw - 32px));max-height:min(62vh,460px);overflow:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:6px}
+.fontmenu{position:fixed;z-index:26;width:min(320px,calc(100vw - 32px));max-height:min(62vh,460px);overflow:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:6px}
 .fontmenu h4{margin:0;padding:10px 10px 4px;font-size:12px;font-weight:500;color:var(--sub)}
 .fopt{font:inherit;width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:none;border:0;border-radius:8px;padding:7px 10px;cursor:pointer;color:var(--fg);text-align:start}
 .fopt:hover,.fopt:focus-visible{background:var(--panel);outline:none}
@@ -274,19 +288,27 @@ body.typing .kb .k:not(.next){opacity:.45}
     <div class="group seg" data-k="qlen" id="g-qlen">
       <button type="button" data-v="all">الكل</button><button type="button" data-v="s">قصير</button><button type="button" data-v="m">متوسط</button><button type="button" data-v="l">طويل</button><button type="button" data-v="xl">طويل جدا</button>
     </div>
-    <div class="group seg">
-      <button type="button" class="tog" data-t="tashkeel" title="لما يكون شغال، الحركات اللي في النص بتظهر ولازم تكتبها">التشكيل</button>
-      <button type="button" class="tog" data-t="lenient" title="أ إ آ = ا ، ة = ه ، ى = ي">تساهل في الهمزات</button>
-      <button type="button" class="tog" data-t="punct">علامات الترقيم</button>
-      <button type="button" class="tog" data-t="kb">الكيبورد</button>
-    </div>
-    <div class="group fontpick">
-      <button type="button" class="fontbtn" id="fontbtn" aria-haspopup="true" aria-expanded="false" title="خط النص اللي بتكتبه">ثمانية</button>
-    </div>
-    <div class="group seg" data-k="tsize" title="حجم النص">
-      <button type="button" data-v="s" style="font-size:12px" aria-label="صغير">أ</button><button type="button" data-v="m" style="font-size:14.5px" aria-label="عادي">أ</button><button type="button" data-v="l" style="font-size:17px" aria-label="كبير">أ</button>
+    <div class="group">
+      <button type="button" class="setbtn" id="setbtn" aria-haspopup="true" aria-expanded="false">إعدادات<span class="badge" id="setbadge" hidden>بالتشكيل</span></button>
     </div>
   </nav>
+  <div class="popmenu setmenu" id="setmenu" role="dialog" aria-label="إعدادات" hidden>
+    <h4>الكتابة</h4>
+    <div class="seg togs">
+      <button type="button" class="tog" data-t="tashkeel"><span class="tt">التشكيل<small>الحركات بتظهر ولازم تكتبها</small></span></button>
+      <button type="button" class="tog" data-t="lenient"><span class="tt">تساهل في الهمزات<small>أ إ آ = ا، ة = ه، ى = ي</small></span></button>
+      <button type="button" class="tog" data-t="punct"><span class="tt">علامات الترقيم<small>النقط والفواصل جوه النص</small></span></button>
+      <button type="button" class="tog" data-t="kb"><span class="tt">الكيبورد<small>بيوريك الزرار الجاي</small></span></button>
+    </div>
+    <h4>خط النص</h4>
+    <div class="fontpick">
+      <button type="button" class="fontbtn" id="fontbtn" aria-haspopup="true" aria-expanded="false">ثمانية</button>
+    </div>
+    <h4>حجم النص</h4>
+    <div class="group seg" data-k="tsize">
+      <button type="button" data-v="s" style="font-size:12px" aria-label="صغير">أ</button><button type="button" data-v="m" style="font-size:14.5px" aria-label="عادي">أ</button><button type="button" data-v="l" style="font-size:17px" aria-label="كبير">أ</button>
+    </div>
+  </div>
 
   <section class="stage" id="stage">
     <div class="meta"><div class="counter" id="counter"></div><div class="live" id="live"></div></div>
@@ -318,9 +340,6 @@ body.typing .kb .k:not(.next){opacity:.45}
       </div>
     </div>
     <div class="kb" id="kb"></div>
-    <div class="legend">
-      <span style="--c:var(--f-pinky)">الخنصر</span><span style="--c:var(--f-ring)">البنصر</span><span style="--c:var(--f-mid)">الوسطى</span><span style="--c:var(--f-index)">السبابة</span>
-    </div>
   </section>
 
   <footer>
@@ -771,7 +790,7 @@ function appendWords(){
 
 /* ============ الإدخال ============ */
 function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); }
-function setTyping(on){ document.body.classList.toggle("typing",!!on); }
+function setTyping(on){ document.body.classList.toggle("typing",!!on); if(on){ closeFontMenu(false); closeSetMenu(false); } }
 document.addEventListener("mousemove",e=>{ if(Math.abs(e.movementX)+Math.abs(e.movementY)>3) setTyping(false); });
 function setTyped(nv){
   const old=T.typed[T.idx]; if(nv===old) return;
@@ -830,6 +849,7 @@ document.addEventListener("keydown",e=>{
     }
     return;
   }
+  if(!$("setmenu").hidden&&(e.key==="Escape"||e.key==="Tab")){ e.preventDefault(); closeSetMenu(true); return; }
   const panelOpen=!$("tpanel").hidden;
   if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.code==="KeyP")){e.preventDefault(); panelOpen?closeThemes(true):openThemes(); return;}
   if(panelOpen){
@@ -924,7 +944,7 @@ function modeLabel(){
 function pbKey(){return [cfg.mode,cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,cfg.src].join("-")+(cfg.tashkeel?"-t":"");}
 function showPB(){
   const p=getPBs()[pbKey()];
-  $("pb").innerHTML=p?`أحسن رقم ليك هنا: <strong>${AR_NUM(p.wpm)}</strong> كلمة/دقيقة · دقة ${AR_NUM(p.acc)}٪`:modeLabel();
+  $("pb").innerHTML=p?`أحسن رقم ليك هنا: <strong>${AR_NUM(p.wpm)}</strong> كلمة/دقيقة · دقة ${AR_NUM(p.acc)}٪`:"";
 }
 function showResults(r){
   $("stage").hidden=true;
@@ -1269,10 +1289,24 @@ document.addEventListener("mousedown",e=>{ if(!$("fontmenu").hidden&&!e.target.c
 window.addEventListener("resize",()=>{ if(!$("fontmenu").hidden) placeFontMenu(); });
 window.addEventListener("scroll",()=>{ if(!$("fontmenu").hidden) placeFontMenu(); },{passive:true});
 
+
+/* ============ قايمة الإعدادات ============ */
+function placeSetMenu(){
+  const r=$("setbtn").getBoundingClientRect(), M=$("setmenu"), mw=M.offsetWidth, vw=document.documentElement.clientWidth;
+  M.style.top=(r.bottom+6)+"px";
+  M.style.left=Math.max(16,Math.min(r.left+r.width/2-mw/2,vw-mw-16))+"px";
+}
+function openSetMenu(){ const M=$("setmenu"); M.hidden=false; placeSetMenu(); $("setbtn").setAttribute("aria-expanded","true"); const f=M.querySelector("button"); if(f) f.focus({preventScroll:true}); }
+function closeSetMenu(back){ if($("setmenu").hidden) return; closeFontMenu(false); $("setmenu").hidden=true; $("setbtn").setAttribute("aria-expanded","false"); if(back&&T&&!T.done) focusInput(); }
+$("setbtn").addEventListener("click",e=>{ e.stopPropagation(); $("setmenu").hidden?openSetMenu():closeSetMenu(true); });
+document.addEventListener("mousedown",e=>{ if(!$("setmenu").hidden&&!e.target.closest("#setmenu")&&!e.target.closest("#setbtn")&&!e.target.closest("#fontmenu")) closeSetMenu(false); });
+window.addEventListener("resize",()=>{ if(!$("setmenu").hidden) placeSetMenu(); });
+window.addEventListener("scroll",()=>{ if(!$("setmenu").hidden) placeSetMenu(); },{passive:true});
+
 /* ============ أزرار الإعدادات ============ */
 function syncConfig(){
   if(cfg.mode==="quote"&&cfg.src==="words") cfg.src="mix";
-  document.querySelectorAll(".config .group[data-k], #g-layout").forEach(g=>{
+  document.querySelectorAll(".config .group[data-k], #setmenu .group[data-k], #g-layout").forEach(g=>{
     const k=g.dataset.k;
     g.querySelectorAll("button").forEach(b=>{ const on=String(cfg[k])===b.dataset.v; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
   });
@@ -1283,11 +1317,12 @@ function syncConfig(){
   $("g-time").hidden=cfg.mode!=="time"; $("g-words").hidden=cfg.mode!=="words"; $("g-qlen").hidden=cfg.mode!=="quote";
   document.querySelector('.group[data-k="src"] button[data-v="words"]').disabled=cfg.mode==="quote";
   $("kbwrap").hidden=!cfg.kb;
+  $("setbadge").hidden=!cfg.tashkeel;
   const de=document.documentElement;
   de.classList.remove("ts-s","ts-l"); if(cfg.tsize!=="m") de.classList.add("ts-"+cfg.tsize);
 }
-$("config").addEventListener("click",e=>{
-  const b=e.target.closest("button"); if(!b||b.disabled) return;
+function onConfigClick(e){
+  const b=e.target.closest("button"); if(!b||b.disabled||b.id==="setbtn"||b.id==="fontbtn") return;
   const g=b.closest(".group[data-k]");
   if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words")?+b.dataset.v:b.dataset.v; if(k==="src"&&b.dataset.v==="tashkeel") cfg.tashkeel=true; }
   else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
@@ -1296,7 +1331,9 @@ $("config").addEventListener("click",e=>{
   if(g&&(g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
   if(b.dataset.t==="lenient"&&T&&!T.done){ for(let i=0;i<=T.idx;i++) updateWord(i); refresh(); focusInput(); return; }
   resetHistory();
-});
+}
+$("config").addEventListener("click",onConfigClick);
+$("setmenu").addEventListener("click",onConfigClick);
 $("g-layout").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b) return;
   cfg.layout=b.dataset.v; saveCfg(); syncConfig(); buildKb(); b.blur(); updateKb(); if(T&&!T.done) focusInput();
