@@ -529,7 +529,7 @@ body.typing .kb .k:not(.next){opacity:.45}
 <div class="tpanel" id="tpanel" hidden>
   <div class="tbox" role="dialog" aria-label="الثيمات">
     <div class="thead">
-      <input id="tsearch" type="search" placeholder="search…" aria-label="دور على ثيم" autocomplete="off">
+      <input id="tsearch" type="search" placeholder="دور بالعربي أو الإنجليزي…" aria-label="دور على ثيم" autocomplete="off">
       <div class="seg" data-k="tfilter" id="g-tf">
         <button type="button" data-v="dark">غامق</button><button type="button" data-v="light">فاتح</button><button type="button" data-v="all">الكل</button>
       </div>
@@ -1294,7 +1294,8 @@ function updateKb(){
 /* ============ الثيمات (من Monkeytype) ============ */
 const THEMES=MT.THEMES; /* [name, isDark, [bg,main,caret,sub,subAlt,text,error,errorExtra]] */
 const VARS=["--bg","--panel","--fg","--sub","--dim","--accent","--caret","--accent-soft","--err","--err-dim","--line","--key","--key-fg","--key-edge","--scrim"];
-function prettyName(n){return n.replace(/_/g," ");}
+const AR_THEME={"8008": "٨٠٠٨", "80s_after_dark": "ليل التمانينات", "alduin": "ألدوين", "alpine": "جبال الألب", "anti_hero": "ضد البطل", "arch": "آرتش", "bento": "بينتو", "bliss": "صفا", "blue_dolphin": "الدولفين الأزرق", "botanical": "نباتات", "bouquet": "بوكيه ورد", "breeze": "نسمة", "bushido": "بوشيدو", "cafe": "قهوة", "carbon": "كربون", "cherry_blossom": "زهر الكريز", "comfy": "مريح", "copper": "نحاس", "creamsicle": "آيس كريم برتقان", "cy_red": "أحمر سايبر", "cyberspace": "الفضاء الإلكتروني", "dark": "غامق", "dark_magic_girl": "الساحرة الغامقة", "darling": "حبيبي", "deku": "ديكو", "dev": "مبرمج", "diner": "مطعم أمريكاني", "dino": "ديناصور", "discord": "ديسكورد", "dollar": "دولار", "drowning": "غرق", "earthsong": "غنوة الأرض", "everblush": "إيفربلش", "evil_eye": "عين الحسود", "fledgling": "فرخ صغير", "fleuriste": "بياع الورد", "floret": "وردة صغيرة", "frozen_llama": "لاما متجمدة", "github": "جيت هب", "godspeed": "بالسلامة", "grand_prix": "جراند بري", "gruvbox_dark": "جروف بوكس غامق", "gruvbox_light": "جروف بوكس فاتح", "hammerhead": "قرش أبو مطرقة", "hanok": "هانوك", "hedge": "سور شجر", "honey": "عسل", "husqy": "هاسكي", "iceberg_dark": "جبل جليد غامق", "iceberg_light": "جبل جليد فاتح", "iv_clover": "سباتي", "iv_spade": "بستوني", "joker": "الجوكر", "laser": "ليزر", "leather": "جلد", "lilac_mist": "ضباب ليلكي", "lime": "ليمون أخضر", "luna": "قمر", "macroblank": "ماكروبلانك", "magic_girl": "الساحرة الصغيرة", "mashu": "ماشو", "matcha_moccha": "ماتشا وموكا", "material": "ماتيريال", "matrix": "ماتريكس", "menthol": "منتول", "metaverse": "ميتافيرس", "mexican": "مكسيكي", "miami": "ميامي", "miami_nights": "ليالي ميامي", "midnight": "نص الليل", "mint": "نعناع", "mizu": "ميزو", "modern_dolch": "دولش حديث", "modern_dolch_light": "دولش حديث فاتح", "monokai": "مونوكاي", "mountain": "جبل", "ms_cupcakes": "مس كب كيك", "muted": "هادي", "nautilus": "نوتيلوس", "nebula": "سديم", "night_runner": "عدّاء الليل", "nord": "نورد", "nord_light": "نورد فاتح", "norse": "إسكندنافي", "olive": "زيتوني", "olivia": "أوليفيا", "onedark": "وان دارك", "our_theme": "ثيمنا", "pale_nimbus": "سحابة باهتة", "paper": "ورق", "passion_fruit": "باشن فروت", "pastel": "باستيل", "peach_blossom": "زهر الخوخ", "peaches": "خوخ", "pink_lemonade": "ليمونادة بينك", "pulse": "نبض", "purpleish": "بنفسجي شوية", "red_dragon": "التنين الأحمر", "red_samurai": "الساموراي الأحمر", "repose_dark": "راحة غامق", "repose_light": "راحة فاتح", "retro": "ريترو", "rose_pine": "ورد وصنوبر", "rose_pine_dawn": "ورد وصنوبر الفجر", "rose_pine_moon": "ورد وصنوبر القمر", "rudy": "رودي", "ryujinscales": "قشور التنين", "serika": "سيريكا", "serika_dark": "سيريكا غامق", "shoko": "شوكو", "slambook": "دفتر الذكريات", "soaring_skies": "سما عالية", "solarized_dark": "سولارايزد غامق", "solarized_light": "سولارايزد فاتح", "sonokai": "سوناكاي", "spiderman": "سبايدر مان", "strawberry": "فراولة", "striker": "مهاجم", "superuser": "سوبر يوزر", "sweden": "السويد", "tangerine": "يوسفي", "terminal": "تيرمينال", "terra": "أرض", "terror_below": "الرعب اللي تحت", "tiramisu": "تيراميسو", "tron_orange": "ترون برتقاني", "vaporwave": "فيبرويف", "vesper": "فيسبر", "vesper_light": "فيسبر فاتح", "viridescent": "أخضراني", "voc": "فوك", "vscode": "في إس كود", "watermelon": "بطيخ", "wavez": "موج", "witch_girl": "الساحرة", "taqtaqa": "طقطقة"};
+function prettyName(n){return AR_THEME[n]||n.replace(/_/g," ");}
 function applyTheme(name){
   const root=document.documentElement.style;
   const t=THEMES.find(x=>x[0]===name);
@@ -1308,15 +1309,15 @@ function applyTheme(name){
     try{localStorage.setItem("tq-tv",JSON.stringify({v:set,cs:t[1]?"dark":"light"}));}catch(e){}
   }
   const tt=THEMES.find(x=>x[0]===name);
-  $("tname").textContent=tt?prettyName(name):"taqtaqa";
+  $("tname").textContent=prettyName(tt?name:"taqtaqa");
   $("tdots").innerHTML=tt?[tt[2][1],tt[2][3],tt[2][5]].map(c=>`<i style="background:${c}"></i>`).join(""):`<i style="background:var(--accent)"></i><i style="background:var(--sub)"></i><i style="background:var(--fg)"></i>`;
   if(T&&T.done) drawChart(); else if(T) refresh();
 }
 function renderThemes(){
-  const q=$("tsearch").value.trim().toLowerCase().replace(/\s+/g,"_");
-  const list=THEMES.filter(t=>(cfg.tfilter==="all"||(cfg.tfilter==="dark")===t[1])&&(!q||t[0].includes(q)));
-  const def=(!q&&cfg.tfilter!=="light")?`<button type="button" class="tcard${cfg.theme==="taqtaqa"?" cur":""}" data-name="taqtaqa" style="background:#121b1b;color:#e8e2d3"><span>taqtaqa</span><span class="dots"><i style="background:#e2aa3f"></i><i style="background:#5d6c69"></i><i style="background:#e8e2d3"></i></span></button>`:"";
-  $("tgrid").innerHTML=def+list.map(t=>{const c=t[2];return `<button type="button" class="tcard${cfg.theme===t[0]?" cur":""}" data-name="${t[0]}" style="background:${c[0]};color:${c[5]}"><span>${prettyName(t[0])}</span><span class="dots"><i style="background:${c[1]}"></i><i style="background:${c[3]}"></i><i style="background:${c[5]}"></i></span></button>`;}).join("");
+  const raw=$("tsearch").value.trim().toLowerCase(), q=raw.replace(/\s+/g,"_");
+  const list=THEMES.filter(t=>(cfg.tfilter==="all"||(cfg.tfilter==="dark")===t[1])&&(!q||t[0].includes(q)||prettyName(t[0]).includes(raw))).sort((a,b)=>prettyName(a[0]).localeCompare(prettyName(b[0]),"ar"));
+  const def=(!q&&cfg.tfilter!=="light")?`<button type="button" class="tcard${cfg.theme==="taqtaqa"?" cur":""}" data-name="taqtaqa" title="taqtaqa" style="background:#121b1b;color:#e8e2d3"><span>طقطقة</span><span class="dots"><i style="background:#e2aa3f"></i><i style="background:#5d6c69"></i><i style="background:#e8e2d3"></i></span></button>`:"";
+  $("tgrid").innerHTML=def+list.map(t=>{const c=t[2];return `<button type="button" class="tcard${cfg.theme===t[0]?" cur":""}" data-name="${t[0]}" title="${t[0].replace(/_/g," ")}" style="background:${c[0]};color:${c[5]}"><span>${prettyName(t[0])}</span><span class="dots"><i style="background:${c[1]}"></i><i style="background:${c[3]}"></i><i style="background:${c[5]}"></i></span></button>`;}).join("");
   $("tcount").textContent=AR_NUM(list.length)+" ثيم · عدّي بالماوس عشان تشوفه قبل ما تختار";
   document.querySelectorAll("#g-tf button").forEach(b=>b.classList.toggle("on",b.dataset.v===cfg.tfilter));
 }
