@@ -1,7 +1,14 @@
 // طقطقة: الحسابات وحفظ التاريخ على Firebase.
 // الموقع بيشتغل عادي من غير الملف ده؛ التاريخ بيتحفظ على المتصفح، ولما تسجل دخول بيتزامن مع حسابك.
 // إعدادات المشروع (مش سرية؛ الحماية في قواعد Firestore)
-const firebaseConfig = null; /*__FIREBASE_CONFIG__*/
+const firebaseConfig = {
+  apiKey: "AIzaSyDoUjqkGOiC-ogyhN2mR8ScowPv_YfUDsY",
+  authDomain: "taqtaqa-type.firebaseapp.com",
+  projectId: "taqtaqa-type",
+  storageBucket: "taqtaqa-type.firebasestorage.app",
+  messagingSenderId: "506636500827",
+  appId: "1:506636500827:web:4c264b5dd9041cb5ea247e"
+};
 
 const OWNER_KEY = "tq-owner";
 const $ = (id) => document.getElementById(id);
