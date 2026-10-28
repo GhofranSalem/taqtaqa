@@ -208,9 +208,8 @@ footer .flinks{display:flex;gap:18px}
 .tdots{display:flex;gap:5px}
 .tdots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
 .tdots i.on{background:var(--accent)}
-.helpbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:7px;background:var(--panel);color:var(--fg);border:0;border-radius:999px;padding:5px 12px 5px 6px;cursor:pointer}
-.helpbtn .q{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--bg);font-weight:700;font-size:13px;line-height:1}
-.helpbtn:hover{background:var(--line)}
+.helpbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;background:none;color:var(--fg);border:1.5px solid var(--accent);border-radius:999px;padding:4px 13px;cursor:pointer;transition:background .15s,color .15s}
+.helpbtn:hover{background:var(--accent);color:var(--bg)}
 @media (prefers-reduced-motion:reduce){.tour .spot,.tcardx{transition:none}}
 /* قايمة الإعدادات */
 .setbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
@@ -307,7 +306,7 @@ body.typing .kb .k:not(.next){opacity:.45}
     <div class="hright">
       <div class="pb" id="pb"></div>
       <span id="authslot"></span>
-      <button class="helpbtn" id="helpbtn" type="button"><span class="q" aria-hidden="true">؟</span>شرح الموقع</button>
+      <button class="helpbtn" id="helpbtn" type="button">شرح الموقع</button>
       <button class="histbtn" id="histbtn" type="button">تاريخي</button>
       <button class="themebtn" id="themebtn" type="button"><span class="dots" id="tdots"></span><span id="tname">طقطقة</span></button>
     </div>
