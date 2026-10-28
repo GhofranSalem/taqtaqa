@@ -1039,16 +1039,41 @@ $("favhbtn").addEventListener("click",()=>{
   }
   saveCfg(); syncConfig(); resetHistory();
 });
+/* ============ كشيدة اللوجو ============ */
+/* بنمطّ «طقطقة» بالكشيدة بعد حرفي القاف لحد ما اللوجو يبقى بعرض الجملة اللي تحته، من غير ما يعدّيها */
+const LOGO_WORD="طقطقة";
+function stretchLogo(){
+  const lw=$("logoword"), logo=$("logo"), target=$("tagtext").getBoundingClientRect().width;
+  if(!target) return lw.textContent;
+  let best=LOGO_WORD;
+  for(let n=0;n<=16;n++){
+    const k1="ـ".repeat(Math.floor(n/2)), k2="ـ".repeat(Math.ceil(n/2));
+    const w=LOGO_WORD.slice(0,2)+k1+LOGO_WORD.slice(2,4)+k2+LOGO_WORD.slice(4);
+    lw.textContent=w;
+    if(logo.getBoundingClientRect().width>target+1) break;
+    best=w;
+  }
+  lw.textContent=best;
+  return best;
+}
+let stretchT;
+window.addEventListener("resize",()=>{ if(document.documentElement.classList.contains("intro")) return; clearTimeout(stretchT); stretchT=setTimeout(stretchLogo,150); });
+
 /* ============ افتتاحية اللوجو ============ */
 function playIntro(){
-  const H=document.documentElement; if(!H.classList.contains("intro")) return;
+  const H=document.documentElement;
+  const ready=document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve();
+  if(!H.classList.contains("intro")){ ready.then(stretchLogo); return; }
   const lw=$("logoword"), dot=document.querySelector(".logo b"), tg=$("tagtext"), hr=document.querySelector(".hright");
-  const word=lw.textContent, tag=tg.textContent;
+  const tag=tg.textContent;
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
   (async()=>{
+    await ready;
+    const word=stretchLogo();
     lw.textContent=word.slice(0,1); lw.classList.add("on");
     await wait(420);
-    for(let i=2;i<=word.length;i++){ lw.textContent=word.slice(0,i); dot.classList.add("tick"); setTimeout(()=>dot.classList.remove("tick"),70); await wait(85+Math.random()*55); }
+    /* كل خطوة بتكتب حرف ومعاه الكشيدة اللي بعده */
+    for(let i=2;i<=word.length;i++){ if(word[i]==="ـ") continue; lw.textContent=word.slice(0,i); dot.classList.add("tick"); setTimeout(()=>dot.classList.remove("tick"),70); await wait(85+Math.random()*55); }
     lw.textContent=word; await wait(160);
     hr.classList.add("show");
     tg.textContent=""; tg.classList.add("on","typing");
@@ -1056,7 +1081,7 @@ function playIntro(){
     await wait(700); tg.classList.remove("typing");
     await wait(500); H.classList.remove("intro");
     try{sessionStorage.setItem("tq-intro","1");}catch(e){}
-  })().catch(()=>{ lw.textContent=word; tg.textContent=tag; H.classList.remove("intro"); });
+  })().catch(()=>{ tg.textContent=tag; H.classList.remove("intro"); stretchLogo(); });
 }
 
 /* ============ البداية ============ */
