@@ -39,7 +39,7 @@ function toast(msg){ document.querySelectorAll(".toast").forEach(x=>x.remove());
 const CATS={
   masry:()=>MASRY.map(t=>({t,s:"مثل شعبي مصري",tk:true})),
   saudi:()=>SAUDI.map(t=>({t,s:"مثل شعبي سعودي",tk:true})),
-  kalam:()=>KALAM.map(t=>({t,s:"كلام مصري",tk:true})).concat(MT_EGY.map(t=>({t,s:"كلام مصري · من اقتباسات Monkeytype",tk:true}))),
+  kalam:()=>KALAM.map(t=>({t,s:"كلام مصري",tk:true})).concat(MT_EGY.map(t=>({t,s:"كلام مصري، من اقتباسات Monkeytype",tk:true}))),
   hawadit:()=>HAWADIT.map(([t,s])=>({t,s,tk:true})),
   aflam:()=>AFLAM.map(([t,f,a,y])=>({t,s:`فيلم ${f} (${y})، ${a}`,tk:true})),
   hekam:()=>HEKAM.map(([t,s])=>({t,s,tk:true})),
@@ -107,7 +107,7 @@ function resetHistory(){ hist=[]; hpos=-1; go(1); }
 function flashNav(msg){ $("navhint").textContent=msg; clearTimeout(flashNav.t); flashNav.t=setTimeout(updateNav,1200); }
 function updateNav(){
   const b=hist[hpos]; let s="";
-  if(cfg.mode==="quote"&&b&&b.count) s="نص "+AR_NUM(hpos+1)+" · فيه "+AR_NUM(b.count)+" نص في القسم ده";
+  if(cfg.mode==="quote"&&b&&b.count) s="نص "+AR_NUM(hpos+1)+"، فيه "+AR_NUM(b.count)+" نص في القسم ده";
   $("navhint").textContent=s;
 }
 function start(b){
@@ -342,12 +342,12 @@ function finish(){
 const SRC_NAME={masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",fav:"مفضلتي",words:"كلمات"};
 function modeLabel(){
   const m=cfg.mode==="time"?AR_NUM(cfg.time)+" ثانية":cfg.mode==="words"?AR_NUM(cfg.words)+" كلمة":"اقتباس "+({all:"",s:"قصير",m:"متوسط",l:"طويل",xl:"طويل جدا"}[cfg.qlen]);
-  return m.trim()+" · "+SRC_NAME[cfg.src]+(cfg.tashkeel?" · بالتشكيل":"");
+  return m.trim()+"، "+SRC_NAME[cfg.src]+(cfg.tashkeel?"، بالتشكيل":"");
 }
 function pbKey(){return [cfg.mode,cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,cfg.src].join("-")+(cfg.tashkeel?"-t":"");}
 function showPB(){
   const p=getPBs()[pbKey()];
-  $("pb").innerHTML=p?`أحسن رقم ليك هنا: <strong>${AR_NUM(p.wpm)}</strong> كلمة/دقيقة · دقة ${AR_NUM(p.acc)}٪`:"";
+  $("pb").innerHTML=p?`أحسن رقم ليك هنا: <strong>${AR_NUM(p.wpm)}</strong> كلمة/دقيقة، دقة ${AR_NUM(p.acc)}٪`:"";
 }
 function showResults(r){
   $("stage").hidden=true;
@@ -358,7 +358,7 @@ function showResults(r){
       <div class="stat"><div class="lbl">كلمة في الدقيقة</div><div class="val">${AR_NUM(Math.round(r.wpm))}</div></div>
       <div class="stat"><div class="lbl">الدقة</div><div class="val sm">${AR_NUM(Math.round(r.acc))}٪</div></div>
       ${(()=>{const h=getHist();return h.length>=3?`<div class="avg10">متوسطك في آخر ١٠: ${AR_NUM(Math.round(avgLast(h,10,"wpm")))} ك/د</div>`:"";})()}
-      ${r.last?(()=>{const d=Math.round(r.wpm)-Math.round(r.last.w);return `<div class="vslast">آخر مرة في النص ده: <b>${AR_NUM(Math.round(r.last.w))}</b> ك/د · ${d>0?`<span class="up">أسرع بـ ${AR_NUM(d)}</span>`:d<0?`أبطأ بـ ${AR_NUM(-d)}`:"نفس السرعة"}</div>`;})():""}
+      ${r.last?(()=>{const d=Math.round(r.wpm)-Math.round(r.last.w);return `<div class="vslast">آخر مرة في النص ده: <b>${AR_NUM(Math.round(r.last.w))}</b> ك/د، ${d>0?`<span class="up">أسرع بـ ${AR_NUM(d)}</span>`:d<0?`أبطأ بـ ${AR_NUM(-d)}`:"نفس السرعة"}</div>`;})():""}
       ${r.isPB?`<div class="newpb">رقم قياسي جديد ليك${r.prev?` (كان ${AR_NUM(r.prev.wpm)})`:""}</div>`:""}
     </div>
     <div class="chartbox"><canvas id="chart" aria-label="السرعة على مدار الاختبار" role="img"></canvas></div>
@@ -372,16 +372,73 @@ function showResults(r){
     ${(getHist().length%5===0&&getHist().length>0)?'<div class="supline">عجبك طقطقة؟ <button type="button" id="b-sup">ادعمه بمشاركة أو نجمة</button></div>':""}
     <div class="actions">
       <button type="button" class="primary" id="b-new">النص اللي بعده<kbd>Tab</kbd></button>
+      <button type="button" class="shareact" id="b-share">شارك نتيجتك</button>
       <button type="button" id="b-same">نفس النص تاني<kbd>Esc</kbd></button>
       <button type="button" id="b-prev">اللي قبله<kbd>Shift+Tab</kbd></button>
       ${curQuote()?'<button type="button" class="favact" id="b-fav"></button>':""}
     </div>`;
+  T.result=r;
   $("b-new").onclick=()=>go(1);
+  $("b-share").onclick=()=>shareResult(r);
   $("b-same").onclick=()=>go(0);
   $("b-prev").onclick=()=>go(-1);
   if($("b-fav")){ $("b-fav").onclick=()=>toggleFav(curQuote()); paintFav(); }
   if($("b-sup")) $("b-sup").onclick=()=>window.openSupport&&window.openSupport();
   drawChart(); showPB();
+}
+/* ============ شارك نتيجتك ============ */
+/* صورة ١٠٨٠×١٣٥٠ بألوان الثيم الحالي: السرعة والدقة والنص اللي اتكتب */
+async function resultCard(r){
+  const W=1080,H=1350,P=96, c=document.createElement("canvas"); c.width=W; c.height=H;
+  const x=c.getContext("2d"), bg=tok("--bg"), fg=tok("--fg"), sub=tok("--sub"), acc=tok("--accent"), panel=tok("--panel");
+  const disp='"TQ Display", serif', sans='"TQ Sans", sans-serif';
+  try{ await Promise.all([document.fonts.load('700 72px "TQ Display"'),document.fonts.load('500 72px "TQ Sans"'),document.fonts.load('400 40px "TQ Sans"')]); }catch(e){}
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  x.direction="rtl"; x.textAlign="right"; x.textBaseline="alphabetic";
+  const R=W-P;
+  /* اللوجو */
+  x.font=`700 76px ${disp}`; x.fillStyle=fg; x.fillText("طقطقة",R,P+70);
+  const lw=x.measureText("طقطقة").width; x.fillStyle=acc; x.fillText(".",R-lw,P+70);
+  /* السرعة */
+  x.font=`500 300px ${sans}`; x.fillStyle=acc; x.fillText(AR_NUM(Math.round(r.wpm)),R,P+400);
+  x.font=`400 46px ${sans}`; x.fillStyle=sub; x.fillText("كلمة في الدقيقة",R,P+475);
+  /* الدقة والوقت والاختبار */
+  x.font=`500 40px ${sans}`; x.fillStyle=fg;
+  const facts=[`الدقة ${AR_NUM(Math.round(r.acc))}٪`,`${AR_NUM(Math.round(r.el))} ثانية`];
+  if(r.isPB) facts.push("رقم قياسي جديد");
+  x.fillText(facts.join("  ،   "),R,P+560);
+  /* النص */
+  const q=T.quote||curQuote();
+  let y=P+680;
+  if(q){
+    const words=clean(q.t,q.tk).split(" "), maxW=W-P*2-40, lines=[]; let line="";
+    x.font=`400 44px ${sans}`;
+    for(const w of words){ const t=line?line+" "+w:w; if(x.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else line=t; }
+    if(line) lines.push(line);
+    const shown=lines.slice(0,6); if(lines.length>6) shown[5]=shown[5].replace(/\s*\S+$/,"")+"…";
+    x.fillStyle=acc; x.fillRect(R-6,y-44,6,shown.length*70+66);
+    x.fillStyle=fg; shown.forEach((l,i)=>x.fillText(l,R-36,y+i*70));
+    x.font=`400 32px ${sans}`; x.fillStyle=sub; x.fillText("— "+q.s,R-36,y+shown.length*70+12);
+  }
+  /* الدعوة */
+  x.fillStyle=panel; const by=H-P-110; x.beginPath(); x.roundRect?x.roundRect(P,by,W-P*2,110,24):x.rect(P,by,W-P*2,110); x.fill();
+  x.font=`500 42px ${sans}`; x.fillStyle=fg; x.textAlign="center"; x.fillText("جرّب تسبقني على taqtaqa.com",W/2,by+70);
+  return new Promise(res=>c.toBlob(res,"image/png"));
+}
+async function shareResult(r){
+  const b=$("b-share"); b.disabled=true;
+  try{
+    const blob=await resultCard(r), file=new File([blob],"taqtaqa.png",{type:"image/png"});
+    const text=`كتبت ${AR_NUM(Math.round(r.wpm))} كلمة في الدقيقة على طقطقة. جرّب تسبقني`;
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],text:text+": https://taqtaqa.com"}); }catch(e){ if(e&&e.name!=="AbortError") throw e; }
+    }else{
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="taqtaqa.png"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+      toast("اتنزلت صورة نتيجتك. شاركها مع أصحابك.");
+    }
+  }catch(e){ toast("ما قدرناش نعمل الصورة. جرّب تاني."); }
+  b.disabled=false;
 }
 function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 function drawChart(){
@@ -499,7 +556,7 @@ function renderThemes(){
   const list=THEMES.filter(t=>(cfg.tfilter==="all"||(cfg.tfilter==="dark")===t[1])&&(!q||t[0].includes(q)||prettyName(t[0]).includes(raw))).sort((a,b)=>prettyName(a[0]).localeCompare(prettyName(b[0]),"ar"));
   const def=(!q&&cfg.tfilter!=="light")?`<button type="button" class="tcard${cfg.theme==="taqtaqa"?" cur":""}" data-name="taqtaqa" title="taqtaqa" style="background:#121b1b;color:#e8e2d3"><span>طقطقة</span><span class="dots"><i style="background:#e2aa3f"></i><i style="background:#5d6c69"></i><i style="background:#e8e2d3"></i></span></button>`:"";
   $("tgrid").innerHTML=def+list.map(t=>{const c=t[2];return `<button type="button" class="tcard${cfg.theme===t[0]?" cur":""}" data-name="${t[0]}" title="${t[0].replace(/_/g," ")}" style="background:${c[0]};color:${c[5]}"><span>${prettyName(t[0])}</span><span class="dots"><i style="background:${c[1]}"></i><i style="background:${c[3]}"></i><i style="background:${c[5]}"></i></span></button>`;}).join("");
-  $("tcount").textContent=AR_NUM(list.length)+" ثيم · عدّي بالماوس عشان تشوفه قبل ما تختار";
+  $("tcount").textContent=AR_NUM(list.length)+" ثيم، عدّي بالماوس عشان تشوفه قبل ما تختار";
   document.querySelectorAll("#g-tf button").forEach(b=>b.classList.toggle("on",b.dataset.v===cfg.tfilter));
 }
 function openThemes(){ $("tpanel").hidden=false; $("tsearch").value=""; renderThemes(); setTimeout(()=>$("tsearch").focus(),0); }
@@ -537,7 +594,7 @@ function showLastRun(){
   const L=$("lastrun"), l=T&&T.last;
   if(!l){ L.hidden=true; return; }
   L.hidden=false;
-  L.innerHTML=`آخر مرة: <b>${AR_NUM(Math.round(l.w))}</b> ك/د · ${AR_NUM(l.a)}٪`;
+  L.innerHTML=`آخر مرة: <b>${AR_NUM(Math.round(l.w))}</b> ك/د، ${AR_NUM(l.a)}٪`;
   L.title=cfg.pace?"المؤشر الرمادي ماشي بسرعتك آخر مرة. حاول تسبقه.":"تقدر تشغّل «مؤشر آخر مرة» من الإعدادات";
 }
 let ghostRAF=0;
