@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /__/
+
+Sitemap: https://taqtaqa.com/sitemap.xml
