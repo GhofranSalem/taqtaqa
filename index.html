@@ -228,6 +228,7 @@ body.typing .under,body.typing .live{opacity:.55}
       <button type="button" data-v="hawadit">حواديت</button>
       <button type="button" data-v="hekam">حكم وتراث</button>
       <button type="button" data-v="sheer">شعر</button>
+      <button type="button" data-v="tashkeel" title="جمل فيها كلمات معناها بيتغير بالتشكيل">تشكيل</button>
       <button type="button" data-v="mix">مكس</button>
       <button type="button" data-v="words">كلمات</button>
     </div>
@@ -246,6 +247,7 @@ body.typing .under,body.typing .live{opacity:.55}
       <button type="button" data-v="all">الكل</button><button type="button" data-v="s">قصير</button><button type="button" data-v="m">متوسط</button><button type="button" data-v="l">طويل</button><button type="button" data-v="xl">طويل جدا</button>
     </div>
     <div class="group seg">
+      <button type="button" class="tog" data-t="tashkeel" title="لما يكون شغال، الحركات اللي في النص بتظهر ولازم تكتبها">التشكيل</button>
       <button type="button" class="tog" data-t="lenient" title="أ إ آ = ا ، ة = ه ، ى = ي">تساهل في الهمزات</button>
       <button type="button" class="tog" data-t="punct">علامات الترقيم</button>
       <button type="button" class="tog" data-t="kb">الكيبورد</button>
@@ -493,7 +495,7 @@ const MT_EGY = MT.MT_EGY;
 const WORDS = Array.from(new Set(("في من على إلى عن مع هو هي احنا انتو هما أنا انت كان قال عايز لازم ممكن النهارده بكرة امبارح دلوقتي بعدين كده ليه فين امتى مين إزاي إيه أيوه خلاص طيب ماشي يلا شوية كتير حلو البيت الشغل الشارع العربية الأكل المية الشاي القهوة الصبح بالليل الناس صاحبي الكتاب القلم المدرسة الجامعة المكتب السوق الفلوس الوقت الدنيا مصر القاهرة النيل الشمس القمر البحر الكيبورد الكتابة سريع جديد كبير صغير سهل صعب").split(" ").concat(MT.MT_WORDS)));
 
 /* ============ إعدادات ============ */
-const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"",tfilter:"dark",tfont:"sans",tsize:"m"};
+const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false};
 let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
 function saveCfg(){try{localStorage.setItem("tq-cfg",JSON.stringify(cfg));}catch(e){}}
@@ -506,8 +508,13 @@ const AR_NUM=n=>String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
 
 /* ============ مساعدات النص ============ */
 const TASHKEEL=/[ً-ْٰـ]/g;
+const HARAKAT=/[\u064B-\u0652]/g;
+function isMark(c){return !!c&&c>="\u064B"&&c<="\u0652";}
+/* الشدة الأول وبعدين الحركة، زي ما الناس بتكتبها */
+function canonMarks(t){return t.replace(/[\u064B-\u0652]{2,}/g,r=>[...r].sort((a,b)=>(a==="\u0651"?0:1)-(b==="\u0651"?0:1)).join(""));}
 function clean(t){
-  t=t.replace(TASHKEEL,"").replace(/\.{2,}/g,"،").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
+  t=cfg.tashkeel?canonMarks(t.replace(/[\u0670\u0640]/g,"")):t.replace(TASHKEEL,"");
+  t=t.replace(/\.{2,}/g,"،").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
   if(!cfg.punct) t=t.replace(/[،؛؟!.:,"«»\-]/g," ");
   return t.replace(/\s+/g," ").trim();
 }
@@ -516,15 +523,52 @@ function N(c){return cfg.lenient?(NMAP[c]||c):c;}
 function eq(a,b){return a===b||N(a)===N(b);}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 function esc(c){return c==="<"?"&lt;":c===">"?"&gt;":c==="&"?"&amp;":c;}
+/* نصوص التشكيل: كلمات معناها بيتغير بالحركات */
+const TASHKEEL_TXT = [
+["لا تخلط بين العِلْم والعَلَم، فالأول معرفة والثاني راية.","العِلْم والعَلَم"],
+["عَلِمَ الطالب بالخبر، ثم عَلَّمَ زملاءه ما عرف.","عَلِمَ وعَلَّمَ"],
+["الحُبّ مكانه القلب، والحَبّ مكانه السنبلة.","الحُبّ والحَبّ"],
+["وضع قَدَمَه على عتبة بيت عتيق، يشهد كل حجر فيه بقِدَمِه.","القَدَم والقِدَم"],
+["المَلِك يحكم، والمَلَك من الملائكة، والمُلْك ما يملكه الإنسان.","المَلِك والمَلَك والمُلْك"],
+["الدِّين معاملة، والدَّيْن أمانة يجب أن تُرَدّ إلى صاحبها.","الدِّين والدَّيْن"],
+["البُرّ هو القمح، والبَرّ هو اليابسة، والبِرّ هو الإحسان.","البُرّ والبَرّ والبِرّ"],
+["كَتَبَ الولد درسه، وكُتِبَت أسماء الناجحين على اللوحة، ووُضِعَت الكُتُب على الرف.","كَتَبَ وكُتِبَ والكُتُب"],
+["ذهب إلى جَدِّه، وتحدث معه بجِدّ عن مستقبله.","الجَدّ والجِدّ"],
+["تغزّل الشاعر في شَعْرها، وكتب فيه أجمل الشِّعْر.","الشَّعْر والشِّعْر"],
+["حمل التاجر في سَفَرِه سِفْرًا قديمًا عن البحار.","السَّفَر والسِّفْر"],
+["يبدأ القِسْم الأول من الكتاب بقَسَم الطبيب.","القِسْم والقَسَم"],
+["في كل عَبْرة عِبْرة لمن يتأمل.","العَبْرة والعِبْرة"],
+["ذَهَبَ التاجر إلى السوق ليبيع الذَّهَب.","ذَهَبَ والذَّهَب"],
+["تصبّب العَرَق من جبينه، وهو من عِرْق طيب.","العَرَق والعِرْق"],
+["الحِلْم سيد الأخلاق، والحُلْم بداية كل إنجاز.","الحِلْم والحُلْم"],
+["حُسْن الخَلْق نعمة، وحُسْن الخُلُق فضيلة.","الخَلْق والخُلُق"],
+["الحُرّ لا يشكو من الحَرّ.","الحُرّ والحَرّ"],
+["كسر الرَّجُل رِجْلَه وهو يلعب الكرة.","الرَّجُل والرِّجْل"],
+["توجّه إلى القِبْلة، وطبعت أمه قُبْلة على جبينه.","القِبْلة والقُبْلة"],
+["سَلِمَ المسافر من الحادث، ثم سَلَّمَ على أهله وصعد السُّلَّم.","سَلِمَ وسَلَّمَ والسُّلَّم"],
+["نَزَلَ الضيوف في نُزُل صغير على شاطئ البحر.","نَزَلَ والنُّزُل"],
+["رَفَعَ اللاعب الكأس، ورُفِعَ اسمه في قائمة الأبطال.","رَفَعَ ورُفِعَ"],
+["قَدَّمَ المهندس المشروع، وقُدِّمَ له الشكر في الحفل.","قَدَّمَ وقُدِّمَ"],
+["عُيِّنَ أحمد مديرًا، فعَيَّنَ فريقًا جديدًا.","عُيِّنَ وعَيَّنَ"],
+["الكَرَم من شيم العرب، والكَرْم بستان العنب.","الكَرَم والكَرْم"],
+["سُرَّ صديقي حين عرف السِّرّ.","سُرَّ والسِّرّ"],
+["المُدَرِّس يشرح الدرس، والمُدَرَّس هو ما يتعلمه الطلاب.","المُدَرِّس والمُدَرَّس"],
+["ما أَحْسَنَ السماءَ! ما أَحْسَنُ السماءِ؟ ما أَحْسَنَ السماءُ.","مثال نحوي مشهور: تعجب، ثم سؤال، ثم نفي"],
+["أَكْرَمَ محمدٌ خالدًا، ثم أَكْرَمَ محمدًا خالدٌ.","الإعراب هو اللي بيحدد مين أكرم مين"],
+["قال المُدَرِّس لطلابه: العِلْم نور، والعَلَم رمز الوطن. ومن عَلِمَ شيئًا فليُعَلِّمْه غيره، فإن البِرّ بالناس من أعظم الأعمال، ومن الحُبّ ما يجعل الإنسان يعطي بلا حساب.","فقرة: العِلْم والعَلَم والبِرّ والحُبّ"],
+["في سَفَرِه الطويل حمل التاجر سِفْرًا قديمًا عن الذَّهَب. ولما عَبَرَ الصحراء تصبّب منه العَرَق، فتذكّر عِبَر الأجداد وقال: الحُرّ يصبر على الحَرّ، ومن صبر نال ما يريد.","فقرة: السَّفَر والسِّفْر والعَرَق والعِبَر"],
+["ذهب الرَّجُل إلى جَدِّه يطلب نصيحته، فقال له الجَدّ: عليك بالجِدّ، واحفظ السِّرّ، وأحسن الخُلُق، واعلم أن الدَّيْن همّ بالليل، وأن الحِلْم يرفع صاحبه.","فقرة: الجَدّ والجِدّ والسِّرّ والدَّيْن"]
+];
 const CATS={
   masry:()=>MASRY.map(t=>({t,s:"مثل شعبي مصري"})),
   kalam:()=>KALAM.map(t=>({t,s:"كلام مصري"})).concat(MT_EGY.map(t=>({t,s:"كلام مصري · من اقتباسات Monkeytype"}))),
   hawadit:()=>HAWADIT.map(([t,s])=>({t,s})),
   hekam:()=>HEKAM.map(([t,s])=>({t,s})),
-  sheer:()=>SHEER.map(([t,s])=>({t,s}))
+  sheer:()=>SHEER.map(([t,s])=>({t,s})),
+  tashkeel:()=>TASHKEEL_TXT.map(([t,s])=>({t,s}))
 };
 function allQuotes(){
-  const keys=(cfg.src==="mix"||cfg.src==="words")?Object.keys(CATS):[cfg.src];
+  const keys=(cfg.src==="mix"||cfg.src==="words")?["masry","kalam","hawadit","hekam","sheer"]:[cfg.src];
   return keys.flatMap(k=>CATS[k]());
 }
 function lenCat(t){const n=t.length;return n<70?"s":n<180?"m":n<320?"l":"xl";}
@@ -593,16 +637,25 @@ function start(b){
   focusInput();
 }
 /* الحروف اللي ليها نفس الحالة بتتجمع في عنصر واحد عشان سفاري ما يقطعش الكلمة */
+/* الحرف وحركاته بيتعرضوا مع بعض في نفس العنصر، عشان الحركة ما تنفصلش عن حرفها */
+const RANK={"":0,ok:1,extra:2,bad:3};
 function letters(i){
   const tg=T.words[i], ty=T.typed[i]||"";
   const n=Math.max(tg.length,ty.length);
   let h="", cur=null, buf="";
-  for(let j=0;j<n;j++){
-    let cls,ch;
-    if(j<tg.length){cls=j<ty.length?(eq(ty[j],tg[j])?"ok":"bad"):"";ch=tg[j];}
-    else{cls="extra";ch=ty[j];}
+  let j=0;
+  while(j<n){
+    let k=j+1; while(k<n&&isMark(k<tg.length?tg[k]:ty[k])) k++;
+    let cls="", txt="";
+    for(let q=j;q<k;q++){
+      let c,ch;
+      if(q<tg.length){c=q<ty.length?(eq(ty[q],tg[q])?"ok":"bad"):"";ch=tg[q];}
+      else{c="extra";ch=ty[q];}
+      if(RANK[c]>RANK[cls]) cls=c;
+      txt+=esc(ch);
+    }
     if(cls!==cur){ if(cur!==null) h+=`<span class="${cur}">${buf}</span>`; cur=cls; buf=""; }
-    buf+=esc(ch);
+    buf+=txt; j=k;
   }
   if(cur!==null) h+=`<span class="${cur}">${buf}</span>`;
   return h;
@@ -665,7 +718,8 @@ ti.addEventListener("input",()=>{
   if(T.done){ti.value="";return;}
   if(T.started) setTyping(true);
   let v=ti.value.replace(/\n/g," ").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
-  if(cfg.lenient) v=v.replace(TASHKEEL,"");
+  v=v.replace(/[\u0670\u0640]/g,"");
+  if(cfg.tashkeel) v=canonMarks(v); else if(cfg.lenient) v=v.replace(HARAKAT,"");
   const parts=v.split(" ");
   for(let p=0;p<parts.length;p++){
     setTyped(parts[p]); if(T.done) break;
@@ -771,12 +825,12 @@ function finish(){
   showResults(rr);
   ti.blur(); updateKb();
 }
-const SRC_NAME={masry:"أمثال مصرية",kalam:"كلام مصري",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",mix:"مكس",words:"كلمات"};
+const SRC_NAME={masry:"أمثال مصرية",kalam:"كلام مصري",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",words:"كلمات"};
 function modeLabel(){
   const m=cfg.mode==="time"?AR_NUM(cfg.time)+" ثانية":cfg.mode==="words"?AR_NUM(cfg.words)+" كلمة":"اقتباس "+({all:"",s:"قصير",m:"متوسط",l:"طويل",xl:"طويل جدا"}[cfg.qlen]);
-  return m.trim()+" · "+SRC_NAME[cfg.src];
+  return m.trim()+" · "+SRC_NAME[cfg.src]+(cfg.tashkeel?" · بالتشكيل":"");
 }
-function pbKey(){return [cfg.mode,cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,cfg.src].join("-");}
+function pbKey(){return [cfg.mode,cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,cfg.src].join("-")+(cfg.tashkeel?"-t":"");}
 function showPB(){
   const p=getPBs()[pbKey()];
   $("pb").innerHTML=p?`أحسن رقم ليك هنا: <strong>${AR_NUM(p.wpm)}</strong> كلمة/دقيقة · دقة ${AR_NUM(p.acc)}٪`:modeLabel();
@@ -1048,7 +1102,7 @@ function syncConfig(){
 $("config").addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b||b.disabled) return;
   const g=b.closest(".group[data-k]");
-  if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words")?+b.dataset.v:b.dataset.v; }
+  if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words")?+b.dataset.v:b.dataset.v; if(k==="src"&&b.dataset.v==="tashkeel") cfg.tashkeel=true; }
   else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
   saveCfg(); syncConfig(); b.blur();
   if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
