@@ -167,6 +167,10 @@ footer a{color:var(--sub)}
 .tcard .dots i{width:9px;height:9px;border-radius:50%;display:block}
 .tcount{color:var(--sub);font-size:12.5px;padding:0 16px 12px}
 
+/* شريط النقل للدومين الجديد */
+.movebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;background:var(--accent-soft);color:var(--fg);border-radius:10px;padding:10px 14px;font-size:14px;text-align:center}
+.movebar button{font:inherit;font-size:13.5px;font-weight:600;background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:6px 14px;cursor:pointer}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:30;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:calc(100vw - 32px)}
 /* قايمة الإعدادات */
 .setbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
 .setbtn:hover,.setbtn[aria-expanded="true"]{color:var(--fg)}
@@ -253,6 +257,10 @@ body.typing .kb .k:not(.next){opacity:.45}
 <body>
 
 <div class="page" dir="rtl" lang="ar">
+  <div class="movebar" id="movebar" hidden>
+    <span>طقطقة بقى على <strong>taqtaqa.com</strong></span>
+    <button type="button" id="movebtn">انقل تاريخي وافتح الموقع الجديد</button>
+  </div>
   <header>
     <div class="brand"><div class="logo">طقطقة<b>.</b></div><div class="tag">اتمرن على الكتابة بالعربي</div></div>
     <div class="hright">
@@ -1341,6 +1349,35 @@ $("g-layout").addEventListener("click",e=>{
 slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focusInput();} });
 
 syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme);
+/* ============ النقل لـ taqtaqa.com ============ */
+const NEW_HOME="https://taqtaqa.com/";
+function toast(msg){ const d=document.createElement("div"); d.className="toast"; d.setAttribute("role","status"); d.textContent=msg; document.body.appendChild(d); setTimeout(()=>d.remove(),5000); }
+(function(){
+  const h=location.hostname;
+  if(/\.workers\.dev$|\.github\.io$/.test(h)){
+    $("movebar").hidden=false;
+    $("movebtn").onclick=()=>{
+      let pb={},cf=null; try{pb=JSON.parse(localStorage.getItem("tq-pb")||"{}");cf=JSON.parse(localStorage.getItem("tq-cfg")||"null");}catch(e){}
+      const data={h:getHist(),pb,cfg:cf};
+      location.href=NEW_HOME+"#import="+encodeURIComponent(JSON.stringify(data));
+    };
+  }
+  if(location.hash.startsWith("#import=")){
+    try{
+      const d=JSON.parse(decodeURIComponent(location.hash.slice(8)));
+      const cur=getHist(), seen=new Set(cur.map(x=>x.t));
+      const add=(Array.isArray(d.h)?d.h:[]).filter(x=>x&&typeof x.t==="number"&&typeof x.wpm==="number"&&!seen.has(x.t));
+      setHist(cur.concat(add).sort((a,b)=>a.t-b.t));
+      const pbs=getPBs(); for(const k in (d.pb||{})){ const v=d.pb[k]; if(v&&typeof v.wpm==="number"&&(!pbs[k]||v.wpm>pbs[k].wpm)) pbs[k]=v; } setPBs(pbs);
+      let had=null; try{had=localStorage.getItem("tq-cfg");}catch(e){}
+      if(!had&&d.cfg&&typeof d.cfg==="object"){ cfg=Object.assign({},DEF,d.cfg); saveCfg(); syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme); }
+      toast(add.length?`اتنقل تاريخك: ${AR_NUM(add.length)} اختبار`:"تاريخك موجود هنا بالفعل");
+      showPB();
+    }catch(e){ toast("ما قدرناش ننقل التاريخ. جرّب تاني من اللينك القديم."); }
+    try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){ location.hash=""; }
+  }
+})();
+
 resetHistory();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 })();
