@@ -83,6 +83,8 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px 16
 .brand{display:flex;align-items:baseline;gap:12px}
 .logo{font-family:var(--f-display);font-weight:700;font-size:34px;color:var(--fg);line-height:1}
 .logo b{color:var(--accent);font-weight:700}
+a.logo{text-decoration:none;cursor:pointer;border-radius:6px}
+a.logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .tag{color:var(--sub);font-size:14px}
 .hright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .pb{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums}
@@ -328,7 +330,7 @@ body.typing .kb .k:not(.next){opacity:.45}
     <button type="button" id="movebtn">انقل تاريخي وافتح الموقع الجديد</button>
   </div>
   <header>
-    <div class="brand"><div class="logo">طقطقة<b>.</b></div><div class="tag">اتمرن على الكتابة بالعربي</div></div>
+    <div class="brand"><a class="logo" id="logo" href="./" title="ابدأ من جديد" aria-label="طقطقة، ابدأ من جديد">طقطقة<b>.</b></a><div class="tag">اتمرن على الكتابة بالعربي</div></div>
     <div class="hright">
       <div class="pb" id="pb"></div>
       <span id="authslot"></span>
@@ -1655,6 +1657,7 @@ function tourNav(a){
 document.addEventListener("click",e=>{ const b=e.target.closest("#tour [data-a]"); if(b) tourNav(b.dataset.a); });
 window.addEventListener("resize",()=>{ if(tourOpen()) placeTour(tourTarget(tourSteps[tourI])); });
 $("helpbtn").onclick=startTour;
+$("logo").addEventListener("click",e=>{ e.preventDefault(); location.reload(); });
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 /* واجهة صغيرة للحسابات (cloud.js) */
