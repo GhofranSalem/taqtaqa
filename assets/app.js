@@ -1085,9 +1085,19 @@ function playIntro(){
 }
 
 /* ============ البداية ============ */
-syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme);
+/* الموقع دايما بيفتح على «اقتباس» في «شعر»، وأول نص قصيدة «ولرُبّ نازلة» للإمام الشافعي */
+const OPENING="ولرب نازلة";
+function openOnPoem(){
+  cfg.mode="quote"; cfg.src="sheer"; cfg.qlen="all"; saveCfg(); syncConfig();
+  const qs=allQuotes(), q=qs.find(x=>favKey(x.t).startsWith(OPENING));
+  if(!q){ resetHistory(); return; }
+  const key="q-sheer-all"; if(!bags[key]) bags[key]=shuffle(qs.filter(x=>x!==q));
+  hist=[{words:clean(q.t,q.tk).split(" ").filter(Boolean),quote:q,count:qs.length}]; hpos=0;
+  start(hist[0]);
+}
+applyFont(); buildKb(); applyTheme(cfg.theme);
 importFromOldLink();
-resetHistory();
+openOnPoem();
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 playIntro();
