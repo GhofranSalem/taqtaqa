@@ -129,6 +129,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .focus-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--fg);pointer-events:none;text-align:center}
 .under{margin-top:6px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:13.5px;min-height:22px}
 .navhint{font-variant-numeric:tabular-nums}
+.srcline{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.favbtn{font:inherit;font-size:13px;color:var(--sub);background:none;border:1px solid var(--line);border-radius:999px;padding:2px 10px;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
+.favbtn:hover,.favbtn:focus-visible{color:var(--fg);border-color:var(--sub)}
+.favbtn.on{color:var(--accent);border-color:var(--accent)}
+.actions .favact.on{color:var(--accent);border-color:var(--accent)}
 #ti{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;border:0;padding:0;resize:none;color:transparent;background:transparent;caret-color:transparent;z-index:2}
 
 /* keyboard */
@@ -366,6 +371,7 @@ body.typing .kb .k:not(.next){opacity:.45}
       <button type="button" data-v="sheer">شعر</button>
       <button type="button" data-v="tashkeel" title="جمل فيها كلمات معناها بيتغير بالتشكيل">تشكيل</button>
       <button type="button" data-v="mix">مكس</button>
+      <button type="button" data-v="fav" class="favsrc" title="النصوص اللي حفظتها">مفضلتي</button>
       <button type="button" data-v="words">كلمات</button>
     </div>
     <div class="group seg" data-k="mode">
@@ -412,7 +418,7 @@ body.typing .kb .k:not(.next){opacity:.45}
       <div class="focus-msg" id="fmsg" hidden>اضغط هنا أو اكتب أي حرف عشان تبدأ</div>
       <textarea id="ti" dir="rtl" lang="ar" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="اكتب هنا"></textarea>
     </div>
-    <div class="under"><span id="src"></span><span class="navhint" id="navhint"></span></div>
+    <div class="under"><span class="srcline"><button type="button" class="favbtn" id="favbtn" hidden></button><span id="src"></span></span><span class="navhint" id="navhint"></span></div>
   </section>
 
   <section id="results" hidden></section>
@@ -834,7 +840,8 @@ const CATS={
   aflam:()=>AFLAM.map(([t,f,a,y])=>({t,s:`فيلم ${f} (${y})، ${a}`})),
   hekam:()=>HEKAM.map(([t,s])=>({t,s})),
   sheer:()=>SHEER.map(([t,s])=>({t,s})),
-  tashkeel:()=>TASHKEEL_TXT.map(([t,s])=>({t,s,tk:true}))
+  tashkeel:()=>TASHKEEL_TXT.map(([t,s])=>({t,s,tk:true})),
+  fav:()=>getFavs().map(f=>({t:f.t,s:f.s,tk:f.tk}))
 };
 function allQuotes(){
   const keys=(cfg.src==="mix"||cfg.src==="words")?["masry","saudi","kalam","aflam","hawadit","hekam","sheer"]:[cfg.src];
@@ -864,6 +871,7 @@ function fresh(words,quote){
   return {words,typed:[""],idx:0,started:false,done:false,t0:0,ok:0,bad:0,secKeys:0,secErr:0,samples:[],nextSec:1,timer:null,quote};
 }
 function buildWords(){
+  if(cfg.src==="fav"&&!getFavs().length){ cfg.src="mix"; saveCfg(); syncConfig(); toast("مفضلتك فاضية، فرجعناك لـ«مكس»."); }
   gen=makeGen();
   if(cfg.mode==="quote"){
     let qs=allQuotes(); if(cfg.qlen!=="all"){const f=qs.filter(q=>lenCat(q.t)===cfg.qlen); if(f.length) qs=f;}
@@ -904,11 +912,12 @@ function start(b){
   setTyping(false);
   gen=makeGen();
   T=fresh(wordsFor(b),b.quote);
+  T.segs=segsFor(b);
   $("results").hidden=true; $("history").hidden=true; $("stage").hidden=false;
   wordsEl.style.transform="";
   wordsEl.innerHTML=T.words.map((_,i)=>`<span class="w">${letters(i)}</span>`).join("");
   ti.value="";
-  $("src").textContent=T.quote?("— "+T.quote.s):"";
+  updateUnder();
   $("live").textContent="";
   updateNav(); updateCounter(); refresh(); showPB();
   focusInput();
@@ -958,8 +967,10 @@ function updateWord(i){
   el.classList.toggle("err", i<T.idx && !wordCorrect(i));
 }
 function appendWords(){
-  let add=[]; while(add.length<40) add=add.concat(gen());
-  const startI=T.words.length; T.words=T.words.concat(add);
+  const startI=T.words.length;
+  genLog=[]; let add=[]; while(add.length<40) add=add.concat(gen());
+  let at=startI; genLog.forEach(q=>{ T.segs.push({q,from:at}); at+=clean(q.t,q.tk).split(" ").filter(Boolean).length; }); genLog=null;
+  T.words=T.words.concat(add);
   const frag=document.createDocumentFragment();
   for(let i=startI;i<T.words.length;i++){const s=document.createElement("span");s.className="w";s.innerHTML=letters(i);frag.appendChild(s);}
   wordsEl.appendChild(frag);
@@ -988,7 +999,7 @@ function commitWord(){
   T.secKeys++;
   if(i===T.words.length-1&&cfg.mode!=="time"){finish();return;}
   T.idx++; T.typed[T.idx]="";
-  updateWord(i); updateWord(T.idx);
+  updateWord(i); updateWord(T.idx); updateUnder();
   if(cfg.mode==="time"&&T.words.length-T.idx<40) appendWords();
 }
 ti.addEventListener("input",()=>{
@@ -1121,7 +1132,7 @@ function finish(){
   showResults(rr);
   ti.blur(); updateKb();
 }
-const SRC_NAME={masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",words:"كلمات"};
+const SRC_NAME={masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",fav:"مفضلتي",words:"كلمات"};
 function modeLabel(){
   const m=cfg.mode==="time"?AR_NUM(cfg.time)+" ثانية":cfg.mode==="words"?AR_NUM(cfg.words)+" كلمة":"اقتباس "+({all:"",s:"قصير",m:"متوسط",l:"طويل",xl:"طويل جدا"}[cfg.qlen]);
   return m.trim()+" · "+SRC_NAME[cfg.src]+(cfg.tashkeel?" · بالتشكيل":"");
@@ -1155,10 +1166,12 @@ function showResults(r){
       <button type="button" class="primary" id="b-new">النص اللي بعده<kbd>Tab</kbd></button>
       <button type="button" id="b-same">نفس النص تاني<kbd>Esc</kbd></button>
       <button type="button" id="b-prev">اللي قبله<kbd>Shift+Tab</kbd></button>
+      ${curQuote()?'<button type="button" class="favact" id="b-fav"></button>':""}
     </div>`;
   $("b-new").onclick=()=>go(1);
   $("b-same").onclick=()=>go(0);
   $("b-prev").onclick=()=>go(-1);
+  if($("b-fav")){ $("b-fav").onclick=()=>toggleFav(curQuote()); paintFav(); }
   if($("b-sup")) $("b-sup").onclick=()=>window.openSupport&&window.openSupport();
   drawChart(); showPB();
 }
@@ -1298,6 +1311,50 @@ $("tgrid").addEventListener("mouseover",e=>{const b=e.target.closest(".tcard");i
 $("tgrid").addEventListener("focusin",e=>{const b=e.target.closest(".tcard");if(b)applyTheme(b.dataset.name);});
 $("tgrid").addEventListener("mouseleave",()=>applyTheme(cfg.theme));
 
+
+/* ============ المفضلة ============ */
+const FKEY="tq-fav", FMAX=500;
+function getFavs(){try{const a=JSON.parse(localStorage.getItem(FKEY)||"[]");return Array.isArray(a)?a.filter(f=>f&&typeof f.t==="string"):[];}catch(e){return [];}}
+function setFavs(a,silent){
+  try{localStorage.setItem(FKEY,JSON.stringify(a.slice(-FMAX)));}catch(e){}
+  for(const k in bags) if(/-fav(-|$)/.test(k)) delete bags[k];
+  if(!silent){ try{window.dispatchEvent(new CustomEvent("tq:fav",{detail:getFavs()}));}catch(e){} }
+  paintFav(); if(typeof syncConfig==="function") syncConfig();
+}
+function isFav(q){return !!q&&getFavs().some(f=>f.t===q.t);}
+function toggleFav(q){
+  if(!q||!q.s) return;
+  let a=getFavs();
+  if(a.some(f=>f.t===q.t)){ a=a.filter(f=>f.t!==q.t); toast("اتشال من مفضلتك"); }
+  else { const o={t:q.t,s:q.s,at:Date.now()}; if(q.tk) o.tk=true; a.push(o); toast("اتحفظ في مفضلتك. هتلاقيه في «مفضلتي»."); }
+  setFavs(a);
+  if(T&&!T.done) focusInput();
+}
+function segsFor(b){
+  if(b.quote) return [{q:b.quote,from:0}];
+  const out=[]; let at=0;
+  (b.raw||[]).forEach(r=>{ if(r&&r.s){ out.push({q:r,from:at}); } at+=clean(r.t,r.tk).split(" ").filter(Boolean).length; });
+  return out;
+}
+function curQuote(){
+  if(!T||!T.segs) return null;
+  let q=null; for(const sg of T.segs){ if(sg.from<=T.idx) q=sg.q; else break; }
+  return q;
+}
+function updateUnder(){
+  const q=curQuote();
+  $("src").textContent=q?("— "+q.s):"";
+  paintFav();
+}
+function paintFav(){
+  const q=curQuote(), on=isFav(q);
+  const fb=$("favbtn");
+  if(fb){ fb.hidden=!q; fb.classList.toggle("on",on); fb.textContent=on?"★ محفوظ":"☆ احفظ"; fb.title=on?"شيله من مفضلتي":"احفظ النص ده في مفضلتي"; fb.setAttribute("aria-pressed",on); }
+  const rb=$("b-fav");
+  if(rb){ rb.classList.toggle("on",on); rb.textContent=on?"★ في مفضلتك":"☆ احفظ في مفضلتي"; }
+}
+$("favbtn").addEventListener("mousedown",e=>e.preventDefault());
+$("favbtn").addEventListener("click",()=>toggleFav(curQuote()));
 
 /* ============ التاريخ (على المتصفح، وجاهز يتنقل لحساب بعدين) ============ */
 const HKEY="tq-history", HMAX=2000;
@@ -1564,6 +1621,7 @@ function syncConfig(){
 function onConfigClick(e){
   const b=e.target.closest("button"); if(!b||b.disabled||b.id==="setbtn"||b.id==="fontbtn") return;
   const g=b.closest(".group[data-k]");
+  if(g&&g.dataset.k==="src"&&b.dataset.v==="fav"&&!getFavs().length){ toast("لسه مفيش نصوص في مفضلتك. دوس «احفظ» تحت أي نص عشان يتحفظ هنا."); b.blur(); return; }
   if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words")?+b.dataset.v:b.dataset.v; if(k==="src"&&b.dataset.v==="tashkeel") cfg.tashkeel=true; }
   else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
   saveCfg(); syncConfig(); b.blur();
@@ -1584,7 +1642,7 @@ slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focu
 syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme);
 /* ============ النقل لـ taqtaqa.com ============ */
 const NEW_HOME="https://taqtaqa.com/";
-function toast(msg){ const d=document.createElement("div"); d.className="toast"; d.setAttribute("role","status"); d.textContent=msg; document.body.appendChild(d); setTimeout(()=>d.remove(),5000); }
+function toast(msg){ document.querySelectorAll(".toast").forEach(x=>x.remove()); const d=document.createElement("div"); d.className="toast"; d.setAttribute("role","status"); d.textContent=msg; document.body.appendChild(d); setTimeout(()=>d.remove(),5000); }
 (function(){
   const h=location.hostname;
   if(/\.workers\.dev$|\.github\.io$/.test(h)){
@@ -1616,7 +1674,7 @@ resetHistory();
 const TOUR=[
   {sel:null,t:"أهلا بيك في طقطقة",b:"موقع تتمرن فيه على الكتابة بالعربي على أمثال مصرية، وجمل من الأفلام، وحواديت، وشعر. خلينا نوريك الموقع في دقيقة."},
   {sel:"#slab",t:"اكتب اللي قدامك",b:'ابدأ اكتب على طول، والوقت بيبدأ مع أول حرف. الحرف الصح بيبقى أبيض، والغلط أحمر. <span class="k2">مسافة</span> بتنقلك للكلمة اللي بعدها، و<span class="k2">⌫</span> بيمسح.'},
-  {sel:'.config .group[data-k="src"]',t:"اختار النصوص",b:"أمثال مصرية وسعودية، كلام مصري، أفلام، حواديت، حكم، شعر، تشكيل، أو «مكس» من كله. و«كلمات» بيجيبلك كلمات لوحدها."},
+  {sel:'.config .group[data-k="src"]',t:"اختار النصوص",b:"أمثال مصرية وسعودية، كلام مصري، أفلام، حواديت، حكم، شعر، تشكيل، أو «مكس» من كله. و«كلمات» بيجيبلك كلمات لوحدها. و«مفضلتي» فيها النصوص اللي حفظتها بزرار «احفظ» اللي تحت النص."},
   {sel:'.config .group[data-k="mode"]',t:"اختار طريقة الاختبار",b:"<b>وقت:</b> اكتب أكتر ما تقدر في عدد ثواني.<br><b>عدد كلمات:</b> خلّص عدد كلمات معين.<br><b>اقتباس:</b> نص واحد كامل من أوله لآخره."},
   {sel:()=>["#g-time","#g-words","#g-qlen"].map(s=>$(s.slice(1))).find(e=>e&&!e.hidden),t:"اختار المدة أو الطول",b:"هنا بتحدد عدد الثواني، أو عدد الكلمات، أو طول الاقتباس، على حسب الطريقة اللي اخترتها."},
   {sel:"#setbtn",t:"الإعدادات",b:"<ul><li><b>التشكيل:</b> الحركات بتظهر ولازم تكتبها.</li><li><b>تساهل في الهمزات:</b> أ وإ وآ بتتحسب ا.</li><li><b>علامات الترقيم</b> و<b>الكيبورد</b>.</li><li><b>خط النص</b> و<b>حجمه</b>.</li></ul>"},
@@ -1699,7 +1757,7 @@ $("logo").addEventListener("click",e=>{ e.preventDefault(); location.reload(); }
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 /* واجهة صغيرة للحسابات (cloud.js) */
-window.TQ={getHist,setHist,getPBs,setPBs,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
+window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 </script>
