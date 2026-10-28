@@ -2,5 +2,8 @@
 node_modules
 wrangler.jsonc
 .assetsignore
+.gitignore
 worker.js
 firestore.rules
+tools
+.wrangler

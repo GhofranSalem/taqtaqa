@@ -1,6 +1,6 @@
 // طقطقة: يخلي الموقع يفتح من غير نت.
 // الصفحة بتتجاب من النت الأول عشان أي تحديث يوصل، ولو مفيش نت بتتفتح من النسخة المحفوظة.
-const CACHE = "taqtaqa-v12";
+const CACHE = "taqtaqa-v13";
 const FILES = [
   "./",
   "./index.html",
@@ -9,7 +9,15 @@ const FILES = [
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",
   "./icons/favicon-32.png",
-  "./favicon.ico"
+  "./favicon.ico",
+  "./assets/app.css",
+  "./assets/data.js",
+  "./assets/app.js",
+  "./fonts/sans-400.woff2",
+  "./fonts/sans-500.woff2",
+  "./fonts/sans-700.woff2",
+  "./fonts/serif-400.woff2",
+  "./fonts/display-700.woff2"
 ];
 
 self.addEventListener("install", (e) => {
