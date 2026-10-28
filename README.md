@@ -1,5 +1,7 @@
 # طقطقة
 
+**افتح الموقع: [taqtaqa.ghofran-salem.workers.dev](https://taqtaqa.ghofran-salem.workers.dev)**
+
 موقع تدريب على الكتابة بالعربي، شبه Monkeytype، بس النصوص فيه أمثال مصرية وكلام مصري وحواديت جحا وحكم وشعر عربي.
 
 ## المميزات
