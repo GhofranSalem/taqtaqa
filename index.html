@@ -234,6 +234,7 @@ footer .flinks{display:flex;gap:18px}
 .sway #fbcontact:placeholder-shown{direction:rtl}
 .sway .fbtypes button.on{border-color:var(--accent);color:var(--accent)}
 .sway .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.sway .fbmail{font-size:13px;color:var(--sub)} .sway .fbmail a{color:var(--accent);background:none;border:0;padding:0;display:inline;font-size:13px} .sway .fbmail button{font-size:12px;padding:2px 8px;margin-inline-start:4px}
 .sway .fbmsg{font-size:13.5px;color:var(--sub);align-self:center}
 .sway .fbmsg.ok{color:var(--accent)} .sway .fbmsg.err{color:var(--err)}
 /* قايمة الإعدادات */
@@ -458,6 +459,7 @@ body.typing .kb .k:not(.next){opacity:.45}
       <input id="fbcontact" type="text" maxlength="200" autocomplete="email" placeholder="إيميلك، لو عايز رد (اختياري)" aria-label="إيميلك، لو عايز رد">
       <input id="fbsite" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
       <div class="srow"><button type="submit" class="pri" id="fbsend">ابعت</button><span class="fbmsg" id="fbmsg" role="status"></span></div>
+      <span class="fbmail">أو ابعت إيميل على <a href="mailto:hello@taqtaqa.com" dir="ltr">hello@taqtaqa.com</a> <button type="button" id="mailcopy">انسخ</button></span>
     </form>
   </div>
 </div>
@@ -1468,6 +1470,7 @@ window.addEventListener("scroll",()=>{ if(!$("setmenu").hidden) placeSetMenu(); 
     $("fbtext").focus();
   });
   $("fbtext").placeholder="المثل أو الجملة، ومصدرها لو تعرفه…";
+  $("mailcopy").onclick=async()=>{ const b=$("mailcopy"); try{ await navigator.clipboard.writeText("hello@taqtaqa.com"); b.textContent="اتنسخ ✓"; }catch(e){ b.textContent="hello@taqtaqa.com"; } setTimeout(()=>b.textContent="انسخ",2000); };
   if(!onSite){ $("fbsend").disabled=true; $("fbmsg").textContent="الفورم شغال على taqtaqa.com"; }
   $("fbform").addEventListener("submit",async e=>{
     e.preventDefault();
