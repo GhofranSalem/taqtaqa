@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="طقطقة">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
+/* افتتاحية اللوجو: بتتلغي لو الجهاز طالب حركة أقل، وبتتشال لوحدها لو حصل أي خطأ */
+(function(){try{var seen=false;try{seen=sessionStorage.getItem("tq-intro")==="1";}catch(e){}
+if(!seen&&!matchMedia("(prefers-reduced-motion: reduce)").matches){var h=document.documentElement;h.classList.add("intro");setTimeout(function(){h.classList.remove("intro");},4000);}}catch(e){}})();
 /* بيطبّق الثيم قبل ما الصفحة تظهر، عشان ما يبانش الثيم القديم لحظة */
 (function(){var d=null;try{d=JSON.parse(localStorage.getItem("tq-tv")||"null");}catch(e){}
 if(d===null)d={v:{"--bg":"#101010","--panel":"#1c1c1c","--fg":"#ffffff","--sub":"#a0a0a0","--dim":"#a0a0a0","--accent":"#ffc799","--caret":"#99ffe4","--accent-soft":"#ffc79924","--err":"#ff8080","--err-dim":"#b25959","--line":"#1c1c1c","--key":"#1c1c1c","--key-fg":"#ffffff","--key-edge":"rgba(0,0,0,.45)","--scrim":"rgba(0,0,0,.5)"},cs:"dark"};
@@ -85,17 +88,35 @@ html.ts-l{--tsz:clamp(28px,4vw,38px)}
 .page{max-width:1040px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
 
 header{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
-.brand{display:flex;align-items:baseline;gap:12px}
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:7px}
 .logo{font-family:var(--f-display);font-weight:700;font-size:34px;color:var(--fg);line-height:1}
 .logo b{color:var(--accent);font-weight:700}
 .h1{margin:0;font-size:inherit;font-weight:inherit;line-height:1}
 a.logo{text-decoration:none;cursor:pointer;border-radius:6px}
 a.logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
-.tag{color:var(--sub);font-size:14px}
+.tag{margin:0;color:var(--sub);font-size:14px;line-height:1.3;min-height:1.3em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* أزرار الهيدر: نفس الإطار ونفس الحركة */
+.helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:7px;min-height:32px;background:none;color:var(--fg);border:1.5px solid var(--accent);border-radius:999px;padding:4px 13px;cursor:pointer;transition:background .15s,color .15s}
+.helpbtn:hover,.histbtn:hover,.favhbtn:hover,.themebtn:hover,header .authbtn:hover,.favhbtn[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.helpbtn:focus-visible,.histbtn:focus-visible,.favhbtn:focus-visible,.themebtn:focus-visible,header .authbtn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+header .authbtn{padding-inline:5px 13px}header .authbtn:not(:has(.av)){padding-inline:13px}
+.hpair{display:inline-flex;gap:8px;flex:none}
+/* افتتاحية: اللوجو بيتكتب، وبعده الجملة، وبعدين الأزرار بتظهر */
+.intro .lw,.intro #tagtext{visibility:hidden}
+.intro .lw.on,.intro #tagtext.on{visibility:visible}
+.intro .logo b{display:inline-block;transition:transform .12s ease-out}
+.intro .logo b.tick{transform:translateY(-3px)}
+#tagtext.typing::after{content:"";display:inline-block;width:2px;height:1.05em;margin-inline-start:2px;vertical-align:-.15em;background:var(--caret);border-radius:1px}
+.hright>*{transition:opacity .45s ease,transform .45s ease}
+.intro .hright>*{opacity:0;transform:translateY(-4px)}
+.intro .hright.show>*{opacity:1;transform:none}
+.intro .hright.show>:nth-child(2){transition-delay:.05s}.intro .hright.show>:nth-child(3){transition-delay:.1s}.intro .hright.show>:nth-child(4){transition-delay:.15s}.intro .hright.show>:nth-child(5){transition-delay:.2s}.intro .hright.show>:nth-child(6){transition-delay:.25s}
 .hright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pb:empty{display:none}
 .pb{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums}
 .pb strong{color:var(--fg);font-weight:600}
-.themebtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:8px;background:var(--panel);color:var(--fg);border:0;border-radius:999px;padding:5px 12px 5px 10px;cursor:pointer}
+.themebtn{padding-inline:11px}
 .themebtn .dots{display:inline-flex;gap:3px}
 .themebtn .dots i{width:8px;height:8px;border-radius:50%;display:block}
 
@@ -227,8 +248,6 @@ footer .flinks{display:flex;gap:18px}
 .tdots{display:flex;gap:5px}
 .tdots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
 .tdots i.on{background:var(--accent)}
-.helpbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;background:none;color:var(--fg);border:1.5px solid var(--accent);border-radius:999px;padding:4px 13px;cursor:pointer;transition:background .15s,color .15s}
-.helpbtn:hover{background:var(--accent);color:var(--bg)}
 @media (prefers-reduced-motion:reduce){.tour .spot,.tcardx{transition:none}}
 /* ادعم طقطقة */
 .supbtn{font:inherit;font-size:13.5px;background:none;color:var(--fg);border:1.5px solid var(--accent);border-radius:999px;padding:5px 16px;cursor:pointer;transition:background .15s,color .15s}
@@ -313,12 +332,13 @@ body.typing .kb .k:not(.next){opacity:.45}
 /* على الموبايل والتابلت: كيبورد الجهاز بيغطي الشاشة، فبنخفي الكيبورد المرسوم ونكبّر الزراير */
 @media (pointer:coarse){
   #kbwrap{display:none!important}
-  .seg button,.fontbtn,.histbtn{min-height:40px;padding-inline:11px}
+  .seg button,.fontbtn{min-height:40px;padding-inline:11px}
+  .helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{min-height:40px;padding-inline:9px;font-size:12.5px}
+  .themebtn{padding-inline:9px}
+  .hright,.hpair{gap:6px}
 }
 
 /* history */
-.histbtn{font:inherit;font-size:13px;background:none;border:0;color:var(--sub);cursor:pointer;padding:5px 8px;border-radius:6px}
-.histbtn:hover{color:var(--fg)}
 .history{display:flex;flex-direction:column;gap:22px}
 .hhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .hhead h2{font-family:var(--f-display);font-weight:700;font-size:28px;margin:0;color:var(--fg)}
@@ -351,7 +371,9 @@ body.typing .kb .k:not(.next){opacity:.45}
   .stat .val,.stat .val.sm{font-size:46px}
   .group + .group{border-inline-start:0;padding-inline-start:0}
   .config{gap:4px 10px}
-  .tag{display:none}
+  .tag{font-size:12.5px}
+  .hright,.hpair{gap:6px}
+  .helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{padding-inline:9px;font-size:12.5px}
 }
 @media (prefers-reduced-motion:reduce){.caret{transition:none}.caret.idle{animation:none}html,body,header,.config,footer,.kbhead,.legend,.under,.live{transition:none}}
 </style>
@@ -365,13 +387,14 @@ body.typing .kb .k:not(.next){opacity:.45}
     <button type="button" id="movebtn">انقل تاريخي وافتح الموقع الجديد</button>
   </div>
   <header>
-    <div class="brand"><h1 class="h1"><a class="logo" id="logo" href="./" title="ابدأ من جديد" aria-label="طقطقة، ابدأ من جديد">طقطقة<b>.</b></a></h1><div class="tag">اتمرن على الكتابة بالعربي</div></div>
+    <div class="brand"><h1 class="h1"><a class="logo" id="logo" href="./" title="ابدأ من جديد" aria-label="طقطقة، ابدأ من جديد"><span class="lw" id="logoword">طقطقة</span><b>.</b></a></h1><p class="tag"><span id="tagtext">اتمرن على الكتابة بالعربي</span></p></div>
     <div class="hright">
       <div class="pb" id="pb"></div>
       <span id="authslot"></span>
       <button class="helpbtn" id="helpbtn" type="button">شرح الموقع</button>
-      <button class="histbtn" id="histbtn" type="button">تاريخي</button>
-      <button class="themebtn" id="themebtn" type="button"><span class="dots" id="tdots"></span><span id="tname">طقطقة</span></button>
+      <span class="hpair"><button class="histbtn" id="histbtn" type="button">تاريخي</button>
+      <button class="favhbtn" id="favhbtn" type="button" aria-pressed="false" title="النصوص اللي حفظتها">مفضلتي</button></span>
+      <button class="themebtn" id="themebtn" type="button" aria-label="الثيمات"><span class="dots" id="tdots"></span><span class="sr" id="tname">طقطقة</span></button>
     </div>
   </header>
 
@@ -385,7 +408,6 @@ body.typing .kb .k:not(.next){opacity:.45}
       <button type="button" data-v="hekam">حكم وتراث</button>
       <button type="button" data-v="sheer">شعر</button>
       <button type="button" data-v="mix">مكس</button>
-      <button type="button" data-v="fav" class="favsrc" title="النصوص اللي حفظتها">مفضلتي</button>
       <button type="button" data-v="words">كلمات</button>
     </div>
     <div class="group seg" data-k="mode">
@@ -1274,7 +1296,7 @@ function applyTheme(name){
     try{localStorage.setItem("tq-tv",JSON.stringify({v:set,cs:t[1]?"dark":"light"}));}catch(e){}
   }
   const tt=THEMES.find(x=>x[0]===name);
-  $("tname").textContent=prettyName(tt?name:"taqtaqa");
+  $("tname").textContent=prettyName(tt?name:"taqtaqa"); $("themebtn").title="الثيم: "+prettyName(tt?name:"taqtaqa"); $("themebtn").setAttribute("aria-label","الثيمات، الحالي "+prettyName(tt?name:"taqtaqa"));
   $("tdots").innerHTML=tt?[tt[2][1],tt[2][3],tt[2][5]].map(c=>`<i style="background:${c}"></i>`).join(""):`<i style="background:var(--accent)"></i><i style="background:var(--sub)"></i><i style="background:var(--fg)"></i>`;
   if(T&&T.done) drawChart(); else if(T) refresh();
 }
@@ -1661,6 +1683,7 @@ window.addEventListener("scroll",()=>{ if(!$("setmenu").hidden) placeSetMenu(); 
 
 /* ============ أزرار الإعدادات ============ */
 function syncConfig(){
+  if(typeof paintFavHead==="function") paintFavHead();
   if(cfg.mode==="quote"&&cfg.src==="words") cfg.src="mix";
   document.querySelectorAll(".config .group[data-k], #setmenu .group[data-k], #g-layout").forEach(g=>{
     const k=g.dataset.k;
@@ -1734,7 +1757,8 @@ resetHistory();
 const TOUR=[
   {sel:null,t:"أهلا بيك في طقطقة",b:"موقع تتمرن فيه على الكتابة بالعربي على أمثال مصرية، وجمل من الأفلام، وحواديت، وشعر. خلينا نوريك الموقع في دقيقة."},
   {sel:"#slab",t:"اكتب اللي قدامك",b:'ابدأ اكتب على طول، والوقت بيبدأ مع أول حرف. الحرف الصح بيبقى أبيض، والغلط أحمر. <span class="k2">مسافة</span> بتنقلك للكلمة اللي بعدها، و<span class="k2">⌫</span> بيمسح.'},
-  {sel:'.config .group[data-k="src"]',t:"اختار النصوص",b:"أمثال مصرية وسعودية، كلام مصري، أفلام، حواديت، حكم، شعر، أو «مكس» من كله. و«كلمات» بيجيبلك كلمات لوحدها. و«مفضلتي» فيها النصوص اللي حفظتها بزرار «احفظ» اللي تحت النص."},
+  {sel:'.config .group[data-k="src"]',t:"اختار النصوص",b:"أمثال مصرية وسعودية، كلام مصري، أفلام، حواديت، حكم، شعر، أو «مكس» من كله. و«كلمات» بيجيبلك كلمات لوحدها. "},
+  {sel:"#favhbtn",t:"مفضلتي",b:"النصوص اللي حفظتها بزرار «احفظ» اللي تحت النص. دوس عليه عشان تكتب منها، ودوس تاني عشان ترجع."},
   {sel:'.config .group[data-k="mode"]',t:"اختار طريقة الاختبار",b:"<b>وقت:</b> اكتب أكتر ما تقدر في عدد ثواني.<br><b>عدد كلمات:</b> خلّص عدد كلمات معين.<br><b>اقتباس:</b> نص واحد كامل من أوله لآخره."},
   {sel:()=>["#g-time","#g-words","#g-qlen"].map(s=>$(s.slice(1))).find(e=>e&&!e.hidden),t:"اختار المدة أو الطول",b:"هنا بتحدد عدد الثواني، أو عدد الكلمات، أو طول الاقتباس، على حسب الطريقة اللي اخترتها."},
   {sel:"#setbtn",t:"الإعدادات",b:"<ul><li><b>التشكيل:</b> كل النصوص بتظهر بحركات بسيطة ولازم تكتبها.</li><li><b>تساهل في الهمزات:</b> أ وإ وآ بتتحسب ا.</li><li><b>علامات الترقيم</b> و<b>الكيبورد</b>.</li><li><b>خط النص</b> و<b>حجمه</b>.</li></ul>"},
@@ -1820,6 +1844,36 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!
 (function(){ const d=$("about"); if(!d) return;
   if(location.hash==="#about") d.open=true;
   d.addEventListener("toggle",()=>{ if(d.open) setTimeout(()=>d.scrollIntoView({behavior:"smooth",block:"start"}),30); });
+})();
+/* ============ زرار «مفضلتي» في الهيدر ============ */
+function paintFavHead(){ const b=$("favhbtn"); if(b) b.setAttribute("aria-pressed",cfg.src==="fav"); }
+$("favhbtn").addEventListener("click",()=>{
+  const b=$("favhbtn"); b.blur();
+  if(cfg.src==="fav"){ cfg.src=cfg.prevSrc&&cfg.prevSrc!=="fav"?cfg.prevSrc:"mix"; }
+  else{
+    if(!getFavs().length){ toast("لسه مفيش نصوص في مفضلتك. دوس «احفظ» تحت أي نص عشان يتحفظ هنا."); return; }
+    cfg.prevSrc=cfg.src; cfg.src="fav";
+  }
+  saveCfg(); syncConfig(); resetHistory();
+});
+/* ============ افتتاحية اللوجو ============ */
+(function(){
+  const H=document.documentElement; if(!H.classList.contains("intro")) return;
+  const lw=$("logoword"), dot=document.querySelector(".logo b"), tg=$("tagtext"), hr=document.querySelector(".hright");
+  const word=lw.textContent, tag=tg.textContent;
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  (async()=>{
+    lw.textContent=word.slice(0,1); lw.classList.add("on");
+    await wait(420);
+    for(let i=2;i<=word.length;i++){ lw.textContent=word.slice(0,i); dot.classList.add("tick"); setTimeout(()=>dot.classList.remove("tick"),70); await wait(85+Math.random()*55); }
+    lw.textContent=word; await wait(160);
+    hr.classList.add("show");
+    tg.textContent=""; tg.classList.add("on","typing");
+    for(let i=1;i<=tag.length;i++){ tg.textContent=tag.slice(0,i); await wait(tag[i-1]===" "?55:24+Math.random()*18); }
+    await wait(700); tg.classList.remove("typing");
+    await wait(500); H.classList.remove("intro");
+    try{sessionStorage.setItem("tq-intro","1");}catch(e){}
+  })().catch(()=>{ lw.textContent=word; tg.textContent=tag; H.classList.remove("intro"); });
 })();
 window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
