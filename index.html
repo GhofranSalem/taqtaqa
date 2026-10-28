@@ -305,6 +305,7 @@ body.typing .kb .k:not(.next){opacity:.45}
     <div class="brand"><div class="logo">طقطقة<b>.</b></div><div class="tag">اتمرن على الكتابة بالعربي</div></div>
     <div class="hright">
       <div class="pb" id="pb"></div>
+      <span id="authslot"></span>
       <button class="helpbtn" id="helpbtn" type="button"><span class="q" aria-hidden="true">؟</span>شرح الموقع</button>
       <button class="histbtn" id="histbtn" type="button">تاريخي</button>
       <button class="themebtn" id="themebtn" type="button"><span class="dots" id="tdots"></span><span id="tname">طقطقة</span></button>
@@ -374,7 +375,7 @@ body.typing .kb .k:not(.next){opacity:.45}
 
   <section class="history" id="history" hidden aria-label="تاريخ الاختبارات">
     <div class="hhead">
-      <div><h2>تاريخك</h2><p>محفوظ على المتصفح ده بس. لو مسحت بيانات المتصفح هيتمسح.</p></div>
+      <div><h2>تاريخك</h2><p id="hnote">محفوظ على المتصفح ده بس. سجّل دخول عشان يتحفظ في حسابك ويظهر على أي جهاز.</p></div>
       <button type="button" class="hclose" id="hclose">رجوع للكتابة <kbd>Esc</kbd></button>
     </div>
     <div id="hbody"></div>
@@ -393,6 +394,7 @@ body.typing .kb .k:not(.next){opacity:.45}
 
   <footer>
     <div class="keys"><span><kbd>Tab</kbd> النص اللي بعده</span><span><kbd>Shift</kbd>+<kbd>Tab</kbd> النص اللي قبله</span><span><kbd>Esc</kbd> إعادة نفس النص</span><span><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> الثيمات</span></div>
+    <div><a href="privacy.html">الخصوصية</a></div>
     <div>الخط: ثمانية. الثيمات وترتيب ماك وجزء من النصوص من <a href="https://github.com/monkeytypegame/monkeytype" target="_blank" rel="noopener">Monkeytype</a>، برخصة <bdi>GPL-3.0</bdi></div>
   </footer>
 </div>
@@ -1179,6 +1181,7 @@ function addHist(r){
     c:r.c,b:r.b,x:r.x,m:r.m,mode:cfg.mode,n:cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,src:cfg.src,
     q:T.quote?T.quote.s:null,label:modeLabel()});
   setHist(a);
+  try{window.dispatchEvent(new CustomEvent("tq:result",{detail:a[a.length-1]}));}catch(e){}
 }
 function avgLast(a,k,f){const s=a.slice(-k);return s.length?s.reduce((x,y)=>x+y[f],0)/s.length:0;}
 let hFilter="all", hShown=30, hArmed=false;
@@ -1230,7 +1233,7 @@ function renderHistory(){
   document.querySelectorAll("#hfilter button").forEach(b=>b.classList.toggle("on",b.dataset.v===hFilter));
   $("hfilter").onclick=e=>{const b=e.target.closest("button");if(!b)return;hFilter=b.dataset.v;hShown=30;renderHistory();};
   if($("hmore")) $("hmore").onclick=()=>{hShown+=30;renderHistory();};
-  $("hclear").onclick=()=>{ if(!hArmed){hArmed=true;renderHistory();return;} setHist([]); try{localStorage.removeItem("tq-pb");}catch(e){} hArmed=false; renderHistory(); showPB(); };
+  $("hclear").onclick=()=>{ if(!hArmed){hArmed=true;renderHistory();return;} setHist([]); try{localStorage.removeItem("tq-pb");}catch(e){} hArmed=false; renderHistory(); showPB(); try{window.dispatchEvent(new Event("tq:clear"));}catch(e){} };
   if(a.length) drawHist(a.slice(-100));
 }
 function esc2(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -1513,6 +1516,9 @@ window.addEventListener("resize",()=>{ if(tourOpen()) placeTour(tourTarget(tourS
 $("helpbtn").onclick=startTour;
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
+/* واجهة صغيرة للحسابات (cloud.js) */
+window.TQ={getHist,setHist,getPBs,setPBs,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
+try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 </script>
 
@@ -1521,5 +1527,6 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
   window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
 }
 </script>
+<script type="module" src="cloud.js"></script>
 </body>
 </html>

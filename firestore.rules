@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// طقطقة: كل واحد يقرا ويكتب بياناته هو بس.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'pb', 'createdAt', 'updatedAt'])
+        && request.resource.data.pb is map;
+
+      match /results/{rid} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.t is int
+          && rid == string(request.resource.data.t)
+          && request.resource.data.wpm is number
+          && request.resource.data.acc is number
+          && request.resource.data.keys().hasOnly(['v', 't', 'wpm', 'raw', 'acc', 'el', 'c', 'b', 'x', 'm', 'mode', 'n', 'src', 'q', 'label']);
+      }
+    }
+
+    // أي حاجة تانية مقفولة
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
