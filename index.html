@@ -257,8 +257,17 @@ footer .flinks{display:flex;gap:18px}
 .sway .fbmsg{font-size:13.5px;color:var(--sub);align-self:center}
 .sway .fbmsg.ok{color:var(--accent)} .sway .fbmsg.err{color:var(--err)}
 /* عن طقطقة */
-.about{border-top:1px solid var(--line);padding-top:26px;margin-top:6px;color:var(--sub);font-size:14.5px;line-height:1.85;display:flex;flex-direction:column;gap:12px}
-.about h2{margin:0;font-family:var(--f-display);font-size:22px;color:var(--fg)}
+.about{margin-top:2px;color:var(--sub);font-size:14.5px;line-height:1.85}
+.about>summary{list-style:none;cursor:pointer;width:max-content;margin:0 auto;padding:2px 6px;border-radius:6px}
+.about>summary::-webkit-details-marker{display:none}
+.about>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.about h2{margin:0;font-family:inherit;font-size:13px;font-weight:400;color:var(--sub);display:inline-flex;align-items:center;gap:6px}
+.about h2::after{content:"";width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.about>summary:hover h2{color:var(--fg)}
+.about[open]{border-top:1px solid var(--line);padding-top:22px;margin-top:10px;display:flex;flex-direction:column;gap:12px}
+.about[open]>summary{margin:0;padding:0}
+.about[open] h2{font-family:var(--f-display);font-size:22px;font-weight:inherit;color:var(--fg)}
+.about[open] h2::after{transform:rotate(-135deg) translateY(-1px)}
 .about h3{margin:0 0 4px;font-size:15.5px;color:var(--fg)}
 .about p{margin:0;max-width:72ch}
 .about strong,.about b{color:var(--fg);font-weight:500}
@@ -455,8 +464,8 @@ body.typing .kb .k:not(.next){opacity:.45}
     <button type="button" class="supbtn" id="supbtn">ادعم طقطقة</button>
     <div class="flinks"><a href="privacy.html">الخصوصية</a><a href="credits.html">المصادر والرخصة</a></div>
   </footer>
-  <section class="about" aria-labelledby="about-t">
-    <h2 id="about-t">عن طقطقة</h2>
+  <details class="about" id="about">
+    <summary><h2 id="about-t">عن طقطقة</h2></summary>
     <p><strong>طقطقة</strong> (Taqtaqa) موقع مجاني تتعلم فيه <strong>الكتابة على الكيبورد العربي</strong> وتقيس <strong>سرعة الكتابة بالعربي</strong>، زي Monkeytype بس للعربي. بدل كلمات عشوائية، بتكتب أمثال مصرية وسعودية، وجمل مشهورة من الأفلام المصرية، وحواديت جحا، وحكم وشعر عربي.</p>
     <div class="acols">
       <div>
@@ -477,7 +486,7 @@ body.typing .kb .k:not(.next){opacity:.45}
       </div>
     </div>
     <p class="alang"><a href="en/" hreflang="en" lang="en" dir="ltr">Taqtaqa in English: Arabic typing test and keyboard practice</a></p>
-  </section>
+  </details>
 </div>
 
 <div class="fontmenu" id="fontmenu" role="menu" aria-label="خط النص" hidden></div>
@@ -1822,6 +1831,10 @@ $("logo").addEventListener("click",e=>{ e.preventDefault(); location.reload(); }
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 /* واجهة صغيرة للحسابات (cloud.js) */
+(function(){ const d=$("about"); if(!d) return;
+  if(location.hash==="#about") d.open=true;
+  d.addEventListener("toggle",()=>{ if(d.open) setTimeout(()=>d.scrollIntoView({behavior:"smooth",block:"start"}),30); });
+})();
 window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
