@@ -211,6 +211,23 @@ footer .flinks{display:flex;gap:18px}
 .helpbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;background:none;color:var(--fg);border:1.5px solid var(--accent);border-radius:999px;padding:4px 13px;cursor:pointer;transition:background .15s,color .15s}
 .helpbtn:hover{background:var(--accent);color:var(--bg)}
 @media (prefers-reduced-motion:reduce){.tour .spot,.tcardx{transition:none}}
+/* ادعم طقطقة */
+.supbtn{font:inherit;font-size:13.5px;background:none;color:var(--fg);border:1.5px solid var(--accent);border-radius:999px;padding:5px 16px;cursor:pointer;transition:background .15s,color .15s}
+.supbtn:hover{background:var(--accent);color:var(--bg)}
+.supline{grid-column:1 / -1;color:var(--sub);font-size:13.5px}
+.supline button{font:inherit;background:none;border:0;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+.smodal{position:fixed;inset:0;z-index:45;background:var(--scrim);display:flex;align-items:flex-start;justify-content:center;padding-block:calc(60px + env(safe-area-inset-top,0px)) 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow:auto}
+.sbox{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;width:min(440px,100%);padding:22px 20px 18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.sbox .sx{align-self:flex-start;margin-inline-start:auto;background:none;border:0;color:var(--sub);font-size:22px;line-height:1;padding:0 4px;cursor:pointer;margin-bottom:-14px}
+.sbox h3{margin:0;font-family:var(--f-display);font-weight:700;font-size:24px}
+.sbox > p{margin:0;font-size:14.5px;line-height:1.75;color:var(--sub)}
+.sway{display:flex;flex-direction:column;gap:8px;background:var(--panel);border-radius:10px;padding:12px 14px}
+.sway b{font-size:15px}
+.sway span{font-size:13.5px;color:var(--sub);line-height:1.7}
+.sway .srow{display:flex;flex-wrap:wrap;gap:8px}
+.sway a,.sway button{font:inherit;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;text-decoration:none}
+.sway a:hover,.sway button:hover{border-color:var(--accent)}
+.sway a.pri,.sway button.pri{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
 /* قايمة الإعدادات */
 .setbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
 .setbtn:hover,.setbtn[aria-expanded="true"]{color:var(--fg)}
@@ -394,11 +411,44 @@ body.typing .kb .k:not(.next){opacity:.45}
 
   <footer>
     <div class="keys"><span><kbd>Tab</kbd> النص اللي بعده</span><span><kbd>Shift</kbd>+<kbd>Tab</kbd> النص اللي قبله</span><span><kbd>Esc</kbd> إعادة نفس النص</span><span><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> الثيمات</span></div>
+    <button type="button" class="supbtn" id="supbtn">ادعم طقطقة</button>
     <div class="flinks"><a href="privacy.html">الخصوصية</a><a href="credits.html">المصادر والرخصة</a></div>
   </footer>
 </div>
 
 <div class="fontmenu" id="fontmenu" role="menu" aria-label="خط النص" hidden></div>
+<div class="smodal" id="smodal" role="dialog" aria-modal="true" aria-labelledby="stitle" hidden>
+  <div class="sbox" dir="rtl">
+    <button type="button" class="sx" id="sclose" aria-label="قفل">×</button>
+    <h3 id="stitle">ادعم طقطقة</h3>
+    <p>طقطقة مجاني ومن غير إعلانات. لو عجبك، دي حاجات بسيطة بتفرق معانا كتير.</p>
+    <div class="sway">
+      <b>شارك الموقع</b>
+      <span>ابعته لحد بيحب يتمرن على الكتابة، أو بيتعلم عربي.</span>
+      <div class="srow">
+        <button type="button" class="pri" id="sshare">انسخ اللينك</button>
+        <a id="swa" target="_blank" rel="noopener">واتساب</a>
+        <a id="stg" target="_blank" rel="noopener">تيليجرام</a>
+        <a id="sx" target="_blank" rel="noopener">إكس</a>
+      </div>
+    </div>
+    <div class="sway">
+      <b>حط نجمة على GitHub</b>
+      <span>النجوم بتساعد ناس أكتر يلاقوا المشروع.</span>
+      <div class="srow"><a href="https://github.com/GhofranSalem/taqtaqa" target="_blank" rel="noopener">★ افتح الريبو</a></div>
+    </div>
+    <div class="sway">
+      <b>اقترح جملة أو مثل</b>
+      <span>عندك مثل بتحبه، أو جملة من فيلم، أو حدوتة؟ ابعتها وهنضيفها.</span>
+      <div class="srow"><a id="ssuggest" target="_blank" rel="noopener">اقترح نص</a></div>
+    </div>
+    <div class="sway">
+      <b>بلّغ عن غلطة</b>
+      <span>مثل مكتوب غلط، أو جملة منسوبة لحد غلط، أو حاجة مش شغالة.</span>
+      <div class="srow"><a id="sbug" target="_blank" rel="noopener">بلّغ عن غلطة</a></div>
+    </div>
+  </div>
+</div>
 <div class="tpanel" id="tpanel" hidden>
   <div class="tbox" role="dialog" aria-label="الثيمات">
     <div class="thead">
@@ -1031,6 +1081,7 @@ function showResults(r){
       <div><div class="stat"><div class="lbl">الاختبار</div></div><div class="v" style="font-size:16px">${modeLabel()}</div></div>
     </div>
     ${q}
+    ${(getHist().length%5===0&&getHist().length>0)?'<div class="supline">عجبك طقطقة؟ <button type="button" id="b-sup">ادعمه بمشاركة أو نجمة</button></div>':""}
     <div class="actions">
       <button type="button" class="primary" id="b-new">النص اللي بعده<kbd>Tab</kbd></button>
       <button type="button" id="b-same">نفس النص تاني<kbd>Esc</kbd></button>
@@ -1039,6 +1090,7 @@ function showResults(r){
   $("b-new").onclick=()=>go(1);
   $("b-same").onclick=()=>go(0);
   $("b-prev").onclick=()=>go(-1);
+  if($("b-sup")) $("b-sup").onclick=()=>window.openSupport&&window.openSupport();
   drawChart(); showPB();
 }
 function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
@@ -1369,6 +1421,33 @@ $("setbtn").addEventListener("click",e=>{ e.stopPropagation(); $("setmenu").hidd
 document.addEventListener("mousedown",e=>{ if(!$("setmenu").hidden&&!e.target.closest("#setmenu")&&!e.target.closest("#setbtn")&&!e.target.closest("#fontmenu")) closeSetMenu(false); });
 window.addEventListener("resize",()=>{ if(!$("setmenu").hidden) placeSetMenu(); });
 window.addEventListener("scroll",()=>{ if(!$("setmenu").hidden) placeSetMenu(); },{passive:true});
+
+
+/* ============ ادعم طقطقة ============ */
+(function(){
+  const SITE="https://taqtaqa.com", REPO="https://github.com/GhofranSalem/taqtaqa";
+  const msg="اتمرن على الكتابة بالعربي على أمثال مصرية وجمل من الأفلام: "+SITE;
+  const enc=encodeURIComponent;
+  $("swa").href="https://wa.me/?text="+enc(msg);
+  $("stg").href="https://t.me/share/url?url="+enc(SITE)+"&text="+enc("اتمرن على الكتابة بالعربي على أمثال مصرية وجمل من الأفلام");
+  $("sx").href="https://x.com/intent/post?text="+enc(msg);
+  $("ssuggest").href=REPO+"/issues/new?title="+enc("اقتراح نص: ")+"&body="+enc("النص:\n\nالنوع (مثل، جملة من فيلم، حدوتة، شعر...):\n\nالمصدر لو تعرفه:\n");
+  $("sbug").href=REPO+"/issues/new?title="+enc("غلطة: ")+"&body="+enc("إيه اللي حصل؟\n\nلو غلطة في نص، اكتب النص زي ما ظاهر، وإزاي المفروض يبقى:\n");
+  const M=$("smodal");
+  window.openSupport=function(){ closeFontMenu(false); closeSetMenu(false); setTyping(false); try{ti.blur();}catch(e){} M.hidden=false; $("sshare").focus(); };
+  function close(){ M.hidden=true; focusInput(); }
+  $("sclose").onclick=close;
+  M.addEventListener("mousedown",e=>{ if(e.target===M) close(); });
+  document.addEventListener("keydown",e=>{ if(M.hidden) return; e.stopImmediatePropagation(); if(e.key==="Escape"){ e.preventDefault(); close(); } },true);
+  $("sshare").onclick=async()=>{
+    const b=$("sshare");
+    if(navigator.share){ try{ await navigator.share({title:"طقطقة",text:"اتمرن على الكتابة بالعربي",url:SITE}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
+    try{ await navigator.clipboard.writeText(SITE); b.textContent="اتنسخ ✓"; }
+    catch(e){ const t=document.createElement("textarea"); t.value=SITE; document.body.appendChild(t); t.select(); try{document.execCommand("copy"); b.textContent="اتنسخ ✓";}catch(_){ b.textContent=SITE; } t.remove(); }
+    setTimeout(()=>{ b.textContent="انسخ اللينك"; },2000);
+  };
+  $("supbtn").onclick=window.openSupport;
+})();
 
 /* ============ أزرار الإعدادات ============ */
 function syncConfig(){
