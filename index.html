@@ -188,6 +188,28 @@ footer a{color:var(--sub)}
 .movebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;background:var(--accent-soft);color:var(--fg);border-radius:10px;padding:10px 14px;font-size:14px;text-align:center}
 .movebar button{font:inherit;font-size:13.5px;font-weight:600;background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:6px 14px;cursor:pointer}
 .toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);z-index:30;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:calc(100vw - 32px)}
+/* جولة التعريف */
+.tour{position:fixed;inset:0;z-index:40}
+.tour .tblock{position:absolute;inset:0}
+.tour .spot{position:absolute;border-radius:12px;box-shadow:0 0 0 2px var(--accent),0 0 0 9999px rgba(0,0,0,.68);transition:top .3s ease,left .3s ease,width .3s ease,height .3s ease;pointer-events:none}
+.tour .spot.none{top:50%!important;left:50%!important;width:0!important;height:0!important;box-shadow:0 0 0 9999px rgba(0,0,0,.68)}
+.tcardx{position:absolute;width:min(380px,calc(100vw - 32px));background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.45);padding:18px 18px 14px;display:flex;flex-direction:column;gap:10px;transition:top .3s ease,left .3s ease}
+.tcardx .tstep{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
+.tcardx h3{margin:0;font-family:var(--f-display);font-weight:700;font-size:22px;line-height:1.3;color:var(--fg)}
+.tcardx p{margin:0;font-size:15px;line-height:1.75;color:var(--fg)}
+.tcardx p .k2{display:inline-block;font-size:12.5px;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:0 6px;margin:0 2px;line-height:1.6}
+.tcardx ul{margin:0;padding-inline-start:18px;font-size:14.5px;line-height:1.8}
+.tcardx .tbtns{display:flex;align-items:center;gap:8px;margin-top:4px}
+.tcardx .tbtns .sp{flex:1}
+.tcardx button{font:inherit;font-size:14px;border-radius:8px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
+.tcardx button.pri{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.tcardx button.skip{background:none;border-color:transparent;color:var(--sub);padding-inline:6px}
+.tdots{display:flex;gap:5px}
+.tdots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.tdots i.on{background:var(--accent)}
+.helpbtn{font:inherit;font-size:13px;background:none;border:0;color:var(--sub);cursor:pointer;padding:5px 8px;border-radius:6px}
+.helpbtn:hover{color:var(--fg)}
+@media (prefers-reduced-motion:reduce){.tour .spot,.tcardx{transition:none}}
 /* قايمة الإعدادات */
 .setbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
 .setbtn:hover,.setbtn[aria-expanded="true"]{color:var(--fg)}
@@ -282,6 +304,7 @@ body.typing .kb .k:not(.next){opacity:.45}
     <div class="brand"><div class="logo">طقطقة<b>.</b></div><div class="tag">اتمرن على الكتابة بالعربي</div></div>
     <div class="hright">
       <div class="pb" id="pb"></div>
+      <button class="helpbtn" id="helpbtn" type="button">إزاي أستخدمه؟</button>
       <button class="histbtn" id="histbtn" type="button">تاريخي</button>
       <button class="themebtn" id="themebtn" type="button"><span class="dots" id="tdots"></span><span id="tname">طقطقة</span></button>
     </div>
@@ -840,7 +863,7 @@ function commitWord(){
   if(cfg.mode==="time"&&T.words.length-T.idx<40) appendWords();
 }
 ti.addEventListener("input",()=>{
-  if(T.done){ti.value="";return;}
+  if(T.done||tourOpen()){ti.value=T.done?"":(T.typed[T.idx]||"");return;}
   if(T.started) setTyping(true);
   let v=ti.value.replace(/\n/g," ").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
   v=v.replace(/[\u0670\u0640]/g,"");
@@ -863,9 +886,17 @@ ti.addEventListener("focus",()=>{slab.classList.remove("blur");fmsg.hidden=true;
   if(matchMedia("(pointer:coarse)").matches) setTimeout(()=>{ try{$("stage").scrollIntoView({block:"start",behavior:"smooth"});}catch(e){} },250);
 });
 ti.addEventListener("blur",()=>{ if(!T.done){slab.classList.add("blur");fmsg.hidden=false;} });
-function focusInput(){ if(!$("tpanel").hidden) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
+function focusInput(){ if(!$("tpanel").hidden||tourOpen()) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
 
 document.addEventListener("keydown",e=>{
+  if(tourOpen()){
+    if(e.key==="Escape"){ e.preventDefault(); endTour(); }
+    else if(e.key==="ArrowLeft"||e.key==="Enter"&&document.activeElement.tagName!=="BUTTON"){ e.preventDefault(); tourNav("next"); }
+    else if(e.key==="ArrowRight"){ e.preventDefault(); tourNav("prev"); }
+    else if(e.key.length===1&&e.key!==" "&&!e.ctrlKey&&!e.metaKey){ e.preventDefault(); }
+    else if(e.key==="Tab"){ e.preventDefault(); const bs=[...$("tour").querySelectorAll("button")]; let i=bs.indexOf(document.activeElement); i=(i+(e.shiftKey?-1:1)+bs.length)%bs.length; bs[i].focus(); }
+    return;
+  }
   if(!$("fontmenu").hidden){
     if(e.key==="Escape"||e.key==="Tab"){e.preventDefault();closeFontMenu(true);return;}
     if(e.key==="ArrowDown"||e.key==="ArrowUp"){
@@ -1396,6 +1427,90 @@ function toast(msg){ const d=document.createElement("div"); d.className="toast";
 })();
 
 resetHistory();
+/* ============ جولة التعريف (أول مرة بس) ============ */
+const TOUR=[
+  {sel:null,t:"أهلا بيك في طقطقة",b:"موقع تتمرن فيه على الكتابة بالعربي على أمثال مصرية، وجمل من الأفلام، وحواديت، وشعر. خلينا نوريك الموقع في دقيقة."},
+  {sel:"#slab",t:"اكتب اللي قدامك",b:'ابدأ اكتب على طول، والوقت بيبدأ مع أول حرف. الحرف الصح بيبقى أبيض، والغلط أحمر. <span class="k2">مسافة</span> بتنقلك للكلمة اللي بعدها، و<span class="k2">⌫</span> بيمسح.'},
+  {sel:'.config .group[data-k="src"]',t:"اختار النصوص",b:"أمثال مصرية، كلام مصري، أفلام، حواديت، حكم، شعر، تشكيل، أو «مكس» من كله. و«كلمات» بيجيبلك كلمات لوحدها."},
+  {sel:'.config .group[data-k="mode"]',t:"اختار طريقة الاختبار",b:"<b>وقت:</b> اكتب أكتر ما تقدر في عدد ثواني.<br><b>عدد كلمات:</b> خلّص عدد كلمات معين.<br><b>اقتباس:</b> نص واحد كامل من أوله لآخره."},
+  {sel:()=>["#g-time","#g-words","#g-qlen"].map(s=>$(s.slice(1))).find(e=>e&&!e.hidden),t:"اختار المدة أو الطول",b:"هنا بتحدد عدد الثواني، أو عدد الكلمات، أو طول الاقتباس، على حسب الطريقة اللي اخترتها."},
+  {sel:"#setbtn",t:"الإعدادات",b:"<ul><li><b>التشكيل:</b> الحركات بتظهر ولازم تكتبها.</li><li><b>تساهل في الهمزات:</b> أ وإ وآ بتتحسب ا.</li><li><b>علامات الترقيم</b> و<b>الكيبورد</b>.</li><li><b>خط النص</b> و<b>حجمه</b>.</li></ul>"},
+  {sel:"#kbwrap",t:"الكيبورد اللي على الشاشة",b:"الزرار اللي عليك تدوسه بيتلوّن، ولو محتاج Shift بينوّره كمان. ومن فوقه تختار ترتيب ويندوز أو ماك."},
+  {sel:"#histbtn",t:"تاريخك",b:"كل اختبار بيتحفظ هنا بسرعتك ودقتك، ومعاه رسمة بتوضح بتتحسن ازاي."},
+  {sel:"#themebtn",t:"الثيمات",b:'أكتر من ١٠٠ ثيم، غامق وفاتح. تقدر تفتحها كمان بـ <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
+  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> تعيد نفس النص<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «إزاي أستخدمه؟» فوق.',last:true}
+];
+var tourI=-1, tourSteps=[];
+function tourOpen(){ return tourI>=0; }
+function tourTarget(st){
+  if(!st.sel) return null;
+  const el=typeof st.sel==="function"?st.sel():document.querySelector(st.sel);
+  if(!el||el.hidden||el.offsetParent===null) return null;
+  return el;
+}
+function startTour(){
+  closeFontMenu(false); closeSetMenu(false);
+  if(!$("tpanel").hidden) closeThemes();
+  if(!$("history").hidden) closeHistory();
+  if(T&&T.timer&&!T.done) go(0);
+  setTyping(false); try{ti.blur();}catch(e){}
+  tourSteps=TOUR.filter(st=>!st.sel||tourTarget(st));
+  let root=$("tour");
+  if(!root){
+    root=document.createElement("div"); root.id="tour"; root.className="tour"; root.setAttribute("role","dialog"); root.setAttribute("aria-modal","true"); root.setAttribute("aria-label","شرح الموقع");
+    root.innerHTML='<div class="tblock"></div><div class="spot"></div><div class="tcardx" dir="rtl"></div>';
+    document.body.appendChild(root);
+    root.querySelector(".tblock").addEventListener("click",()=>{});
+  }
+  root.hidden=false; tourI=0; showTourStep();
+}
+function endTour(){
+  const r=$("tour"); if(r) r.hidden=true; tourI=-1;
+  try{localStorage.setItem("tq-tour","1");}catch(e){}
+  focusInput();
+}
+function showTourStep(){
+  const st=tourSteps[tourI], root=$("tour"), spot=root.querySelector(".spot"), card=root.querySelector(".tcardx");
+  const n=tourSteps.length;
+  card.innerHTML=`<div class="tstep">${AR_NUM(tourI+1)} من ${AR_NUM(n)}</div><h3>${st.t}</h3><p>${st.b}</p>
+    <div class="tbtns">${st.last?"":'<button type="button" class="skip" data-a="skip">تخطّي</button>'}<span class="sp"></span>
+    <div class="tdots">${tourSteps.map((_,i)=>`<i class="${i===tourI?"on":""}"></i>`).join("")}</div><span class="sp"></span>
+    ${tourI>0?'<button type="button" data-a="prev">السابق</button>':""}
+    <button type="button" class="pri" data-a="next">${st.last?"يلا نبدأ":"التالي"}</button></div>`;
+  card.querySelector('[data-a="next"]').focus({preventScroll:true});
+  const el=tourTarget(st);
+  if(el){ try{el.scrollIntoView({block:"center",behavior:"instant"});}catch(e){el.scrollIntoView();} }
+  else window.scrollTo(0,0);
+  requestAnimationFrame(()=>placeTour(el));
+}
+function placeTour(el){
+  const root=$("tour"); if(!root||root.hidden) return;
+  const spot=root.querySelector(".spot"), card=root.querySelector(".tcardx");
+  const vw=document.documentElement.clientWidth, vh=window.innerHeight, pad=8, cw=card.offsetWidth, ch=card.offsetHeight;
+  if(!el){
+    spot.classList.add("none");
+    card.style.left=Math.round((vw-cw)/2)+"px"; card.style.top=Math.round(Math.max(16,(vh-ch)/2))+"px"; return;
+  }
+  spot.classList.remove("none");
+  const r=el.getBoundingClientRect();
+  const x=Math.max(4,r.left-pad), y=Math.max(4,r.top-pad), w=Math.min(vw-8,r.width+pad*2), h=r.height+pad*2;
+  Object.assign(spot.style,{left:x+"px",top:y+"px",width:w+"px",height:h+"px"});
+  let top;
+  if(y+h+14+ch<=vh-12) top=y+h+14;
+  else if(y-14-ch>=12) top=y-14-ch;
+  else top=Math.max(12,vh-ch-12);
+  let left=r.right-cw; left=Math.max(16,Math.min(left,vw-cw-16));
+  card.style.top=Math.round(top)+"px"; card.style.left=Math.round(left)+"px";
+}
+function tourNav(a){
+  if(a==="next"){ if(tourI>=tourSteps.length-1) endTour(); else { tourI++; showTourStep(); } }
+  else if(a==="prev"){ if(tourI>0){ tourI--; showTourStep(); } }
+  else if(a==="skip") endTour();
+}
+document.addEventListener("click",e=>{ const b=e.target.closest("#tour [data-a]"); if(b) tourNav(b.dataset.a); });
+window.addEventListener("resize",()=>{ if(tourOpen()) placeTour(tourTarget(tourSteps[tourI])); });
+$("helpbtn").onclick=startTour;
+(function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 })();
 </script>
