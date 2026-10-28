@@ -1,6 +1,6 @@
 // طقطقة: يخلي الموقع يفتح من غير نت.
 // الصفحة بتتجاب من النت الأول عشان أي تحديث يوصل، ولو مفيش نت بتتفتح من النسخة المحفوظة.
-const CACHE = "taqtaqa-v3";
+const CACHE = "taqtaqa-v4";
 const FILES = [
   "./",
   "./index.html",
@@ -27,8 +27,9 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
+  // الصفحات والملفات بتتجاب جديدة دايما من السيرفر، والنسخة المحفوظة للطوارئ بس
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: "no-cache" })
       .then((res) => {
         if (res.ok) {
           const copy = res.clone();
