@@ -3,7 +3,7 @@
 // إعدادات المشروع (مش سرية؛ الحماية في قواعد Firestore)
 const firebaseConfig = {
   apiKey: "AIzaSyDoUjqkGOiC-ogyhN2mR8ScowPv_YfUDsY",
-  authDomain: "taqtaqa-type.firebaseapp.com",
+  authDomain: "taqtaqa.com",
   projectId: "taqtaqa-type",
   storageBucket: "taqtaqa-type.firebasestorage.app",
   messagingSenderId: "506636500827",
