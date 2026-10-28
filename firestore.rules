@@ -7,9 +7,10 @@ service cloud.firestore {
     match /users/{uid} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['name', 'email', 'pb', 'fav', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['name', 'email', 'pb', 'fav', 'ql', 'createdAt', 'updatedAt'])
         && request.resource.data.pb is map
-        && (!('fav' in request.resource.data) || (request.resource.data.fav is list && request.resource.data.fav.size() <= 500));
+        && (!('fav' in request.resource.data) || (request.resource.data.fav is list && request.resource.data.fav.size() <= 500))
+        && (!('ql' in request.resource.data) || request.resource.data.ql is map);
 
       match /results/{rid} {
         allow read, delete: if request.auth != null && request.auth.uid == uid;

@@ -236,6 +236,15 @@ whenReady(async () => {
       TQ.setFavs(favs);
       await setDoc(userDoc(u.uid), { fav: favs.slice(-500), updatedAt: serverTimestamp() }, { merge: true });
     } catch (ex) { console.warn("taqtaqa fav", ex); }
+    // آخر مرة في كل نص: بناخد الأحدث من الاتنين
+    try {
+      const cq = ud.exists() && ud.data().ql && typeof ud.data().ql === "object" ? ud.data().ql : {};
+      const lq = mine ? TQ.getLastRuns() : {};
+      const all = Object.assign({}, cq);
+      for (const k in lq) if (!all[k] || (lq[k].t || 0) > (all[k].t || 0)) all[k] = lq[k];
+      TQ.setLastRuns(all);
+      await setDoc(userDoc(u.uid), { ql: TQ.getLastRuns(), updatedAt: serverTimestamp() }, { merge: true });
+    } catch (ex) { console.warn("taqtaqa last", ex); }
     TQ.refreshHistory();
     return { up: up.length, total: all.length };
   }
@@ -261,7 +270,7 @@ whenReady(async () => {
   }
   ERR["x/relogin"] = "عشان تمسح الحساب، اخرج وادخل تاني الأول، وبعدين امسحه.";
   function wipeLocal() {
-    TQ.setHist([]); TQ.setPBs({}); TQ.setFavs([]);
+    TQ.setHist([]); TQ.setPBs({}); TQ.setFavs([]); TQ.setLastRuns({});
     try { localStorage.removeItem(OWNER_KEY); } catch (e) {}
     TQ.refreshHistory();
   }
@@ -278,6 +287,11 @@ whenReady(async () => {
     if (!user) return;
     try { await setDoc(userDoc(user.uid), { fav: (e.detail || []).slice(-500), updatedAt: serverTimestamp() }, { merge: true }); }
     catch (ex) { console.warn("taqtaqa fav", ex); }
+  });
+  window.addEventListener("tq:last", async (e) => {
+    if (!user || !e.detail) return;
+    try { await setDoc(userDoc(user.uid), { ql: { [e.detail.k]: e.detail.rec }, updatedAt: serverTimestamp() }, { merge: true }); }
+    catch (ex) { console.warn("taqtaqa last", ex); }
   });
   window.addEventListener("tq:clear", async () => {
     if (!user) return;

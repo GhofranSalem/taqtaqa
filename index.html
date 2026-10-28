@@ -123,6 +123,12 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .w.err{border-bottom-color:var(--err)}
 .caret{position:absolute;top:0;left:0;width:2.5px;border-radius:2px;background:var(--caret);transition:transform .08s linear;pointer-events:none}
 .caret.idle{animation:blink 1s step-end infinite}
+.caret.ghost{background:var(--sub);opacity:.75;transition:transform .12s linear}
+.metaend{display:flex;align-items:baseline;gap:14px;min-width:0}
+.lastrun{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:7px}
+.lastrun::before{content:"";width:2.5px;height:13px;border-radius:2px;background:var(--sub);opacity:.75}
+.lastrun b{color:var(--fg);font-weight:500}
+.vslast{font-size:14px;color:var(--sub);margin-top:6px}.vslast b{color:var(--fg);font-weight:500}.vslast .up{color:var(--accent)}
 @keyframes blink{50%{opacity:0}}
 .slab.blur .words{filter:blur(5px);opacity:.5}
 .slab.blur .caret{opacity:0}
@@ -398,6 +404,7 @@ body.typing .kb .k:not(.next){opacity:.45}
       <button type="button" class="tog" data-t="tashkeel"><span class="tt">التشكيل<small>الحركات بتظهر ولازم تكتبها</small></span></button>
       <button type="button" class="tog" data-t="lenient"><span class="tt">تساهل في الهمزات<small>أ إ آ = ا، ة = ه، ى = ي</small></span></button>
       <button type="button" class="tog" data-t="punct"><span class="tt">علامات الترقيم<small>النقط والفواصل جوه النص</small></span></button>
+      <button type="button" class="tog" data-t="pace"><span class="tt">مؤشر آخر مرة<small>لو كتبت النص قبل كده، مؤشر بيمشي بسرعتك القديمة</small></span></button>
       <button type="button" class="tog" data-t="kb"><span class="tt">الكيبورد<small>بيوريك الزرار الجاي</small></span></button>
     </div>
     <h4>خط النص</h4>
@@ -411,9 +418,10 @@ body.typing .kb .k:not(.next){opacity:.45}
   </div>
 
   <section class="stage" id="stage">
-    <div class="meta"><div class="counter" id="counter"></div><div class="live" id="live"></div></div>
+    <div class="meta"><div class="counter" id="counter"></div><div class="metaend"><span class="lastrun" id="lastrun" hidden></span><span class="live" id="live"></span></div></div>
     <div class="slab" id="slab">
       <div class="words" id="words"></div>
+      <div class="caret ghost" id="ghost" hidden aria-hidden="true"></div>
       <div class="caret idle" id="caret"></div>
       <div class="focus-msg" id="fmsg" hidden>اضغط هنا أو اكتب أي حرف عشان تبدأ</div>
       <textarea id="ti" dir="rtl" lang="ar" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="اكتب هنا"></textarea>
@@ -703,7 +711,7 @@ const MT_EGY = MT.MT_EGY;
 const WORDS = Array.from(new Set(("في من على إلى عن مع هو هي احنا انتو هما أنا انت كان قال عايز لازم ممكن النهارده بكرة امبارح دلوقتي بعدين كده ليه فين امتى مين إزاي إيه أيوه خلاص طيب ماشي يلا شوية كتير حلو البيت الشغل الشارع العربية الأكل المية الشاي القهوة الصبح بالليل الناس صاحبي الكتاب القلم المدرسة الجامعة المكتب السوق الفلوس الوقت الدنيا مصر القاهرة النيل الشمس القمر البحر الكيبورد الكتابة سريع جديد كبير صغير سهل صعب").split(" ").concat(MT.MT_WORDS)));
 
 /* ============ إعدادات ============ */
-const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false};
+const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true};
 let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
 if(!cfg.theme) cfg.theme="vesper";
@@ -913,12 +921,14 @@ function start(b){
   gen=makeGen();
   T=fresh(wordsFor(b),b.quote);
   T.segs=segsFor(b);
+  T.key=runKey(); T.last=getLastRuns()[T.key]||null;
   $("results").hidden=true; $("history").hidden=true; $("stage").hidden=false;
   wordsEl.style.transform="";
   wordsEl.innerHTML=T.words.map((_,i)=>`<span class="w">${letters(i)}</span>`).join("");
   ti.value="";
   updateUnder();
   $("live").textContent="";
+  showLastRun(); placeGhost();
   updateNav(); updateCounter(); refresh(); showPB();
   focusInput();
 }
@@ -977,7 +987,7 @@ function appendWords(){
 }
 
 /* ============ الإدخال ============ */
-function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); }
+function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); runGhost(); }
 function setTyping(on){ document.body.classList.toggle("typing",!!on); if(on){ closeFontMenu(false); closeSetMenu(false); } }
 document.addEventListener("mousemove",e=>{ if(Math.abs(e.movementX)+Math.abs(e.movementY)>3) setTyping(false); });
 function setTyped(nv){
@@ -1075,7 +1085,7 @@ function refresh(){
   const lh=w.offsetHeight||72; slab.style.setProperty("--lh",lh+"px");
   const shift=Math.max(0,w.offsetTop-lh);
   wordsEl.style.transform=shift?`translateY(${-shift}px)`:"";
-  placeCaret(); updateCounter(); updateKb();
+  placeCaret(); placeGhost(); updateCounter(); updateKb();
   caret.classList.remove("idle"); clearTimeout(caretIdle); caretIdle=setTimeout(()=>caret.classList.add("idle"),600);
 }
 function placeCaret(){
@@ -1128,7 +1138,9 @@ function finish(){
   const key=pbKey(), pbs=getPBs(), prev=pbs[key];
   const isPB=wpm>0&&acc>=75&&(!prev||wpm>prev.wpm);
   if(isPB){pbs[key]={wpm:Math.round(wpm),acc:Math.round(acc)};setPBs(pbs);}
-  const rr={wpm,raw,acc,c,b,x,m,el,isPB,prev}; if(total>0) addHist(rr);
+  const rr={wpm,raw,acc,c,b,x,m,el,isPB,prev,last:T.last}; if(total>0) addHist(rr);
+  if(total>0&&wpm>0) saveLastRun(T.key,{w:Math.round(wpm*10)/10,a:Math.round(acc),t:Date.now()});
+  $("ghost").hidden=true;
   showResults(rr);
   ti.blur(); updateKb();
 }
@@ -1151,6 +1163,7 @@ function showResults(r){
       <div class="stat"><div class="lbl">كلمة في الدقيقة</div><div class="val">${AR_NUM(Math.round(r.wpm))}</div></div>
       <div class="stat"><div class="lbl">الدقة</div><div class="val sm">${AR_NUM(Math.round(r.acc))}٪</div></div>
       ${(()=>{const h=getHist();return h.length>=3?`<div class="avg10">متوسطك في آخر ١٠: ${AR_NUM(Math.round(avgLast(h,10,"wpm")))} ك/د</div>`:"";})()}
+      ${r.last?(()=>{const d=Math.round(r.wpm)-Math.round(r.last.w);return `<div class="vslast">آخر مرة في النص ده: <b>${AR_NUM(Math.round(r.last.w))}</b> ك/د · ${d>0?`<span class="up">أسرع بـ ${AR_NUM(d)}</span>`:d<0?`أبطأ بـ ${AR_NUM(-d)}`:"نفس السرعة"}</div>`;})():""}
       ${r.isPB?`<div class="newpb">رقم قياسي جديد ليك${r.prev?` (كان ${AR_NUM(r.prev.wpm)})`:""}</div>`:""}
     </div>
     <div class="chartbox"><canvas id="chart" aria-label="السرعة على مدار الاختبار" role="img"></canvas></div>
@@ -1311,6 +1324,57 @@ $("tgrid").addEventListener("mouseover",e=>{const b=e.target.closest(".tcard");i
 $("tgrid").addEventListener("focusin",e=>{const b=e.target.closest(".tcard");if(b)applyTheme(b.dataset.name);});
 $("tgrid").addEventListener("mouseleave",()=>applyTheme(cfg.theme));
 
+
+/* ============ آخر مرة كتبت النص ده ============ */
+const LKEY="tq-last", LMAX=3000;
+function getLastRuns(){try{const o=JSON.parse(localStorage.getItem(LKEY)||"{}");return o&&typeof o==="object"&&!Array.isArray(o)?o:{};}catch(e){return {};}}
+function setLastRuns(o){
+  const ks=Object.keys(o); if(ks.length>LMAX){ ks.sort((a,b)=>(o[a].t||0)-(o[b].t||0)).slice(0,ks.length-LMAX).forEach(k=>delete o[k]); }
+  try{localStorage.setItem(LKEY,JSON.stringify(o));}catch(e){}
+}
+function saveLastRun(k,rec){
+  if(!k) return; const o=getLastRuns(); o[k]=rec; setLastRuns(o);
+  try{window.dispatchEvent(new CustomEvent("tq:last",{detail:{k,rec}}));}catch(e){}
+}
+function hashStr(s){let h=5381,g=0;for(let i=0;i<s.length;i++){h=(h*33+s.charCodeAt(i))>>>0;g=(g*31+s.charCodeAt(i))>>>0;}return h.toString(36)+g.toString(36);}
+/* النص نفسه زي ما ظاهر (بالتشكيل والترقيم)، ومعاه الوضع */
+function runKey(){
+  if(!T||!T.words.length) return null;
+  const pre=cfg.mode==="quote"?"q":cfg.mode==="time"?"t"+cfg.time:"w";
+  return pre+"-"+hashStr(T.words.slice(0,120).join(" "));
+}
+function showLastRun(){
+  const L=$("lastrun"), l=T&&T.last;
+  if(!l){ L.hidden=true; return; }
+  L.hidden=false;
+  L.innerHTML=`آخر مرة: <b>${AR_NUM(Math.round(l.w))}</b> ك/د · ${AR_NUM(l.a)}٪`;
+  L.title=cfg.pace?"المؤشر الرمادي ماشي بسرعتك آخر مرة. حاول تسبقه.":"تقدر تشغّل «مؤشر آخر مرة» من الإعدادات";
+}
+let ghostRAF=0;
+function ghostOn(){ return !!(cfg.pace&&T&&T.last&&T.last.w>0&&!T.done); }
+/* مكان المؤشر بعد عدد حروف معيّن، والمسافة بتتحسب حرف زي ما بنحسب السرعة */
+function placeGhost(){
+  const g=$("ghost");
+  if(!ghostOn()||!T.started){ g.hidden=true; return; }
+  const el=(performance.now()-T.t0)/1000;
+  let n=Math.floor(el*T.last.w*5/60), wi=0;
+  while(wi<T.words.length&&n>T.words[wi].length){ n-=T.words[wi].length+1; wi++; }
+  if(wi>=T.words.length){ wi=T.words.length-1; n=T.words[wi].length; }
+  const w=wordsEl.children[wi]; if(!w){ g.hidden=true; return; }
+  const box=slab.getBoundingClientRect(), r=w.getBoundingClientRect();
+  let x=r.right+1; if(n>0){ const cr=charRect(w,Math.min(n,T.words[wi].length)-1); if(cr) x=cr.left-1; }
+  const y=r.top-box.top+r.height*0.24;
+  if(r.top<box.top-2||r.bottom>box.bottom+2){ g.hidden=true; return; }
+  g.hidden=false;
+  g.style.height=(r.height*0.56)+"px";
+  g.style.transform=`translate(${x-box.left-1}px,${y}px)`;
+}
+function runGhost(){
+  cancelAnimationFrame(ghostRAF);
+  if(!ghostOn()||!T.started) return;
+  const loop=()=>{ if(!ghostOn()||!T.started){ $("ghost").hidden=true; return; } placeGhost(); ghostRAF=requestAnimationFrame(loop); };
+  ghostRAF=requestAnimationFrame(loop);
+}
 
 /* ============ المفضلة ============ */
 const FKEY="tq-fav", FMAX=500;
@@ -1625,6 +1689,7 @@ function onConfigClick(e){
   if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words")?+b.dataset.v:b.dataset.v; if(k==="src"&&b.dataset.v==="tashkeel") cfg.tashkeel=true; }
   else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
   saveCfg(); syncConfig(); b.blur();
+  if(b.dataset.t==="pace"){ if(T&&!T.done){ showLastRun(); placeGhost(); runGhost(); focusInput(); } return; }
   if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
   if(g&&(g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
   if(b.dataset.t==="tashkeel"||b.dataset.t==="punct"){ go(0); return; }
@@ -1757,7 +1822,7 @@ $("logo").addEventListener("click",e=>{ e.preventDefault(); location.reload(); }
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 /* واجهة صغيرة للحسابات (cloud.js) */
-window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
+window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 </script>
