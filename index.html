@@ -207,8 +207,9 @@ footer a{color:var(--sub)}
 .tdots{display:flex;gap:5px}
 .tdots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
 .tdots i.on{background:var(--accent)}
-.helpbtn{font:inherit;font-size:13px;background:none;border:0;color:var(--sub);cursor:pointer;padding:5px 8px;border-radius:6px}
-.helpbtn:hover{color:var(--fg)}
+.helpbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:7px;background:var(--panel);color:var(--fg);border:0;border-radius:999px;padding:5px 12px 5px 6px;cursor:pointer}
+.helpbtn .q{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--bg);font-weight:700;font-size:13px;line-height:1}
+.helpbtn:hover{background:var(--line)}
 @media (prefers-reduced-motion:reduce){.tour .spot,.tcardx{transition:none}}
 /* قايمة الإعدادات */
 .setbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
@@ -304,7 +305,7 @@ body.typing .kb .k:not(.next){opacity:.45}
     <div class="brand"><div class="logo">طقطقة<b>.</b></div><div class="tag">اتمرن على الكتابة بالعربي</div></div>
     <div class="hright">
       <div class="pb" id="pb"></div>
-      <button class="helpbtn" id="helpbtn" type="button">إزاي أستخدمه؟</button>
+      <button class="helpbtn" id="helpbtn" type="button"><span class="q" aria-hidden="true">؟</span>شرح الموقع</button>
       <button class="histbtn" id="histbtn" type="button">تاريخي</button>
       <button class="themebtn" id="themebtn" type="button"><span class="dots" id="tdots"></span><span id="tname">طقطقة</span></button>
     </div>
@@ -1438,7 +1439,7 @@ const TOUR=[
   {sel:"#kbwrap",t:"الكيبورد اللي على الشاشة",b:"الزرار اللي عليك تدوسه بيتلوّن، ولو محتاج Shift بينوّره كمان. ومن فوقه تختار ترتيب ويندوز أو ماك."},
   {sel:"#histbtn",t:"تاريخك",b:"كل اختبار بيتحفظ هنا بسرعتك ودقتك، ومعاه رسمة بتوضح بتتحسن ازاي."},
   {sel:"#themebtn",t:"الثيمات",b:'أكتر من ١٠٠ ثيم، غامق وفاتح. تقدر تفتحها كمان بـ <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
-  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> تعيد نفس النص<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «إزاي أستخدمه؟» فوق.',last:true}
+  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> تعيد نفس النص<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
 ];
 var tourI=-1, tourSteps=[];
 function tourOpen(){ return tourI>=0; }
