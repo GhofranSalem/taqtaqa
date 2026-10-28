@@ -54,7 +54,6 @@ body{font-family:var(--f-ui);font-size:15px;line-height:1.65;min-height:100%;-we
 html{--tsz:clamp(24px,3.2vw,31px)}
 html.ts-s{--tsz:clamp(20px,2.6vw,25px)}
 html.ts-l{--tsz:clamp(28px,4vw,38px)}
-html.tf-serif .words,html.tf-serif .quote-done{font-family:var(--f-serif)}
 .page{max-width:1040px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
 
 header{display:flex;align-items:center;justify-content:space-between;gap:12px 16px;flex-wrap:wrap}
@@ -163,6 +162,20 @@ footer a{color:var(--sub)}
 .tcard .dots i{width:9px;height:9px;border-radius:50%;display:block}
 .tcount{color:var(--sub);font-size:12.5px;padding:0 16px 12px}
 
+/* قايمة الخطوط */
+.fontpick{display:flex;align-items:center}
+.fontbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--accent);font-weight:600;padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.fontbtn::after{content:"";width:6px;height:6px;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:translateY(-2px) rotate(-45deg)}
+.fontbtn[aria-expanded="true"]::after{transform:translateY(2px) rotate(135deg)}
+.fontmenu{position:fixed;z-index:25;width:min(320px,calc(100vw - 32px));max-height:min(62vh,460px);overflow:auto;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.28);padding:6px}
+.fontmenu h4{margin:0;padding:10px 10px 4px;font-size:12px;font-weight:500;color:var(--sub)}
+.fopt{font:inherit;width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:none;border:0;border-radius:8px;padding:7px 10px;cursor:pointer;color:var(--fg);text-align:start}
+.fopt:hover,.fopt:focus-visible{background:var(--panel);outline:none}
+.fopt .smp{font-size:20px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fopt .nm{font-family:var(--f-ui);font-size:12px;color:var(--sub);white-space:nowrap;direction:ltr}
+.fopt.on .smp{color:var(--accent)}
+.fopt.on .nm{color:var(--accent)}
+.fontmenu .fnote{font-size:12px;color:var(--sub);padding:8px 10px 6px;line-height:1.6}
 /* وضع التركيز: الإطار بيهدى وانت بتكتب */
 header,.config,footer,.kbhead,.legend,.under,.live{transition:opacity .35s ease}
 body.typing header,body.typing .config,body.typing footer,body.typing .kbhead,body.typing .legend{opacity:0;pointer-events:none}
@@ -253,8 +266,8 @@ body.typing .under,body.typing .live{opacity:.55}
       <button type="button" class="tog" data-t="punct">علامات الترقيم</button>
       <button type="button" class="tog" data-t="kb">الكيبورد</button>
     </div>
-    <div class="group seg" data-k="tfont" title="خط النص اللي بتكتبه">
-      <button type="button" data-v="sans">ثمانية</button><button type="button" data-v="serif">ثمانية سيريف</button>
+    <div class="group fontpick">
+      <button type="button" class="fontbtn" id="fontbtn" aria-haspopup="true" aria-expanded="false" title="خط النص اللي بتكتبه">ثمانية</button>
     </div>
     <div class="group seg" data-k="tsize" title="حجم النص">
       <button type="button" data-v="s" style="font-size:12px" aria-label="صغير">أ</button><button type="button" data-v="m" style="font-size:14.5px" aria-label="عادي">أ</button><button type="button" data-v="l" style="font-size:17px" aria-label="كبير">أ</button>
@@ -302,6 +315,7 @@ body.typing .under,body.typing .live{opacity:.55}
   </footer>
 </div>
 
+<div class="fontmenu" id="fontmenu" role="menu" aria-label="خط النص" hidden></div>
 <div class="tpanel" id="tpanel" hidden>
   <div class="tbox" role="dialog" aria-label="الثيمات">
     <div class="thead">
@@ -791,6 +805,14 @@ ti.addEventListener("blur",()=>{ if(!T.done){slab.classList.add("blur");fmsg.hid
 function focusInput(){ if(!$("tpanel").hidden) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
 
 document.addEventListener("keydown",e=>{
+  if(!$("fontmenu").hidden){
+    if(e.key==="Escape"||e.key==="Tab"){e.preventDefault();closeFontMenu(true);return;}
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){
+      e.preventDefault(); const opts=[...$("fontmenu").querySelectorAll(".fopt")]; let i=opts.indexOf(document.activeElement);
+      i=e.key==="ArrowDown"?Math.min(opts.length-1,i+1):Math.max(0,i-1); if(opts[i]) opts[i].focus();
+    }
+    return;
+  }
   const panelOpen=!$("tpanel").hidden;
   if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.code==="KeyP")){e.preventDefault(); panelOpen?closeThemes(true):openThemes(); return;}
   if(panelOpen){
@@ -1133,6 +1155,102 @@ function drawHist(S){
 $("histbtn").onclick=openHistory;
 $("hclose").onclick=closeHistory;
 
+
+/* ============ خطوط النص ============ */
+/* [id, الاسم بالعربي, family أو stack, المجموعة] */
+const FONTS=[
+  ["sans","ثمانية","var(--f-sans)","site"],
+  ["serif","ثمانية سيريف","var(--f-serif)","site"],
+  ["Geeza Pro","جيزة برو","Geeza Pro","mac"],
+  ["Al Nile","النيل","Al Nile","mac"],
+  ["Al Bayan","البيان","Al Bayan","mac"],
+  ["Baghdad","بغداد","Baghdad","mac"],
+  ["Damascus","دمشق","Damascus","mac"],
+  ["Sana","سنا","Sana","mac"],
+  ["Muna","منى","Muna","mac"],
+  ["Nadeem","نديم","Nadeem","mac"],
+  ["Waseem","وسيم","Waseem","mac"],
+  ["Farah","فرح","Farah","mac"],
+  ["Al Tarikh","التاريخ","Al Tarikh","mac"],
+  ["KufiStandardGK","كوفي","KufiStandardGK","mac"],
+  ["Diwan Kufi","ديوان كوفي","Diwan Kufi","mac"],
+  ["DecoType Naskh","نسخ ديكوتايب","DecoType Naskh","mac"],
+  ["Farisi","فارسي","Farisi","mac"],
+  ["Mishafi","مصحفي","Mishafi","mac"],
+  ["Diwan Thuluth","ديوان ثلث","Diwan Thuluth","mac"],
+  ["Segoe UI","سيجو","Segoe UI","win"],
+  ["Tahoma","تاهوما","Tahoma","win"],
+  ["Arial","آريال","Arial","win"],
+  ["Times New Roman","تايمز","Times New Roman","win"],
+  ["Simplified Arabic","عربي مبسّط","Simplified Arabic","win"],
+  ["Traditional Arabic","عربي تقليدي","Traditional Arabic","win"],
+  ["Sakkal Majalla","سكّال مجلة","Sakkal Majalla","win"],
+  ["Arabic Typesetting","أرابيك تايبستنج","Arabic Typesetting","win"],
+  ["Aldhabi","الذهبي","Aldhabi","win"],
+  ["Andalus","أندلس","Andalus","win"]
+];
+let fontAvail=null;
+/* بنقيس عرض نص بالخط ده وبخط احتياطي؛ لو اختلف يبقى الخط متسطّب */
+function detectFonts(){
+  const out=new Set(["sans","serif"]);
+  try{
+    const c=document.createElement("canvas").getContext("2d"), smp="طقطقة كتابة عربية سريعة abcXYZ 0123";
+    const w=f=>{c.font="40px "+f;return c.measureText(smp).width;};
+    const base={monospace:w("monospace"),serif:w("serif"),"sans-serif":w("sans-serif")};
+    FONTS.forEach(([id,,fam,grp])=>{
+      if(grp==="site") return;
+      for(const b in base){ if(Math.abs(w(`"${fam}", ${b}`)-base[b])>0.5){ out.add(id); break; } }
+    });
+  }catch(e){}
+  return out;
+}
+function fontStack(id){
+  const f=FONTS.find(x=>x[0]===id)||FONTS[0];
+  return f[3]==="site"?f[2]:`"${f[2]}", var(--f-sans)`;
+}
+function applyFont(){
+  if(!fontAvail) fontAvail=detectFonts();
+  if(!fontAvail.has(cfg.tfont)) cfg.tfont="sans";
+  document.documentElement.style.setProperty("--f-text",fontStack(cfg.tfont));
+  const f=FONTS.find(x=>x[0]===cfg.tfont);
+  $("fontbtn").textContent=f?f[1]:"ثمانية";
+}
+function renderFontMenu(){
+  if(!fontAvail) fontAvail=detectFonts();
+  const M=$("fontmenu"); let h="";
+  [["site"],["mac","win"]].forEach(gs=>{
+    const list=FONTS.filter(f=>gs.includes(f[3])&&fontAvail.has(f[0]));
+    if(!list.length) return;
+    h+=`<h4>${gs[0]==="site"?"خطوط الموقع":"خطوط على جهازك"}</h4>`;
+    h+=list.map(([id,ar])=>`<button type="button" role="menuitemradio" aria-checked="${cfg.tfont===id}" class="fopt${cfg.tfont===id?" on":""}" data-id="${esc2(id)}"><span class="smp" style="font-family:${esc2(fontStack(id))}">${ar}</span><span class="nm">${gs[0]==="site"?"":esc2(id)}</span></button>`).join("");
+  });
+  h+=`<div class="fnote">بيظهر هنا بس الخطوط المتسطّبة على جهازك. الخط بيتغيّر في النص اللي بتكتبه بس.</div>`;
+  M.innerHTML=h;
+}
+function placeFontMenu(){
+  const r=$("fontbtn").getBoundingClientRect(), M=$("fontmenu"), mw=M.offsetWidth, vw=document.documentElement.clientWidth;
+  M.style.top=(r.bottom+6)+"px";
+  M.style.left=Math.max(16,Math.min(r.right-mw,vw-mw-16))+"px";
+}
+function openFontMenu(){
+  renderFontMenu(); const M=$("fontmenu"); M.hidden=false; placeFontMenu();
+  $("fontbtn").setAttribute("aria-expanded","true");
+  const cur=M.querySelector(".fopt.on")||M.querySelector(".fopt"); if(cur){cur.focus({preventScroll:true}); cur.scrollIntoView({block:"nearest"});}
+}
+function closeFontMenu(back){
+  $("fontmenu").hidden=true; $("fontbtn").setAttribute("aria-expanded","false");
+  if(back&&T&&!T.done) focusInput();
+}
+$("fontbtn").addEventListener("click",e=>{ e.stopPropagation(); $("fontmenu").hidden?openFontMenu():closeFontMenu(true); });
+$("fontmenu").addEventListener("click",e=>{
+  const b=e.target.closest(".fopt"); if(!b) return;
+  cfg.tfont=b.dataset.id; saveCfg(); applyFont(); closeFontMenu(false);
+  if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart();
+});
+document.addEventListener("mousedown",e=>{ if(!$("fontmenu").hidden&&!e.target.closest("#fontmenu")&&!e.target.closest("#fontbtn")) closeFontMenu(false); });
+window.addEventListener("resize",()=>{ if(!$("fontmenu").hidden) placeFontMenu(); });
+window.addEventListener("scroll",()=>{ if(!$("fontmenu").hidden) placeFontMenu(); },{passive:true});
+
 /* ============ أزرار الإعدادات ============ */
 function syncConfig(){
   if(cfg.mode==="quote"&&cfg.src==="words") cfg.src="mix";
@@ -1148,7 +1266,6 @@ function syncConfig(){
   document.querySelector('.group[data-k="src"] button[data-v="words"]').disabled=cfg.mode==="quote";
   $("kbwrap").hidden=!cfg.kb;
   const de=document.documentElement;
-  de.classList.toggle("tf-serif",cfg.tfont==="serif");
   de.classList.remove("ts-s","ts-l"); if(cfg.tsize!=="m") de.classList.add("ts-"+cfg.tsize);
 }
 $("config").addEventListener("click",e=>{
@@ -1158,7 +1275,7 @@ $("config").addEventListener("click",e=>{
   else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
   saveCfg(); syncConfig(); b.blur();
   if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
-  if(g&&(g.dataset.k==="tfont"||g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
+  if(g&&(g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
   if(b.dataset.t==="lenient"&&T&&!T.done){ for(let i=0;i<=T.idx;i++) updateWord(i); refresh(); focusInput(); return; }
   resetHistory();
 });
@@ -1168,7 +1285,7 @@ $("g-layout").addEventListener("click",e=>{
 });
 slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focusInput();} });
 
-syncConfig(); buildKb(); applyTheme(cfg.theme);
+syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme);
 resetHistory();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 })();
