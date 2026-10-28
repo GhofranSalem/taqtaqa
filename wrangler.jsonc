@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "taqtaqa",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-23",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "taqtaqa.com", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true }
+}
