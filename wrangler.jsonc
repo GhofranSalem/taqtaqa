@@ -11,5 +11,8 @@
     "directory": ".",
     "binding": "ASSETS"
   },
+  "send_email": [
+    { "name": "FEEDBACK", "destination_address": "ghofran.salem@gmail.com" }
+  ],
   "observability": { "enabled": true }
 }

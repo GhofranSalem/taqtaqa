@@ -228,6 +228,14 @@ footer .flinks{display:flex;gap:18px}
 .sway a,.sway button{font:inherit;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;text-decoration:none}
 .sway a:hover,.sway button:hover{border-color:var(--accent)}
 .sway a.pri,.sway button.pri{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.sway textarea,.sway input{font:inherit;font-size:14.5px;width:100%;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;resize:vertical}
+.sway textarea:focus,.sway input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.sway #fbcontact{direction:ltr;text-align:right}
+.sway #fbcontact:placeholder-shown{direction:rtl}
+.sway .fbtypes button.on{border-color:var(--accent);color:var(--accent)}
+.sway .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.sway .fbmsg{font-size:13.5px;color:var(--sub);align-self:center}
+.sway .fbmsg.ok{color:var(--accent)} .sway .fbmsg.err{color:var(--err)}
 /* قايمة الإعدادات */
 .setbtn{font:inherit;font-size:13.5px;line-height:1.5;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
 .setbtn:hover,.setbtn[aria-expanded="true"]{color:var(--fg)}
@@ -438,16 +446,19 @@ body.typing .kb .k:not(.next){opacity:.45}
       <span>النجوم بتساعد ناس أكتر يلاقوا المشروع.</span>
       <div class="srow"><a href="https://github.com/GhofranSalem/taqtaqa" target="_blank" rel="noopener">★ افتح الريبو</a></div>
     </div>
-    <div class="sway">
-      <b>اقترح جملة أو مثل</b>
-      <span>عندك مثل بتحبه، أو جملة من فيلم، أو حدوتة؟ ابعتها وهنضيفها.</span>
-      <div class="srow"><a id="ssuggest" target="_blank" rel="noopener">اقترح نص</a></div>
-    </div>
-    <div class="sway">
-      <b>بلّغ عن غلطة</b>
-      <span>مثل مكتوب غلط، أو جملة منسوبة لحد غلط، أو حاجة مش شغالة.</span>
-      <div class="srow"><a id="sbug" target="_blank" rel="noopener">بلّغ عن غلطة</a></div>
-    </div>
+    <form class="sway" id="fbform" novalidate>
+      <b>ابعتلنا رسالة</b>
+      <span>اقترح مثل أو جملة، أو قولنا على غلطة، أو اكتب رأيك. من غير تسجيل.</span>
+      <div class="srow fbtypes" role="radiogroup" aria-label="نوع الرسالة">
+        <button type="button" class="on" data-ft="suggest" role="radio" aria-checked="true">اقتراح نص</button>
+        <button type="button" data-ft="bug" role="radio" aria-checked="false">غلطة</button>
+        <button type="button" data-ft="note" role="radio" aria-checked="false">رأي</button>
+      </div>
+      <textarea id="fbtext" rows="4" maxlength="3000" placeholder="اكتب هنا…" aria-label="الرسالة"></textarea>
+      <input id="fbcontact" type="text" maxlength="200" autocomplete="email" placeholder="إيميلك، لو عايز رد (اختياري)" aria-label="إيميلك، لو عايز رد">
+      <input id="fbsite" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+      <div class="srow"><button type="submit" class="pri" id="fbsend">ابعت</button><span class="fbmsg" id="fbmsg" role="status"></span></div>
+    </form>
   </div>
 </div>
 <div class="tpanel" id="tpanel" hidden>
@@ -1447,8 +1458,32 @@ window.addEventListener("scroll",()=>{ if(!$("setmenu").hidden) placeSetMenu(); 
   $("swa").href="https://wa.me/?text="+enc(msg);
   $("stg").href="https://t.me/share/url?url="+enc(SITE)+"&text="+enc("اتمرن على الكتابة بالعربي على أمثال مصرية وجمل من الأفلام");
   $("sx").href="https://x.com/intent/post?text="+enc(msg);
-  $("ssuggest").href=REPO+"/issues/new?title="+enc("اقتراح نص: ")+"&body="+enc("النص:\n\nالنوع (مثل، جملة من فيلم، حدوتة، شعر...):\n\nالمصدر لو تعرفه:\n");
-  $("sbug").href=REPO+"/issues/new?title="+enc("غلطة: ")+"&body="+enc("إيه اللي حصل؟\n\nلو غلطة في نص، اكتب النص زي ما ظاهر، وإزاي المفروض يبقى:\n");
+  /* فورم الرسايل: بيتبعت للـ Worker، واللي بيبعته إيميل */
+  const onSite=/(^|\.)taqtaqa\.com$|\.workers\.dev$/.test(location.hostname);
+  let ftype="suggest";
+  document.querySelectorAll("#fbform [data-ft]").forEach(b=>b.onclick=()=>{
+    ftype=b.dataset.ft;
+    document.querySelectorAll("#fbform [data-ft]").forEach(x=>{ const on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-checked",on); });
+    $("fbtext").placeholder={suggest:"المثل أو الجملة، ومصدرها لو تعرفه…",bug:"إيه الغلطة؟ ولو في نص، اكتبه زي ما ظاهر وإزاي المفروض يبقى…",note:"اكتب رأيك…"}[ftype];
+    $("fbtext").focus();
+  });
+  $("fbtext").placeholder="المثل أو الجملة، ومصدرها لو تعرفه…";
+  if(!onSite){ $("fbsend").disabled=true; $("fbmsg").textContent="الفورم شغال على taqtaqa.com"; }
+  $("fbform").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const msg=$("fbmsg"), btn=$("fbsend"), text=$("fbtext").value.trim();
+    msg.className="fbmsg";
+    if(text.length<3){ msg.className="fbmsg err"; msg.textContent="اكتب رسالتك الأول."; $("fbtext").focus(); return; }
+    btn.disabled=true; msg.textContent="بيتبعت…";
+    const page=(T&&T.words)?T.words.slice(0,40).join(" "):"";
+    try{
+      const r=await fetch("/api/feedback",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:ftype,text,contact:$("fbcontact").value.trim(),page,website:$("fbsite").value})});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok&&j.ok){ msg.className="fbmsg ok"; msg.textContent="وصلت، شكرا ليك ✓"; $("fbtext").value=""; }
+      else{ msg.className="fbmsg err"; msg.textContent="ما وصلتش. جرّب تاني بعد شوية."; }
+    }catch(_){ msg.className="fbmsg err"; msg.textContent="مفيش نت. جرّب تاني."; }
+    btn.disabled=false;
+  });
   const M=$("smodal");
   window.openSupport=function(){ closeFontMenu(false); closeSetMenu(false); setTyping(false); try{ti.blur();}catch(e){} M.hidden=false; $("sshare").focus(); };
   function close(){ M.hidden=true; focusInput(); }
