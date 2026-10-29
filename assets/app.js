@@ -312,7 +312,9 @@ document.addEventListener("keydown",e=>{
     return;
   }
   pressKey(e.code,true);
-  if(e.key==="Tab"){ e.preventDefault(); go(e.shiftKey?-1:1); return; }
+  /* Tab وانت بتكتب ما بيعملش حاجة، عشان لو اتداس بالغلط النص ما يتغيرش.
+     بيشتغل قبل ما تبدأ، ولما توقّف مؤقتًا بـ Esc، وفي شاشة النتيجة */
+  if(e.key==="Tab"){ e.preventDefault(); if(T&&T.started&&!T.done&&!T.paused) return; go(e.shiftKey?-1:1); return; }
   /* Esc بيوقّف مؤقتًا وبيكمّل. وShift+Enter بيبدأ النص من الأول: مش مستخدم في ويندوز ولا ماك ولا المتصفحات */
   if(e.key==="Enter"&&e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey){ e.preventDefault(); go(0); return; }
   if(e.key==="Escape"){
@@ -1110,7 +1112,7 @@ const SHORTCUTS=EN?[
     ["Undo","",["Ctrl","Z"],["⌘ Cmd","Z"]]
   ]],
   ["In Taqtaqa",[
-    ["Next text","",["Tab"],["Tab"]],
+    ["Next text","Before you start typing, after Esc, or on the results",["Tab"],["Tab"]],
     ["Previous text","",["Shift","Tab"],["Shift","Tab"]],
     ["Pause and resume","If you hit it by mistake, the next letter you type resumes",["Esc"],["Esc"]],
     ["Restart the same text","",["Shift","Enter"],["Shift","Enter"]],
@@ -1125,7 +1127,7 @@ const SHORTCUTS=EN?[
     ["تراجع عن آخر حاجة","",["Ctrl","Z"],["⌘ Cmd","Z"]]
   ]],
   ["في طقطقة",[
-    ["النص اللي بعده","",["Tab"],["Tab"]],
+    ["النص اللي بعده","قبل ما تبدأ تكتب، أو بعد Esc، أو في النتيجة",["Tab"],["Tab"]],
     ["النص اللي قبله","",["Shift","Tab"],["Shift","Tab"]],
     ["وقّف مؤقتًا، وكمّل","ولو اتداس بالغلط، أول حرف تكتبه بيكمّل",["Esc"],["Esc"]],
     ["ابدأ نفس النص من الأول","",["Shift","Enter"],["Shift","Enter"]],
@@ -1179,7 +1181,7 @@ const TOUR=EN?[
   {sel:"#kbwrap",t:"On-screen keyboard",b:"The key you need to press lights up, and so does Shift when you need it. Above it you can pick the Windows or Mac Arabic layout."},
   {sel:"#histbtn",t:"History",b:"Every test is saved here with your speed and accuracy, plus a chart of how you're improving."},
   {sel:"#themebtn",t:"Themes",b:'More than 100 dark and light themes. You can also open them with <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
-  {sel:null,t:"Shortcuts you'll need",b:'<span class="k2">Tab</span> next text<br><span class="k2">Shift</span>+<span class="k2">Tab</span> previous text<br><span class="k2">Esc</span> pause and resume<br><span class="k2">Shift</span>+<span class="k2">Enter</span> restart the text<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> delete the whole word (<span class="k2">⌥</span>+<span class="k2">⌫</span> on Mac)<br><br>All the shortcuts that help you type faster, for Windows and Mac, are at the bottom of the page.<br><br>To see this tour again, click Tour at the top.',last:true}
+  {sel:null,t:"Shortcuts you'll need",b:'<span class="k2">Tab</span> next text (before you start, or after Esc)<br><span class="k2">Shift</span>+<span class="k2">Tab</span> previous text<br><span class="k2">Esc</span> pause and resume<br><span class="k2">Shift</span>+<span class="k2">Enter</span> restart the text<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> delete the whole word (<span class="k2">⌥</span>+<span class="k2">⌫</span> on Mac)<br><br>All the shortcuts that help you type faster, for Windows and Mac, are at the bottom of the page.<br><br>To see this tour again, click Tour at the top.',last:true}
 ]:[
   {sel:null,t:"أهلا بيك في طقطقة",b:"موقع تتمرن فيه على الكتابة بالعربي على أمثال مصرية، وجمل من الأفلام، وحواديت، وشعر. خلينا نوريك الموقع في دقيقة."},
   {sel:"#slab",t:"اكتب اللي قدامك",b:'ابدأ اكتب على طول، والوقت بيبدأ مع أول حرف. الحرف الصح بيبقى أبيض، والغلط أحمر. <span class="k2">مسافة</span> بتنقلك للكلمة اللي بعدها، و<span class="k2">⌫</span> بيمسح.'},
@@ -1191,7 +1193,7 @@ const TOUR=EN?[
   {sel:"#kbwrap",t:"الكيبورد اللي على الشاشة",b:"الزرار اللي عليك تدوسه بيتلوّن، ولو محتاج Shift بينوّره كمان. ومن فوقه تختار ترتيب ويندوز أو ماك."},
   {sel:"#histbtn",t:"تاريخك",b:"كل اختبار بيتحفظ هنا بسرعتك ودقتك، ومعاه رسمة بتوضح بتتحسن ازاي."},
   {sel:"#themebtn",t:"الثيمات",b:'أكتر من ١٠٠ ثيم، غامق وفاتح. تقدر تفتحها كمان بـ <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
-  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> توقّف مؤقتًا وتكمّل<br><span class="k2">Shift</span>+<span class="k2">Enter</span> تبدأ النص من الأول<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> تمسح الكلمة كلها (على ماك <span class="k2">⌥</span>+<span class="k2">⌫</span>)<br><br>وكل الاختصارات اللي هتساعدك تبقى سريع، لويندوز وماك، تحت في آخر الصفحة.<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
+  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده (قبل ما تبدأ، أو بعد Esc)<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> توقّف مؤقتًا وتكمّل<br><span class="k2">Shift</span>+<span class="k2">Enter</span> تبدأ النص من الأول<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> تمسح الكلمة كلها (على ماك <span class="k2">⌥</span>+<span class="k2">⌫</span>)<br><br>وكل الاختصارات اللي هتساعدك تبقى سريع، لويندوز وماك، تحت في آخر الصفحة.<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
 ];
 let tourI=-1, tourSteps=[];
 function tourOpen(){ return tourI>=0; }
