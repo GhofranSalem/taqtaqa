@@ -140,7 +140,7 @@ function resetHistory(){ hist=[]; hpos=-1; go(1); }
 function flashNav(msg){ $("navhint").textContent=msg; clearTimeout(flashNav.t); flashNav.t=setTimeout(updateNav,1200); }
 function updateNav(){
   const b=hist[hpos]; let s="";
-  if(cfg.mode==="quote"&&b&&b.count) s=EN?`Text ${hpos+1} of ${b.count} in this section`:"نص "+AR_NUM(hpos+1)+"، فيه "+AR_NUM(b.count)+" نص في القسم ده";
+  if(cfg.mode==="quote"&&b&&b.count) s=EN?`Text ${hpos+1} of ${b.count} in this section`:"نص رقم "+AR_NUM(hpos+1)+" وفي "+AR_NUM(b.count)+" نص في القسم ده";
   $("navhint").textContent=s;
 }
 function start(b){
