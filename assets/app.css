@@ -97,6 +97,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .lastrun b{color:var(--fg);font-weight:500}
 .vslast{font-size:14px;color:var(--sub);margin-top:6px}.vslast b{color:var(--fg);font-weight:500}.vslast .up{color:var(--accent)}
 @keyframes blink{50%{opacity:0}}
+/* الاقتباسات الإنجليزي بتتكتب من الشمال لليمين */
+.words.ltr{direction:ltr}
 .slab.blur .words{filter:blur(5px);opacity:.5}
 .slab.blur .caret{opacity:0}
 /* إيقاف مؤقت */
@@ -341,3 +343,10 @@ body.typing .kb .k:not(.next){opacity:.45}
 
 /* مساحة النوتش على الموبايل */
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* زرار اللغة */
+.langbtn{font:inherit;font-size:13px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;line-height:1.5}
+.langbtn:hover{color:var(--fg);border-color:var(--sub)}
+/* الصفحة الإنجليزي */
+html[dir=ltr] .sway #fbcontact{text-align:left}
+html[dir=ltr] .sway #fbcontact:placeholder-shown{direction:ltr}

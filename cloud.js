@@ -11,6 +11,9 @@ const firebaseConfig = {
 };
 
 const OWNER_KEY = "tq-owner";
+// الصفحة الإنجليزي (en/) بنفس الملف، والفرق في الكلام بس
+const EN = document.documentElement.lang === "en";
+const L = (ar, en) => (EN ? en : ar);
 const $ = (id) => document.getElementById(id);
 
 function whenReady(fn) {
@@ -29,7 +32,7 @@ whenReady(async () => {
   const TQ = window.TQ;
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  auth.languageCode = "ar";
+  auth.languageCode = EN ? "en" : "ar";
   const db = getFirestore(app);
   let user = null;
 
@@ -67,7 +70,7 @@ whenReady(async () => {
   .abox .who .av{width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--bg);display:grid;place-items:center;font-weight:700;font-size:20px;overflow:hidden;flex:none}
   .abox .who .av img{width:100%;height:100%;object-fit:cover}
   .abox .who b{display:block;font-size:16px}
-  .abox .who span{font-size:13px;color:var(--sub);direction:ltr;display:block;text-align:right}
+  .abox .who span{font-size:13px;color:var(--sub);direction:ltr;display:block;text-align:${EN ? "left" : "right"}}
   `;
   document.head.appendChild(css);
 
@@ -79,7 +82,7 @@ whenReady(async () => {
 
   const modal = document.createElement("div");
   modal.className = "amodal"; modal.hidden = true; modal.setAttribute("role", "dialog"); modal.setAttribute("aria-modal", "true");
-  modal.innerHTML = `<div class="abox" dir="rtl"></div>`;
+  modal.innerHTML = `<div class="abox" dir="${EN ? "ltr" : "rtl"}"></div>`;
   document.body.appendChild(modal);
   const box = modal.querySelector(".abox");
   modal.addEventListener("mousedown", (e) => { if (e.target === modal) closeModal(); });
@@ -100,24 +103,39 @@ whenReady(async () => {
       const name = user.displayName || (user.email || "").split("@")[0];
       // الصورة بس، والاسم بيظهر لما تقف عليها، عشان الاسم الطويل ما يزقّش الأزرار اللي جنبه
       btn.innerHTML = `<span class="av">${avatar(user)}</span>`;
-      btn.setAttribute("aria-label", "حسابك: " + name);
+      btn.setAttribute("aria-label", L("حسابك: ", "Your account: ") + name);
       btn.title = name;
     } else {
-      btn.innerHTML = `<span class="nm">سجّل دخول</span>`;
+      btn.innerHTML = `<span class="nm">${L("سجّل دخول", "Sign in")}</span>`;
       btn.removeAttribute("aria-label");
       btn.removeAttribute("title");
     }
     const note = $("hnote");
     if (note) note.textContent = user
-      ? `محفوظ في حسابك (${user.email || "Google"})، وبيظهر على أي جهاز تدخل منه.`
-      : "محفوظ على المتصفح ده بس. سجّل دخول عشان يتحفظ في حسابك ويظهر على أي جهاز.";
+      ? (EN ? `Saved in your account (${user.email || "Google"}), and shows up on any device you sign in from.` : `محفوظ في حسابك (${user.email || "Google"})، وبيظهر على أي جهاز تدخل منه.`)
+      : L("محفوظ على المتصفح ده بس. سجّل دخول عشان يتحفظ في حسابك ويظهر على أي جهاز.", "Saved in this browser only. Sign in to keep it in your account and see it on any device.");
   }
   function openModal(view) { modal.hidden = false; view(); const f = box.querySelector("input,button.pri"); if (f) f.focus(); }
   function closeModal() { modal.hidden = true; }
   btn.addEventListener("click", () => openModal(user ? viewAccount : viewSignIn));
 
   /* ---------- تسجيل الدخول ---------- */
-  const ERR = {
+  const ERR = EN ? {
+    "auth/invalid-email": "That email doesn't look right.",
+    "auth/missing-password": "Enter your password.",
+    "auth/weak-password": "The password needs at least 6 characters.",
+    "auth/email-already-in-use": "This email already has an account. Click Sign in instead of New account.",
+    "auth/invalid-credential": "Wrong email or password.",
+    "auth/user-not-found": "There's no account with this email.",
+    "auth/wrong-password": "Wrong password.",
+    "auth/too-many-requests": "Too many attempts. Wait a little and try again.",
+    "auth/popup-closed-by-user": "The Google window closed before sign-in finished.",
+    "auth/cancelled-popup-request": "The Google window closed before sign-in finished.",
+    "auth/popup-blocked": "Your browser blocked the Google window. Allow pop-ups for this site and try again.",
+    "auth/network-request-failed": "No connection. Check your internet and try again.",
+    "auth/unauthorized-domain": "This domain isn't allowed in the Firebase settings.",
+    "auth/operation-not-allowed": "This sign-in method isn't enabled in the Firebase settings."
+  } : {
     "auth/invalid-email": "الإيميل مكتوب غلط.",
     "auth/missing-password": "اكتب كلمة السر.",
     "auth/weak-password": "كلمة السر لازم تبقى ٦ حروف على الأقل.",
@@ -133,32 +151,32 @@ whenReady(async () => {
     "auth/unauthorized-domain": "الدومين ده مش مسموح له في إعدادات Firebase.",
     "auth/operation-not-allowed": "طريقة الدخول دي مش متفعلة في إعدادات Firebase."
   };
-  const msg = (e) => ERR[e && e.code] || "حصلت مشكلة. جرّب تاني.";
+  const msg = (e) => ERR[e && e.code] || L("حصلت مشكلة. جرّب تاني.", "Something went wrong. Try again.");
 
   function viewSignIn() {
     box.innerHTML = `
-      <button type="button" class="x" data-a="close" aria-label="قفل">×</button>
-      <h3>سجّل دخول</h3>
-      <p>عشان تاريخك وأحسن أرقامك يتحفظوا في حسابك، وتشوفهم من أي جهاز.</p>
-      <button type="button" class="gbtn wide" data-a="google"><span class="glogo" aria-hidden="true"><svg viewBox="0 0 48 48" width="18" height="18"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg></span><span>ادخل بحساب Google</span></button>
-      <div class="or">أو بالإيميل</div>
-      <label>الإيميل<input id="a-email" type="email" autocomplete="email" inputmode="email"></label>
-      <label>كلمة السر<input id="a-pass" type="password" autocomplete="current-password"></label>
+      <button type="button" class="x" data-a="close" aria-label="${L("قفل", "Close")}">×</button>
+      <h3>${L("سجّل دخول", "Sign in")}</h3>
+      <p>${L("عشان تاريخك وأحسن أرقامك يتحفظوا في حسابك، وتشوفهم من أي جهاز.", "So your history and best scores are saved in your account, and you can see them on any device.")}</p>
+      <button type="button" class="gbtn wide" data-a="google"><span class="glogo" aria-hidden="true"><svg viewBox="0 0 48 48" width="18" height="18"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg></span><span>${L("ادخل بحساب Google", "Continue with Google")}</span></button>
+      <div class="or">${L("أو بالإيميل", "or with email")}</div>
+      <label>${L("الإيميل", "Email")}<input id="a-email" type="email" autocomplete="email" inputmode="email"></label>
+      <label>${L("كلمة السر", "Password")}<input id="a-pass" type="password" autocomplete="current-password"></label>
       <div class="err" id="a-err" role="alert"></div>
-      <div class="row"><button type="button" data-a="login">دخول</button><button type="button" data-a="signup">حساب جديد</button></div>
-      <button type="button" class="link" data-a="reset">نسيت كلمة السر؟</button>
-      <p style="font-size:12.5px">بنحفظ إيميلك واسمك ونتايج اختباراتك بس، عشان تشوفهم تاني. تقدر تمسح حسابك وكل بياناته في أي وقت.</p>`;
+      <div class="row"><button type="button" data-a="login">${L("دخول", "Sign in")}</button><button type="button" data-a="signup">${L("حساب جديد", "New account")}</button></div>
+      <button type="button" class="link" data-a="reset">${L("نسيت كلمة السر؟", "Forgot your password?")}</button>
+      <p style="font-size:12.5px">${L("بنحفظ إيميلك واسمك ونتايج اختباراتك بس، عشان تشوفهم تاني. تقدر تمسح حسابك وكل بياناته في أي وقت.", "We only save your email, your name and your test results, so you can see them again. You can delete your account and all its data at any time.")}</p>`;
   }
   function viewAccount() {
     armed = false;
     const name = user.displayName || (user.email || "").split("@")[0];
     box.innerHTML = `
-      <button type="button" class="x" data-a="close" aria-label="قفل">×</button>
+      <button type="button" class="x" data-a="close" aria-label="${L("قفل", "Close")}">×</button>
       <div class="who"><div class="av">${avatar(user)}</div><div><b>${esc(name)}</b><span>${esc(user.email || "")}</span></div></div>
-      <p>تاريخك وأحسن أرقامك محفوظين في حسابك، وبيتزامنوا لوحدهم بعد كل اختبار.</p>
+      <p>${L("تاريخك وأحسن أرقامك محفوظين في حسابك، وبيتزامنوا لوحدهم بعد كل اختبار.", "Your history and best scores are saved in your account, and sync on their own after every test.")}</p>
       <div class="err" id="a-err" role="alert"></div>
-      <div class="row"><button type="button" data-a="logout">خروج</button></div>
-      <button type="button" class="danger" data-a="delete">امسح حسابي وكل بياناتي</button>`;
+      <div class="row"><button type="button" data-a="logout">${L("خروج", "Sign out")}</button></div>
+      <button type="button" class="danger" data-a="delete">${L("امسح حسابي وكل بياناتي", "Delete my account and all my data")}</button>`;
   }
 
   box.addEventListener("click", async (e) => {
@@ -178,13 +196,13 @@ whenReady(async () => {
         closeModal();
       }
       if (a === "reset") {
-        if (!email()) { errEl.textContent = "اكتب إيميلك الأول، وبعدين اضغط «نسيت كلمة السر؟»."; return; }
+        if (!email()) { errEl.textContent = L("اكتب إيميلك الأول، وبعدين اضغط «نسيت كلمة السر؟».", "Enter your email first, then click Forgot your password?"); return; }
         busy(true); await sendPasswordResetEmail(auth, email());
-        errEl.className = "ok"; errEl.textContent = "بعتنالك إيميل فيه لينك تغيّر بيه كلمة السر.";
+        errEl.className = "ok"; errEl.textContent = L("بعتنالك إيميل فيه لينك تغيّر بيه كلمة السر.", "We sent you an email with a link to change your password.");
       }
       if (a === "logout") { await signOut(auth); closeModal(); }
       if (a === "delete") {
-        if (!armed) { armed = true; b.classList.add("armed"); b.textContent = "متأكد؟ اضغط تاني عشان تمسح الحساب نهائيا"; return; }
+        if (!armed) { armed = true; b.classList.add("armed"); b.textContent = L("متأكد؟ اضغط تاني عشان تمسح الحساب نهائيا", "Sure? Click again to delete the account for good"); return; }
         busy(true); await deleteAccount(); closeModal();
       }
     } catch (ex) {
@@ -269,9 +287,9 @@ whenReady(async () => {
       } else throw ex;
     }
     wipeLocal();
-    TQ.toast("اتمسح حسابك وكل بياناته.");
+    TQ.toast(L("اتمسح حسابك وكل بياناته.", "Your account and all its data were deleted."));
   }
-  ERR["x/relogin"] = "عشان تمسح الحساب، اخرج وادخل تاني الأول، وبعدين امسحه.";
+  ERR["x/relogin"] = L("عشان تمسح الحساب، اخرج وادخل تاني الأول، وبعدين امسحه.", "To delete the account, sign out and back in first, then delete it.");
   function wipeLocal() {
     TQ.setHist([]); TQ.setPBs({}); TQ.setFavs([]); TQ.setLastRuns({});
     try { localStorage.removeItem(OWNER_KEY); } catch (e) {}
@@ -316,12 +334,12 @@ whenReady(async () => {
       wasSignedIn = true;
       try {
         const r = await syncDown(u);
-        TQ.toast(r.up ? `اتحفظ تاريخك في حسابك (${r.up.toLocaleString("ar-EG")} اختبار)` : "دخلت حسابك، وتاريخك متزامن");
-      } catch (ex) { console.warn("taqtaqa sync", ex); TQ.toast("ما قدرناش نزامن تاريخك دلوقتي. هنحاول تاني."); }
+        TQ.toast(r.up ? (EN ? `Your history was saved to your account (${r.up} tests)` : `اتحفظ تاريخك في حسابك (${r.up.toLocaleString("ar-EG")} اختبار)`) : L("دخلت حسابك، وتاريخك متزامن", "You're signed in, and your history is synced"));
+      } catch (ex) { console.warn("taqtaqa sync", ex); TQ.toast(L("ما قدرناش نزامن تاريخك دلوقتي. هنحاول تاني.", "We couldn't sync your history right now. We'll try again.")); }
     } else if (wasSignedIn) {
       wasSignedIn = false;
       wipeLocal(); // الجهاز يرجع فاضي بعد الخروج، وتاريخك محفوظ في حسابك
-      TQ.toast("خرجت من حسابك");
+      TQ.toast(L("خرجت من حسابك", "You signed out"));
     }
   });
   renderBtn();

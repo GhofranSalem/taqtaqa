@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="طقطقة">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script>
+/* لو اخترت الإنجليزي قبل كده من زرار اللغة، الموقع بيفتح عليه */
+(function(){try{if(localStorage.getItem("tq-lang")==="en"&&!/[?&]lang=ar/.test(location.search))location.replace("/en/"+location.hash);}catch(e){}})();
 /* افتتاحية اللوجو: بتتلغي لو الجهاز طالب حركة أقل، وبتتشال لوحدها لو حصل أي خطأ */
 (function(){try{var seen=false;try{seen=sessionStorage.getItem("tq-intro")==="1";}catch(e){}
 if(!seen&&!matchMedia("(prefers-reduced-motion: reduce)").matches){var h=document.documentElement;h.classList.add("intro");setTimeout(function(){h.classList.remove("intro");},4000);}}catch(e){}})();
@@ -65,6 +67,7 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
       <button class="helpbtn" id="helpbtn" type="button">شرح الموقع</button>
       <span class="hpair"><button class="histbtn" id="histbtn" type="button">تاريخي</button>
       <button class="favhbtn" id="favhbtn" type="button" aria-pressed="false" title="النصوص اللي حفظتها">مفضلتي</button></span>
+      <a class="langbtn" id="langbtn" href="/en/" hreflang="en" lang="en" title="Taqtaqa in English">EN</a>
       <button class="themebtn" id="themebtn" type="button" aria-label="الثيمات"><span class="dots" id="tdots"></span><span class="sr" id="tname">طقطقة</span></button>
     </div>
   </header>
@@ -78,6 +81,7 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
       <button type="button" data-v="hawadit">حواديت</button>
       <button type="button" data-v="hekam">حكم وتراث</button>
       <button type="button" data-v="sheer">شعر</button>
+      <button type="button" data-v="en" lang="en" title="اقتباسات بالإنجليزي">إنجليزي</button>
       <button type="button" data-v="mix">مكس</button>
       <button type="button" data-v="words">كلمات</button>
     </div>
@@ -143,7 +147,7 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
 
   <section class="kbwrap" id="kbwrap">
     <div class="kbhead">
-      <span>ترتيب الكيبورد</span>
+      <span id="kblabel">ترتيب الكيبورد</span>
       <div class="seg" data-k="layout" id="g-layout">
         <button type="button" data-v="pc">ويندوز (Arabic PC)</button>
         <button type="button" data-v="mac">ماك</button>
@@ -162,7 +166,7 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
   </footer>
   <details class="about" id="about">
     <summary><h2 id="about-t">عن طقطقة</h2></summary>
-    <p><strong>طقطقة</strong> (Taqtaqa) موقع مجاني تتعلم فيه <strong>الكتابة على الكيبورد العربي</strong> وتقيس <strong>سرعة الكتابة بالعربي</strong>، زي Monkeytype بس للعربي. بدل كلمات عشوائية، بتكتب أمثال مصرية وسعودية، وجمل مشهورة من الأفلام المصرية، وحواديت جحا، وحكم وشعر عربي.</p>
+    <p><strong>طقطقة</strong> (Taqtaqa) موقع مجاني تتعلم فيه <strong>الكتابة على الكيبورد العربي</strong> وتقيس <strong>سرعة الكتابة بالعربي</strong>، زي Monkeytype بس للعربي. بدل كلمات عشوائية، بتكتب أمثال مصرية وسعودية، وجمل مشهورة من الأفلام المصرية، وحواديت جحا، وحكم وشعر عربي، وكمان اقتباسات بالإنجليزي.</p>
     <div class="acols">
       <div>
         <h3>بتتمرن إزاي</h3>
@@ -181,7 +185,7 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
         </ul>
       </div>
     </div>
-    <p class="alang"><a href="en/" hreflang="en" lang="en" dir="ltr">Taqtaqa in English: Arabic typing test and keyboard practice</a></p>
+    <p class="alang"><a href="/en/" hreflang="en" lang="en" dir="ltr" data-lang="en">Taqtaqa in English: Arabic typing test and keyboard practice</a></p>
   </details>
 </div>
 

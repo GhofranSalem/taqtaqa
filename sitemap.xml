@@ -2,24 +2,40 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://taqtaqa.com/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
     <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://taqtaqa.com/"/>
   </url>
   <url>
     <loc>https://taqtaqa.com/en/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
     <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://taqtaqa.com/"/>
   </url>
   <url>
     <loc>https://taqtaqa.com/privacy.html</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/privacy.html"/>
+  </url>
+  <url>
+    <loc>https://taqtaqa.com/en/privacy.html</loc>
+    <lastmod>2026-10-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/privacy.html"/>
   </url>
   <url>
     <loc>https://taqtaqa.com/credits.html</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/credits.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/credits.html"/>
+  </url>
+  <url>
+    <loc>https://taqtaqa.com/en/credits.html</loc>
+    <lastmod>2026-10-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/credits.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/credits.html"/>
   </url>
 </urlset>

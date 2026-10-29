@@ -1,9 +1,10 @@
 // طقطقة: يخلي الموقع يفتح من غير نت.
 // الصفحة بتتجاب من النت الأول عشان أي تحديث يوصل، ولو مفيش نت بتتفتح من النسخة المحفوظة.
-const CACHE = "taqtaqa-v24";
+const CACHE = "taqtaqa-v25";
 const FILES = [
   "./",
   "./index.html",
+  "./en/",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
