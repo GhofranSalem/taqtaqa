@@ -220,7 +220,8 @@ function commitWord(){
   if(cfg.mode==="time"&&T.words.length-T.idx<40) appendWords();
 }
 ti.addEventListener("input",()=>{
-  if(T.done||T.paused||tourOpen()){ti.value=T.done?"":(T.typed[T.idx]||"");return;}
+  if(T.paused&&!T.done&&!tourOpen()) resumeTest();
+  if(T.done||tourOpen()){ti.value=T.done?"":(T.typed[T.idx]||"");return;}
   if(T.started) setTyping(true);
   let v=ti.value.replace(/\n/g," ").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
   v=v.replace(/[\u0670\u0640]/g,"");
@@ -292,7 +293,8 @@ document.addEventListener("keydown",e=>{
     else if(T&&T.started&&!T.done) pauseTest();
     return;
   }
-  if(T&&T.paused&&e.key.length===1){ e.preventDefault(); return; }
+  /* لو Esc اتداس بالغلط، أول حرف تكتبه بيكمّل الاختبار ويتكتب عادي */
+  if(T&&T.paused&&e.key.length===1&&!e.ctrlKey&&!e.metaKey){ resumeTest(); }
   if(!$("results").hidden&&e.key==="Enter"&&document.activeElement.tagName!=="BUTTON"){e.preventDefault();go(1);return;}
   if(document.activeElement!==ti&&$("results").hidden&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&document.activeElement.tagName!=="BUTTON"&&document.activeElement.tagName!=="INPUT") focusInput();
 });
