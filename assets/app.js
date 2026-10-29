@@ -1296,11 +1296,17 @@ const SHORTCUTS=EN?[
   ]]
 ];
 function renderShortcuts(){
-  const os=cfg.os==="mac"?"mac":"win";
+  const os=curOS();
   $("sclist").innerHTML=SHORTCUTS.map(([g,rows])=>`<div><h3>${g}</h3>${rows.map(([t,n,w,m,nw,nm])=>{ const note=n||(os==="mac"?nm:nw)||""; return `<div class="scrow"><span>${t}${note?`<small>${note}</small>`:""}</span><span class="ks">${(os==="mac"?m:w).map(k=>`<kbd>${esc(k)}</kbd>`).join("+")}</span></div>`; }).join("")}</div>`).join("");
   document.querySelectorAll("#g-os button").forEach(b=>{ const on=b.dataset.v===os; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
 }
-$("g-os").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; cfg.os=b.dataset.v; saveCfg(); renderShortcuts(); b.blur(); });
+/* الاختصارات بتتعرض على حسب نظام الجهاز اللي فاتح منه، إلا لو اخترت بنفسك */
+function detectOS(){
+  const p=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||navigator.userAgent||"";
+  return /mac|iphone|ipad|ios/i.test(p)?"mac":"win";
+}
+function curOS(){ return cfg.osPick==="mac"||cfg.osPick==="win"?cfg.osPick:detectOS(); }
+$("g-os").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; cfg.osPick=b.dataset.v===detectOS()?undefined:b.dataset.v; saveCfg(); renderShortcuts(); b.blur(); });
 
 /* ============ النقل من اللينكات القديمة لـ taqtaqa.com ============ */
 const NEW_HOME="https://taqtaqa.com/";
@@ -1502,7 +1508,7 @@ function openOnPoem(){
   start(hist[0]);
 }
 if(cfg.theme!=="taqtaqa"&&!THEMES.some(t=>t[0]===cfg.theme)) cfg.theme="vesper";
-if(!cfg.os) cfg.os=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?"mac":"win";
+delete cfg.os; /* كان بيتحفظ لوحده زمان، فبقى بيثبت على أول جهاز */
 applyFont(); buildKb(); applyTheme(cfg.theme); renderShortcuts(); paintGoal();
 importFromOldLink();
 openOnPoem();
