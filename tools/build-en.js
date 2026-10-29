@@ -54,6 +54,7 @@ const T = [
   ['>حواديت<', '>Folk tales<'],
   ['>حكم وتراث<', '>Wisdom<'],
   ['>شعر<', '>Poetry<'],
+  ['title="آيات من القرآن الكريم">قرآن<', 'title="Verses from the Quran">Quran<'],
   ['title="اقتباسات بالإنجليزي">إنجليزي<', 'title="Quotes in English">English<'],
   ['>مكس<', '>Mix<'],
   ['data-v="words">كلمات<', 'data-v="words">Words<'],
@@ -134,7 +135,7 @@ s = s.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<scrip
 /* «عن طقطقة» بالإنجليزي */
 s = s.replace(/<details class="about" id="about">[\s\S]*?<\/details>/, `<details class="about" id="about">
     <summary><h2 id="about-t">About Taqtaqa</h2></summary>
-    <p><strong>Taqtaqa</strong> (طقطقة) is a free <strong>Arabic typing test</strong> and <strong>Arabic keyboard trainer</strong>, like Monkeytype but made for Arabic. Instead of random words, you type real Egyptian and Saudi proverbs, famous lines from Egyptian films, Juha folk tales, wisdom and classical Arabic poetry. There is also a tab of English quotes.</p>
+    <p><strong>Taqtaqa</strong> (طقطقة) is a free <strong>Arabic typing test</strong> and <strong>Arabic keyboard trainer</strong>, like Monkeytype but made for Arabic. Instead of random words, you type real Egyptian and Saudi proverbs, famous lines from Egyptian films, Juha folk tales, wisdom, verses from the Quran and classical Arabic poetry. There is also a tab of English quotes.</p>
     <div class="acols">
       <div>
         <h3>How you practice</h3>

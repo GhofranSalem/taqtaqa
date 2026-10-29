@@ -52,13 +52,21 @@ const CATS={
   sheer:()=>SHEER.map(([t,s])=>({t,s,tk:true})),
   /* اقتباسات إنجليزي: بتتكتب من الشمال لليمين، ومش داخلة في «مكس» */
   en:()=>EN_QUOTES.map(([t,s])=>({t,s,en:true})),
-  fav:()=>{ const cur=new Map(); AR_CATS.concat("en").forEach(c=>CATS[c]().forEach(q=>cur.set(favKey(q.t),q))); return getFavs().map(f=>cur.get(favKey(f.t))||{t:f.t,s:f.s,tk:f.tk,en:f.en||!/[\u0600-\u06FF]/.test(f.t)}); }
+  /* القرآن: قسم لوحده، ومش داخل في «مكس» */
+  quran:()=>QURAN.map(([t,n,a,b])=>({t,s:quranSrc(n,a,b),tk:true,quran:true})),
+  fav:()=>{ const cur=new Map(); AR_CATS.concat("en","quran").forEach(c=>CATS[c]().forEach(q=>cur.set(favKey(q.t),q))); return getFavs().map(f=>cur.get(favKey(f.t))||{t:f.t,s:f.s,tk:f.tk,en:f.en||!/[\u0600-\u06FF]/.test(f.t)}); }
 };
+/* «سورة البقرة، الآية ٢٥٥» أو «Quran, Al-Baqarah 2:255» */
+function quranSrc(n,a,b){
+  const nm=QURAN_SURAS[n]||[String(n),String(n)];
+  if(EN) return `Quran, ${nm[1]} ${n}:${a}${b>a?"-"+b:""}`;
+  return `سورة ${nm[0]}، ${b>a?"الآيات "+AR_NUM(a)+"-"+AR_NUM(b):"الآية "+AR_NUM(a)}`;
+}
 function allQuotes(){
   const keys=(cfg.src==="mix"||cfg.src==="words")?AR_CATS:[cfg.src];
   return keys.flatMap(k=>CATS[k]());
 }
-function lenCat(t){const n=t.length;return n<70?"s":n<180?"m":n<320?"l":"xl";}
+function lenCat(t){const n=t.replace(TASHKEEL,"").length;return n<70?"s":n<180?"m":n<320?"l":"xl";}
 
 /* شنطة بتلف على كل النصوص قبل ما تكرر */
 const bags={};
@@ -391,8 +399,8 @@ function finish(){
   showResults(rr);
   ti.blur(); updateKb();
 }
-const SRC_NAME=EN?{masry:"Egyptian proverbs",saudi:"Saudi proverbs",kalam:"Egyptian Arabic",aflam:"Films",hawadit:"Folk tales",hekam:"Wisdom",sheer:"Poetry",tashkeel:"Diacritics",mix:"Mix",fav:"Favorites",words:"Words",en:"English quotes",practice:"Practice"}
-  :{masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",fav:"مفضلتي",words:"كلمات",en:"إنجليزي",practice:"تمرين"};
+const SRC_NAME=EN?{masry:"Egyptian proverbs",saudi:"Saudi proverbs",kalam:"Egyptian Arabic",aflam:"Films",hawadit:"Folk tales",hekam:"Wisdom",sheer:"Poetry",tashkeel:"Diacritics",mix:"Mix",fav:"Favorites",words:"Words",en:"English quotes",quran:"Quran",practice:"Practice"}
+  :{masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",fav:"مفضلتي",words:"كلمات",en:"إنجليزي",quran:"قرآن",practice:"تمرين"};
 const PRACTICE_LBL=L("تمرين على الكلمات اللي غلطت فيها","Practice on the words you missed");
 /* اسم الاختبار، بيتحسب من نوعه عشان يظهر بلغة الصفحة */
 function labelFor(mode,n,src,tk){
@@ -453,7 +461,8 @@ function showResults(r){
 }
 /* ============ تمرين على الكلمات اللي غلطت فيها ============ */
 function missedWords(){
-  if(!T||!T.missed) return [];
+  /* آيات القرآن ما بنقطّعهاش ونلخبط كلماتها في تمرين */
+  if(!T||!T.missed||(T.segs||[]).some(sg=>sg.q&&sg.q.quran)) return [];
   const seen=new Set(), out=[];
   [...T.missed].sort((a,b)=>a-b).forEach(i=>{ const w=T.words[i]; if(i<=T.idx&&w&&!seen.has(w)){ seen.add(w); out.push(w); } });
   return out;
@@ -1162,7 +1171,7 @@ function importFromOldLink(){
 const TOUR=EN?[
   {sel:null,t:"Welcome to Taqtaqa",b:"A place to practice typing in Arabic on real Egyptian and Saudi proverbs, film lines, folk tales and poetry. Here's a one-minute tour."},
   {sel:"#slab",t:"Type what you see",b:'Just start typing, and the timer starts with your first letter. Correct letters turn white, mistakes turn red. <span class="k2">Space</span> moves to the next word, and <span class="k2">⌫</span> deletes.'},
-  {sel:'.config .group[data-k="src"]',t:"Pick your texts",b:"Egyptian and Saudi proverbs, Egyptian Arabic, film lines, folk tales, wisdom, poetry, or Mix of everything. Words gives you single words, and English has English quotes."},
+  {sel:'.config .group[data-k="src"]',t:"Pick your texts",b:"Egyptian and Saudi proverbs, Egyptian Arabic, film lines, folk tales, wisdom, verses from the Quran, poetry, or Mix. Words gives you single words, and English has English quotes."},
   {sel:"#favhbtn",t:"Favorites",b:"Texts you saved with the Save button under the text. Click it to type from them, and click again to go back."},
   {sel:'.config .group[data-k="mode"]',t:"Pick a test type",b:"<b>Time:</b> type as much as you can in a number of seconds.<br><b>Words:</b> finish a set number of words.<br><b>Quote:</b> one full text from start to end."},
   {sel:()=>["#g-time","#g-words","#g-qlen"].map(s=>$(s.slice(1))).find(e=>e&&!e.hidden),t:"Pick the length",b:"Set the seconds, the word count, or the quote length, depending on the test type."},
@@ -1174,7 +1183,7 @@ const TOUR=EN?[
 ]:[
   {sel:null,t:"أهلا بيك في طقطقة",b:"موقع تتمرن فيه على الكتابة بالعربي على أمثال مصرية، وجمل من الأفلام، وحواديت، وشعر. خلينا نوريك الموقع في دقيقة."},
   {sel:"#slab",t:"اكتب اللي قدامك",b:'ابدأ اكتب على طول، والوقت بيبدأ مع أول حرف. الحرف الصح بيبقى أبيض، والغلط أحمر. <span class="k2">مسافة</span> بتنقلك للكلمة اللي بعدها، و<span class="k2">⌫</span> بيمسح.'},
-  {sel:'.config .group[data-k="src"]',t:"اختار النصوص",b:"أمثال مصرية وسعودية، كلام مصري، أفلام، حواديت، حكم، شعر، أو «مكس» من كله. و«كلمات» بيجيبلك كلمات لوحدها، و«إنجليزي» فيه اقتباسات بالإنجليزي."},
+  {sel:'.config .group[data-k="src"]',t:"اختار النصوص",b:"أمثال مصرية وسعودية، كلام مصري، أفلام، حواديت، حكم، آيات من القرآن، شعر، أو «مكس» من كله. و«كلمات» بيجيبلك كلمات لوحدها، و«إنجليزي» فيه اقتباسات بالإنجليزي."},
   {sel:"#favhbtn",t:"مفضلتي",b:"النصوص اللي حفظتها بزرار «احفظ» اللي تحت النص. دوس عليه عشان تكتب منها، ودوس تاني عشان ترجع."},
   {sel:'.config .group[data-k="mode"]',t:"اختار طريقة الاختبار",b:"<b>وقت:</b> اكتب أكتر ما تقدر في عدد ثواني.<br><b>عدد كلمات:</b> خلّص عدد كلمات معين.<br><b>اقتباس:</b> نص واحد كامل من أوله لآخره."},
   {sel:()=>["#g-time","#g-words","#g-qlen"].map(s=>$(s.slice(1))).find(e=>e&&!e.hidden),t:"اختار المدة أو الطول",b:"هنا بتحدد عدد الثواني، أو عدد الكلمات، أو طول الاقتباس، على حسب الطريقة اللي اخترتها."},
