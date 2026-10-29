@@ -99,6 +99,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @keyframes blink{50%{opacity:0}}
 .slab.blur .words{filter:blur(5px);opacity:.5}
 .slab.blur .caret{opacity:0}
+/* إيقاف مؤقت */
+.slab.paused .words{filter:blur(5px);opacity:.35}
+.slab.paused .caret{opacity:0}
+.pausemsg{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--sub);font-size:14px;text-align:center}
+.pausemsg b{color:var(--fg);font-size:20px;font-weight:500}
 .focus-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--fg);pointer-events:none;text-align:center}
 .under{margin-top:6px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:13.5px;min-height:22px}
 .navhint{font-variant-numeric:tabular-nums}

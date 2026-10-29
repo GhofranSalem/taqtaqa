@@ -112,6 +112,7 @@ function updateNav(){
 }
 function start(b){
   if(T&&T.timer) clearInterval(T.timer);
+  slab.classList.remove("paused"); $("pausemsg").hidden=true;
   setTyping(false);
   gen=makeGen();
   T=fresh(wordsFor(b),b.quote);
@@ -183,6 +184,17 @@ function appendWords(){
 
 /* ============ الإدخال ============ */
 function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); runGhost(); }
+function pauseTest(){
+  if(!T||!T.started||T.done||T.paused) return;
+  T.paused=performance.now(); clearInterval(T.timer); cancelAnimationFrame(ghostRAF);
+  setTyping(false); slab.classList.add("paused"); $("pausemsg").hidden=false; $("ghost").hidden=true;
+}
+function resumeTest(){
+  if(!T||!T.paused) return;
+  T.t0+=performance.now()-T.paused; T.paused=0;
+  slab.classList.remove("paused"); $("pausemsg").hidden=true;
+  T.timer=setInterval(tick,100); runGhost(); focusInput();
+}
 function setTyping(on){ document.body.classList.toggle("typing",!!on); if(on){ closeFontMenu(false); closeSetMenu(false); } }
 document.addEventListener("mousemove",e=>{ if(Math.abs(e.movementX)+Math.abs(e.movementY)>3) setTyping(false); });
 function setTyped(nv){
@@ -208,7 +220,7 @@ function commitWord(){
   if(cfg.mode==="time"&&T.words.length-T.idx<40) appendWords();
 }
 ti.addEventListener("input",()=>{
-  if(T.done||tourOpen()){ti.value=T.done?"":(T.typed[T.idx]||"");return;}
+  if(T.done||T.paused||tourOpen()){ti.value=T.done?"":(T.typed[T.idx]||"");return;}
   if(T.started) setTyping(true);
   let v=ti.value.replace(/\n/g," ").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
   v=v.replace(/[\u0670\u0640]/g,"");
@@ -271,7 +283,16 @@ document.addEventListener("keydown",e=>{
   }
   pressKey(e.code,true);
   if(e.key==="Tab"){ e.preventDefault(); go(e.shiftKey?-1:1); return; }
-  if(e.key==="Escape"){ e.preventDefault(); go(0); return; }
+  /* Esc بيوقّف مؤقتًا وبيكمّل. وShift+Enter بيبدأ النص من الأول: مش مستخدم في ويندوز ولا ماك ولا المتصفحات */
+  if(e.key==="Enter"&&e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!e.altKey){ e.preventDefault(); go(0); return; }
+  if(e.key==="Escape"){
+    e.preventDefault();
+    if(!$("results").hidden) go(0);
+    else if(T&&T.paused) resumeTest();
+    else if(T&&T.started&&!T.done) pauseTest();
+    return;
+  }
+  if(T&&T.paused&&e.key.length===1){ e.preventDefault(); return; }
   if(!$("results").hidden&&e.key==="Enter"&&document.activeElement.tagName!=="BUTTON"){e.preventDefault();go(1);return;}
   if(document.activeElement!==ti&&$("results").hidden&&e.key.length===1&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&document.activeElement.tagName!=="BUTTON"&&document.activeElement.tagName!=="INPUT") focusInput();
 });
@@ -380,7 +401,7 @@ function showResults(r){
     <div class="actions">
       <button type="button" class="primary" id="b-new">النص اللي بعده<kbd>Tab</kbd></button>
       <button type="button" class="shareact" id="b-share">شارك نتيجتك</button>
-      <button type="button" id="b-same">نفس النص تاني<kbd>Esc</kbd></button>
+      <button type="button" id="b-same">نفس النص تاني<kbd>Shift+Enter</kbd></button>
       <button type="button" id="b-prev">اللي قبله<kbd>Shift+Tab</kbd></button>
       ${curQuote()?'<button type="button" class="favact" id="b-fav"></button>':""}
     </div>`;
@@ -614,7 +635,7 @@ function showLastRun(){
   L.title=cfg.pace?"المؤشر الرمادي ماشي بسرعتك آخر مرة. حاول تسبقه.":"تقدر تشغّل «مؤشر آخر مرة» من الإعدادات";
 }
 let ghostRAF=0;
-function ghostOn(){ return !!(cfg.pace&&T&&T.last&&T.last.w>0&&!T.done); }
+function ghostOn(){ return !!(cfg.pace&&T&&T.last&&T.last.w>0&&!T.done&&!T.paused); }
 /* مكان المؤشر بعد عدد حروف معيّن، والمسافة بتتحسب حرف زي ما بنحسب السرعة */
 function placeGhost(){
   const g=$("ghost");
@@ -997,7 +1018,8 @@ const SHORTCUTS=[
   ["في طقطقة",[
     ["النص اللي بعده","",["Tab"],["Tab"]],
     ["النص اللي قبله","",["Shift","Tab"],["Shift","Tab"]],
-    ["ابدأ نفس النص من الأول","",["Esc"],["Esc"]],
+    ["وقّف مؤقتًا، وكمّل","",["Esc"],["Esc"]],
+    ["ابدأ نفس النص من الأول","",["Shift","Enter"],["Shift","Enter"]],
     ["الثيمات","",["Ctrl","Shift","P"],["⌘ Cmd","Shift","P"]]
   ]]
 ];
@@ -1048,7 +1070,7 @@ const TOUR=[
   {sel:"#kbwrap",t:"الكيبورد اللي على الشاشة",b:"الزرار اللي عليك تدوسه بيتلوّن، ولو محتاج Shift بينوّره كمان. ومن فوقه تختار ترتيب ويندوز أو ماك."},
   {sel:"#histbtn",t:"تاريخك",b:"كل اختبار بيتحفظ هنا بسرعتك ودقتك، ومعاه رسمة بتوضح بتتحسن ازاي."},
   {sel:"#themebtn",t:"الثيمات",b:'أكتر من ١٠٠ ثيم، غامق وفاتح. تقدر تفتحها كمان بـ <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
-  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> تعيد نفس النص<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> تمسح الكلمة كلها (على ماك <span class="k2">⌥</span>+<span class="k2">⌫</span>)<br><br>وكل الاختصارات اللي هتساعدك تبقى سريع، لويندوز وماك، تحت في آخر الصفحة.<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
+  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> توقّف مؤقتًا وتكمّل<br><span class="k2">Shift</span>+<span class="k2">Enter</span> تبدأ النص من الأول<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> تمسح الكلمة كلها (على ماك <span class="k2">⌥</span>+<span class="k2">⌫</span>)<br><br>وكل الاختصارات اللي هتساعدك تبقى سريع، لويندوز وماك، تحت في آخر الصفحة.<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
 ];
 let tourI=-1, tourSteps=[];
 function tourOpen(){ return tourI>=0; }
