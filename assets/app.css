@@ -327,6 +327,27 @@ body.typing .kb .k:not(.next){opacity:.45}
 .hfoot button,.hclose{font:inherit;font-size:14px;border-radius:8px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
 .hfoot button.danger{color:var(--err);border-color:transparent;background:none}
 .hfoot button.danger.armed{background:var(--err);color:var(--bg)}
+.hlang button small{color:var(--sub);font-size:11.5px;margin-inline-start:3px}
+.hlang button.on small{color:inherit;opacity:.75}
+.hstats .v.down{color:var(--sub)}
+/* الأقسام في التاريخ */
+#hbody{display:flex;flex-direction:column;gap:24px}
+.hsecs{display:flex;flex-direction:column;gap:10px}
+.hsecs h3{margin:0;font-size:15px;font-weight:600;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.hsecs h3 small{font-weight:400;font-size:13px;color:var(--sub)}
+.hsecs h3 small b{color:var(--accent);font-weight:600}
+.hseclist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.hsec{font:inherit;text-align:start;display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;background:var(--panel);color:var(--fg);border:1.5px solid transparent;border-radius:10px;padding:10px 12px;cursor:pointer}
+.hsec:hover{border-color:color-mix(in srgb,var(--sub) 55%,transparent)}
+.hsec.on{border-color:var(--accent)}
+.hsec .nm{font-weight:600;font-size:14px}
+.hsec .n{font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums;justify-self:end}
+.hsec .bar{grid-column:1 / -1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.hsec .bar i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.hsec .av,.hsec .bs{font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+.hsec .bs{justify-self:end}
+.hsec b{color:var(--fg);font-weight:600}
+.hsecall{align-self:flex-start;font:inherit;font-size:13px;background:none;border:0;color:var(--sub);text-decoration:underline;cursor:pointer;padding:2px 0}
 .hempty{color:var(--sub);padding:30px 0;font-size:15px}
 .avg10{color:var(--sub);font-size:13.5px}
 @media (max-width:640px){

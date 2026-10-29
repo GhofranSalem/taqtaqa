@@ -215,7 +215,7 @@ whenReady(async () => {
   const userDoc = (uid) => doc(db, "users", uid);
   const clean = (h) => {
     const o = {};
-    for (const k of ["v", "t", "wpm", "raw", "acc", "el", "c", "b", "x", "m", "mode", "n", "src", "q", "label"]) if (h[k] !== undefined) o[k] = h[k];
+    for (const k of ["v", "t", "wpm", "raw", "acc", "el", "c", "b", "x", "m", "mode", "n", "src", "q", "label", "lang"]) if (h[k] !== undefined) o[k] = h[k];
     return o;
   };
   async function writeMany(uid, list) {

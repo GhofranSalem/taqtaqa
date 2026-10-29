@@ -564,7 +564,7 @@ function drawChart(){
   ctx.fillStyle=tok("--err");
   S.forEach((s,i)=>{if(s.err){ctx.beginPath();ctx.arc(X(i),pt+6,Math.min(2+s.err,6),0,7);ctx.fill();}});
 }
-window.addEventListener("resize",()=>{ if(!$("history").hidden){ const a=getHist(); const f=hFilter==="all"?a:a.filter(h=>h.mode===hFilter); if(f.length) drawHist(f.slice(-100)); } else if(T&&T.done) drawChart(); else if(T) refresh(); });
+window.addEventListener("resize",()=>{ if(!$("history").hidden){ const f=histView().a; if(f.length) drawHist(f.slice(-100)); } else if(T&&T.done) drawChart(); else if(T) refresh(); });
 
 /* ============ الكيبورد ============ */
 /* حروف اللاتيني اللي بتظهر صغيرة فوق كل زرار */
@@ -817,33 +817,64 @@ function addHist(r){
   const a=getHist();
   a.push({v:1,t:Date.now(),wpm:+r.wpm.toFixed(1),raw:+r.raw.toFixed(1),acc:+r.acc.toFixed(1),el:+r.el.toFixed(1),
     c:r.c,b:r.b,x:r.x,m:r.m,mode:T.practice?"practice":cfg.mode,n:T.practice?T.words.length:cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,src:T.practice?"practice":cfg.src,
-    q:T.quote?T.quote.s:null,label:modeLabel()});
+    q:T.quote?T.quote.s:null,label:modeLabel(),lang:T.dir==="ltr"?"en":"ar"});
   setHist(a);
   try{window.dispatchEvent(new CustomEvent("tq:result",{detail:a[a.length-1]}));}catch(e){}
 }
 function avgLast(a,k,f){const s=a.slice(-k);return s.length?s.reduce((x,y)=>x+y[f],0)/s.length:0;}
-let hFilter="all", hShown=30, hArmed=false;
+/* التاريخ مقسوم: كتابة العربي لوحدها والإنجليزي لوحده. والاختبارات القديمة بنعرف لغتها من القسم */
+const histLang=h=>h.lang||(h.src==="en"?"en":"ar");
+let hFilter="all", hLang=null, hSrc="all", hShown=30, hArmed=false;
 function openHistory(){
   if(T&&T.timer&&!T.done){clearInterval(T.timer);}
   setTyping(false);
   $("stage").hidden=true; $("results").hidden=true; $("history").hidden=false; $("kbwrap").hidden=true;
+  hLang=T&&T.dir==="ltr"?"en":"ar"; hSrc="all";
   hShown=30; hArmed=false; renderHistory(); ti.blur(); window.scrollTo(0,0);
 }
 function closeHistory(){ $("history").hidden=true; $("kbwrap").hidden=!cfg.kb; go(0); }
 function fmtDate(t){
   try{return new Date(t).toLocaleString(EN?"en-US":"ar-EG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});}catch(e){return new Date(t).toISOString().slice(0,16);}
 }
+/* اللي بيظهر في التاريخ دلوقتي: اللغة، وبعدين نوع الاختبار، وبعدين القسم */
+function histView(){
+  const all=getHist();
+  const langs={ar:all.filter(h=>histLang(h)==="ar"),en:all.filter(h=>histLang(h)==="en")};
+  if(!hLang||!langs[hLang].length) hLang=langs.ar.length?"ar":"en";
+  const byMode=langs[hLang].filter(h=>hFilter==="all"||h.mode===hFilter);
+  if(hSrc!=="all"&&!byMode.some(h=>h.src===hSrc)) hSrc="all";
+  return {all,langs,byMode,a:hSrc==="all"?byMode:byMode.filter(h=>h.src===hSrc)};
+}
+/* كام يوم ورا بعض اتمرنت فيهم، لحد النهارده أو امبارح */
+function streakDays(all){
+  const day=t=>{const d=new Date(t);return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5;};
+  const days=new Set(all.map(h=>day(h.t))), today=day(Date.now());
+  let d=days.has(today)?today:today-1, n=0;
+  while(days.has(d)){ n++; d--; }
+  return {n,total:days.size};
+}
+const dayWord=n=>EN?(n===1?"day":"days"):(n>=3&&n<=10?"أيام":"يوم");
 function renderHistory(){
-  const all=getHist(), B=$("hbody");
+  const B=$("hbody"), V=histView(), all=V.all, a=V.a;
   if(!all.length){ B.innerHTML=`<div class="hempty">${L("لسه مفيش اختبارات. خلّص أول اختبار وهيظهر هنا.","No tests yet. Finish your first test and it will show up here.")}</div>`; return; }
-  const a=hFilter==="all"?all:all.filter(h=>h.mode===hFilter);
   const best=a.reduce((m,h)=>h.wpm>m.wpm?h:m,{wpm:0});
   const mins=a.reduce((s,h)=>s+h.el,0)/60;
   const pbKeys={}; a.forEach((h,i)=>{const k=h.mode+"|"+h.n+"|"+h.src; if(!pbKeys[k]||h.wpm>a[pbKeys[k]].wpm) pbKeys[k]=i;});
   const pbIdx=new Set(Object.values(pbKeys));
   const rows=a.map((h,i)=>({h,i})).reverse().slice(0,hShown);
+  /* الأقسام: عدد الاختبارات ومتوسط السرعة وأحسن رقم في كل قسم */
+  const secs={}; V.byMode.forEach(h=>{ const k=h.src||"mix"; const o=secs[k]||(secs[k]={k,n:0,sum:0,best:0}); o.n++; o.sum+=h.wpm; o.best=Math.max(o.best,h.wpm); });
+  const secList=Object.values(secs).sort((x,y)=>y.n-x.n||y.best-x.best), maxN=secList.length?secList[0].n:1;
+  const top=secList[0];
+  const st=streakDays(all);
+  /* اتحسنت قد إيه: متوسط آخر ١٠ قصاد أول ١٠ */
+  let grow=null; if(a.length>=20){ grow=Math.round(avgLast(a,10,"wpm")-a.slice(0,10).reduce((x,h)=>x+h.wpm,0)/10); }
+  const secName=k=>SRC_NAME[k]||k;
   B.innerHTML=`
     <div class="hbar">
+      ${V.langs.en.length&&V.langs.ar.length?`<div class="seg hlang" id="hlang" role="group" aria-label="${L("لغة الكتابة","Typing language")}">
+        <button type="button" data-v="ar">${L("كتابة عربي","Arabic typing")} <small>${AR_NUM(V.langs.ar.length)}</small></button><button type="button" data-v="en">${L("كتابة إنجليزي","English typing")} <small>${AR_NUM(V.langs.en.length)}</small></button>
+      </div>`:""}
       <div class="seg" id="hfilter">
         <button type="button" data-v="all">${L("الكل","All")}</button><button type="button" data-v="time">${L("وقت","Time")}</button><button type="button" data-v="words">${L("عدد كلمات","Words")}</button><button type="button" data-v="quote">${L("اقتباس","Quote")}</button>
       </div>
@@ -854,8 +885,23 @@ function renderHistory(){
       <div><div class="v">${AR_NUM(Math.round(best.wpm))} <small>${WPM}</small></div><div class="lbl">${L("أحسن سرعة","best speed")}</div></div>
       <div><div class="v">${AR_NUM(Math.round(avgLast(a,10,"wpm")))} <small>${WPM}</small></div><div class="lbl">${L("متوسط آخر ١٠","last 10 average")}</div></div>
       <div><div class="v">${AR_NUM(Math.round(avgLast(a,10,"acc")))}${PCT}</div><div class="lbl">${L("دقة آخر ١٠","last 10 accuracy")}</div></div>
+      ${grow!==null?`<div><div class="v${grow<0?" down":""}">${grow>0?"+":grow<0?"−":""}${AR_NUM(Math.abs(grow))} <small>${WPM}</small></div><div class="lbl">${L("من أول ١٠ اختبارات","since your first 10")}</div></div>`:""}
       <div><div class="v">${AR_NUM(mins<60?Math.round(mins):+(mins/60).toFixed(1))} <small>${mins<60?L("دقيقة","min"):L("ساعة","hr")}</small></div><div class="lbl">${L("وقت الكتابة","time typing")}</div></div>
+      <div><div class="v">${AR_NUM(st.n)} <small>${dayWord(st.n)}</small></div><div class="lbl">${L("ورا بعض","in a row")}${st.total>st.n?(EN?`, of ${st.total} days`:`، من ${AR_NUM(st.total)} ${dayWord(st.total)} اتمرنت فيهم`):""}</div></div>
     </div>
+    ${secList.length>1||hSrc!=="all"?`<div class="hsecs">
+      <h3>${L("الأقسام","Sections")}${top?` <small>${L("أكتر قسم بتكتب فيه:","Your most typed:")} <b>${esc2(secName(top.k))}</b></small>`:""}</h3>
+      <div class="hseclist" id="hsecs">
+        ${secList.map(o=>`<button type="button" class="hsec${hSrc===o.k?" on":""}" data-src="${esc2(o.k)}" aria-pressed="${hSrc===o.k}">
+          <span class="nm">${esc2(secName(o.k))}</span>
+          <span class="n">${AR_NUM(o.n)} ${L("اختبار","tests")}</span>
+          <span class="bar"><i style="width:${Math.max(4,Math.round(o.n/maxN*100))}%"></i></span>
+          <span class="av">${L("متوسط","avg")} <b>${AR_NUM(Math.round(o.sum/o.n))}</b></span>
+          <span class="bs">${L("أحسن","best")} <b>${AR_NUM(Math.round(o.best))}</b></span>
+        </button>`).join("")}
+      </div>
+      ${hSrc!=="all"?`<button type="button" class="hsecall" id="hsecall">${L("اعرض كل الأقسام","Show all sections")}</button>`:""}
+    </div>`:""}
     <div>
       <canvas id="hchart" role="img" aria-label="${L("السرعة في كل اختبار","Speed in each test")}"></canvas>
       <div class="hlegend"><span style="--c:var(--sub)">${L("كل اختبار","each test")}</span><span style="--c:var(--accent)">${L("متوسط آخر ١٠","last 10 average")}</span></div>
@@ -869,7 +915,11 @@ function renderHistory(){
       <button type="button" class="danger${hArmed?" armed":""}" id="hclear">${hArmed?L("متأكد؟ اضغط تاني عشان تمسح كل التاريخ","Sure? Click again to clear all history"):L("امسح التاريخ","Clear history")}</button>
     </div>`;
   document.querySelectorAll("#hfilter button").forEach(b=>b.classList.toggle("on",b.dataset.v===hFilter));
+  document.querySelectorAll("#hlang button").forEach(b=>{ const on=b.dataset.v===hLang; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
   $("hfilter").onclick=e=>{const b=e.target.closest("button");if(!b)return;hFilter=b.dataset.v;hShown=30;renderHistory();};
+  if($("hlang")) $("hlang").onclick=e=>{const b=e.target.closest("button");if(!b)return;hLang=b.dataset.v;hSrc="all";hShown=30;renderHistory();};
+  if($("hsecs")) $("hsecs").onclick=e=>{const b=e.target.closest(".hsec");if(!b)return;hSrc=hSrc===b.dataset.src?"all":b.dataset.src;hShown=30;renderHistory();};
+  if($("hsecall")) $("hsecall").onclick=()=>{hSrc="all";hShown=30;renderHistory();};
   if($("hmore")) $("hmore").onclick=()=>{hShown+=30;renderHistory();};
   $("hclear").onclick=()=>{ if(!hArmed){hArmed=true;renderHistory();return;} setHist([]); try{localStorage.removeItem("tq-pb");}catch(e){} hArmed=false; renderHistory(); showPB(); try{window.dispatchEvent(new Event("tq:clear"));}catch(e){} };
   if(a.length) drawHist(a.slice(-100));
