@@ -71,7 +71,7 @@ function makeGen(){
 /* ============ حالة الاختبار ============ */
 let T;
 function fresh(words,quote){
-  return {words,typed:[""],idx:0,started:false,done:false,t0:0,ok:0,bad:0,secKeys:0,secErr:0,samples:[],nextSec:1,timer:null,quote};
+  return {words,typed:[""],idx:0,started:false,done:false,t0:0,ok:0,bad:0,secKeys:0,secErr:0,samples:[],nextSec:1,timer:null,quote,missed:new Set()};
 }
 function buildWords(){
   if(cfg.src==="fav"&&!getFavs().length){ cfg.src="mix"; saveCfg(); syncConfig(); toast("مفضلتك فاضية، فرجعناك لـ«مكس»."); }
@@ -116,8 +116,8 @@ function start(b){
   setTyping(false);
   gen=makeGen();
   T=fresh(wordsFor(b),b.quote);
-  T.segs=segsFor(b);
-  T.key=runKey(); T.last=getLastRuns()[T.key]||null;
+  T.segs=segsFor(b); T.practice=!!b.practice;
+  T.key=T.practice?null:runKey(); T.last=T.key?getLastRuns()[T.key]||null:null;
   $("results").hidden=true; $("history").hidden=true; $("stage").hidden=false;
   wordsEl.style.transform="";
   wordsEl.innerHTML=T.words.map((_,i)=>`<span class="w">${letters(i)}</span>`).join("");
@@ -197,6 +197,8 @@ function resumeTest(){
 }
 function setTyping(on){ document.body.classList.toggle("typing",!!on); if(on){ closeFontMenu(false); closeSetMenu(false); } }
 document.addEventListener("mousemove",e=>{ if(Math.abs(e.movementX)+Math.abs(e.movementY)>3) setTyping(false); });
+/* اختبار بالوقت؟ التمرين على الكلمات الغلط بيخلص بآخر كلمة حتى لو الوضع «وقت» */
+function timed(){ return cfg.mode==="time"&&!(T&&T.practice); }
 function setTyped(nv){
   const old=T.typed[T.idx]; if(nv===old) return;
   if(!T.started&&nv.length) startTest();
@@ -204,20 +206,20 @@ function setTyped(nv){
   let k=0; while(k<old.length&&k<nv.length&&old[k]===nv[k]) k++;
   for(let j=k;j<nv.length;j++){
     const good=j<tg.length&&eq(nv[j],tg[j]);
-    if(good)T.ok++;else{T.bad++;T.secErr++;flashBad();}
+    if(good)T.ok++;else{T.bad++;T.secErr++;T.missed.add(T.idx);flashBad();}
     T.secKeys++;
   }
   T.typed[T.idx]=nv; updateWord(T.idx);
-  if(cfg.mode!=="time"&&T.idx===T.words.length-1&&wordCorrect(T.idx)) finish();
+  if(!timed()&&T.idx===T.words.length-1&&wordCorrect(T.idx)) finish();
 }
 function commitWord(){
   const i=T.idx, good=wordCorrect(i);
-  if(good)T.ok++;else{T.bad++;T.secErr++;}
+  if(good)T.ok++;else{T.bad++;T.secErr++;T.missed.add(i);}
   T.secKeys++;
-  if(i===T.words.length-1&&cfg.mode!=="time"){finish();return;}
+  if(i===T.words.length-1&&!timed()){finish();return;}
   T.idx++; T.typed[T.idx]="";
   updateWord(i); updateWord(T.idx); updateUnder();
-  if(cfg.mode==="time"&&T.words.length-T.idx<40) appendWords();
+  if(timed()&&T.words.length-T.idx<40) appendWords();
 }
 ti.addEventListener("input",()=>{
   if(T.paused&&!T.done&&!tourOpen()) resumeTest();
@@ -324,7 +326,7 @@ function placeCaret(){
 }
 function updateCounter(){
   const c=$("counter");
-  if(cfg.mode==="time"){
+  if(timed()){
     const el=T.started?(performance.now()-T.t0)/1000:0;
     c.textContent=AR_NUM(Math.max(0,Math.ceil(cfg.time-el)));
   } else c.textContent=AR_NUM(T.idx)+" / "+AR_NUM(T.words.length);
@@ -340,14 +342,14 @@ function tick(){
   while(el>=T.nextSec){ pushSample(T.nextSec); T.nextSec++; }
   updateCounter();
   if(el>=1) $("live").textContent=AR_NUM(Math.round(correctChars()/5/(el/60)))+" كلمة/دقيقة";
-  if(cfg.mode==="time"&&el>=cfg.time) finish();
+  if(timed()&&el>=cfg.time) finish();
 }
 function pushSample(s){ T.samples.push({s,wpm:correctChars()/5/(s/60),raw:T.secKeys*12,err:T.secErr}); T.secKeys=0;T.secErr=0; }
 
 /* ============ النتيجة ============ */
 function finish(){
   if(T.done) return; T.done=true; clearInterval(T.timer); setTyping(false);
-  let el=cfg.mode==="time"?cfg.time:(performance.now()-T.t0)/1000;
+  let el=timed()?cfg.time:(performance.now()-T.t0)/1000;
   el=Math.max(el,0.5);
   const frac=el-(T.nextSec-1);
   if(frac>0.4||!T.samples.length){T.samples.push({s:+el.toFixed(1),wpm:correctChars()/5/(el/60),raw:T.secKeys*(60/Math.max(frac,0.5))/5,err:T.secErr});}
@@ -357,20 +359,21 @@ function finish(){
   for(let i=0;i<=T.idx&&i<T.words.length;i++){
     const tg=T.words[i],ty=T.typed[i]||"";
     for(let j=0;j<Math.max(tg.length,ty.length);j++){
-      if(j>=tg.length)x++;else if(j>=ty.length){if(i<T.idx||cfg.mode!=="time")m++;}else if(eq(ty[j],tg[j]))c++;else b++;
+      if(j>=tg.length)x++;else if(j>=ty.length){if(i<T.idx||!timed())m++;}else if(eq(ty[j],tg[j]))c++;else b++;
     }
   }
   const key=pbKey(), pbs=getPBs(), prev=pbs[key];
-  const isPB=wpm>0&&acc>=75&&(!prev||wpm>prev.wpm);
+  const isPB=!T.practice&&wpm>0&&acc>=75&&(!prev||wpm>prev.wpm);
   if(isPB){pbs[key]={wpm:Math.round(wpm),acc:Math.round(acc)};setPBs(pbs);}
   const rr={wpm,raw,acc,c,b,x,m,el,isPB,prev,last:T.last}; if(total>0) addHist(rr);
-  if(total>0&&wpm>0) saveLastRun(T.key,{w:Math.round(wpm*10)/10,a:Math.round(acc),t:Date.now()});
+  if(total>0&&wpm>0&&T.key) saveLastRun(T.key,{w:Math.round(wpm*10)/10,a:Math.round(acc),t:Date.now()});
   $("ghost").hidden=true;
   showResults(rr);
   ti.blur(); updateKb();
 }
 const SRC_NAME={masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",fav:"مفضلتي",words:"كلمات"};
 function modeLabel(){
+  if(T&&T.practice) return "تمرين على الكلمات اللي غلطت فيها";
   const m=cfg.mode==="time"?AR_NUM(cfg.time)+" ثانية":cfg.mode==="words"?AR_NUM(cfg.words)+" كلمة":"اقتباس "+({all:"",s:"قصير",m:"متوسط",l:"طويل",xl:"طويل جدا"}[cfg.qlen]);
   return m.trim()+"، "+SRC_NAME[cfg.src]+(cfg.tashkeel?"، بالتشكيل":"");
 }
@@ -399,9 +402,11 @@ function showResults(r){
       <div><div class="stat"><div class="lbl">الاختبار</div></div><div class="v" style="font-size:16px">${modeLabel()}</div></div>
     </div>
     ${q}
+    ${(()=>{const mw=missedWords();return mw.length?`<div class="missline">غلطت في: ${mw.map(w=>`<span>${esc2(w)}</span>`).join("")}</div>`:"";})()}
     ${(getHist().length%5===0&&getHist().length>0)?'<div class="supline">عجبك طقطقة؟ <button type="button" id="b-sup">ادعمه بمشاركة أو نجمة</button></div>':""}
     <div class="actions">
       <button type="button" class="primary" id="b-new">النص اللي بعده<kbd>Tab</kbd></button>
+      ${missedWords().length?`<button type="button" class="practact" id="b-pract">اتمرن على الكلمات دي (${AR_NUM(missedWords().length)})</button>`:""}
       <button type="button" class="shareact" id="b-share">شارك نتيجتك</button>
       <button type="button" id="b-same">نفس النص تاني<kbd>Shift+Enter</kbd></button>
       <button type="button" id="b-prev">اللي قبله<kbd>Shift+Tab</kbd></button>
@@ -410,12 +415,31 @@ function showResults(r){
   T.result=r;
   $("b-new").onclick=()=>go(1);
   $("b-share").onclick=()=>shareResult(r);
+  if($("b-pract")) $("b-pract").onclick=practiceMissed;
   $("b-same").onclick=()=>go(0);
   $("b-prev").onclick=()=>go(-1);
   if($("b-fav")){ $("b-fav").onclick=()=>toggleFav(curQuote()); paintFav(); }
   if($("b-sup")) $("b-sup").onclick=()=>window.openSupport&&window.openSupport();
   drawChart(); showPB();
 }
+/* ============ تمرين على الكلمات اللي غلطت فيها ============ */
+function missedWords(){
+  if(!T||!T.missed) return [];
+  const seen=new Set(), out=[];
+  [...T.missed].sort((a,b)=>a-b).forEach(i=>{ const w=T.words[i]; if(i<=T.idx&&w&&!seen.has(w)){ seen.add(w); out.push(w); } });
+  return out;
+}
+/* كل كلمة بتتكرر ٣ مرات (٥ لو كلمة أو اتنين بس)، متلخبطين ومن غير ما نفس الكلمة تيجي ورا بعضها */
+function practiceMissed(){
+  const mw=missedWords(); if(!mw.length) return;
+  const reps=mw.length<=2?5:3; let list=[];
+  mw.forEach(w=>{ for(let k=0;k<reps;k++) list.push(w); });
+  for(let tries=0;tries<30;tries++){ list=shuffle(list); if(list.every((w,i)=>!i||w!==list[i-1])) break; }
+  list=list.slice(0,60);
+  hist.push({words:list,quote:null,practice:true}); if(hist.length>50) hist.shift(); hpos=hist.length-1;
+  start(hist[hpos]);
+}
+
 /* ============ شارك نتيجتك ============ */
 /* صورة ١٠٨٠×١٣٥٠ بألوان الثيم الحالي: السرعة والدقة والنص اللي اتكتب */
 async function resultCard(r){
@@ -713,7 +737,7 @@ function curQuote(){
 }
 function updateUnder(){
   const q=curQuote();
-  $("src").textContent=q?("— "+q.s):"";
+  $("src").textContent=T&&T.practice?"— تمرين على الكلمات اللي غلطت فيها":q?("— "+q.s):"";
   paintFav();
 }
 function paintFav(){
@@ -733,7 +757,7 @@ function setHist(a){try{localStorage.setItem(HKEY,JSON.stringify(a.slice(-HMAX))
 function addHist(r){
   const a=getHist();
   a.push({v:1,t:Date.now(),wpm:+r.wpm.toFixed(1),raw:+r.raw.toFixed(1),acc:+r.acc.toFixed(1),el:+r.el.toFixed(1),
-    c:r.c,b:r.b,x:r.x,m:r.m,mode:cfg.mode,n:cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,src:cfg.src,
+    c:r.c,b:r.b,x:r.x,m:r.m,mode:T.practice?"practice":cfg.mode,n:T.practice?T.words.length:cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,src:T.practice?"practice":cfg.src,
     q:T.quote?T.quote.s:null,label:modeLabel()});
   setHist(a);
   try{window.dispatchEvent(new CustomEvent("tq:result",{detail:a[a.length-1]}));}catch(e){}
