@@ -222,6 +222,13 @@ ti.addEventListener("input",()=>{
   refresh();
 });
 ti.addEventListener("keydown",e=>{
+  /* مسح الكلمة كلها: Ctrl+Backspace على ويندوز، وOption أو Cmd+Backspace على ماك */
+  if(e.key==="Backspace"&&(e.ctrlKey||e.altKey||e.metaKey)&&!T.done){
+    e.preventDefault();
+    if(T.typed[T.idx]){ T.typed[T.idx]=""; updateWord(T.idx); }
+    else if(T.idx>0&&!wordCorrect(T.idx-1)){ T.idx--; T.typed[T.idx]=""; updateWord(T.idx+1); updateWord(T.idx); }
+    ti.value=""; refresh(); return;
+  }
   if(e.key==="Backspace"&&ti.value===""&&T.idx>0&&!T.done&&!wordCorrect(T.idx-1)){
     e.preventDefault(); T.typed[T.idx]=""; updateWord(T.idx); T.idx--; ti.value=T.typed[T.idx];
     updateWord(T.idx); refresh();
@@ -968,6 +975,30 @@ $("g-layout").addEventListener("click",e=>{
 });
 slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focusInput();} });
 
+/* ============ اختصارات هتساعدك تبقى سريع ============ */
+/* [الوصف، توضيح صغير، مفاتيح ويندوز، مفاتيح ماك] */
+const SHORTCUTS=[
+  ["وانت بتكتب",[
+    ["امسح الكلمة كلها","ولو الكلمة اللي قبلها فيها غلط، بيرجعك ليها",["Ctrl","⌫"],["⌥ Option","⌫"]],
+    ["بدّل بين العربي والإنجليزي","",["Alt","Shift"],["Ctrl","Space"],"أو Win+Space","أو زرار 🌐 لوحده"],
+    ["اتنقل كلمة كلمة","في أي برنامج تاني",["Ctrl","← →"],["⌥ Option","← →"]],
+    ["حدد كلمة كلمة","",["Ctrl","Shift","← →"],["⌥ Option","Shift","← →"]],
+    ["تراجع عن آخر حاجة","",["Ctrl","Z"],["⌘ Cmd","Z"]]
+  ]],
+  ["في طقطقة",[
+    ["النص اللي بعده","",["Tab"],["Tab"]],
+    ["النص اللي قبله","",["Shift","Tab"],["Shift","Tab"]],
+    ["ابدأ نفس النص من الأول","",["Esc"],["Esc"]],
+    ["الثيمات","",["Ctrl","Shift","P"],["⌘ Cmd","Shift","P"]]
+  ]]
+];
+function renderShortcuts(){
+  const os=cfg.os==="mac"?"mac":"win";
+  $("sclist").innerHTML=SHORTCUTS.map(([g,rows])=>`<div><h3>${g}</h3>${rows.map(([t,n,w,m,nw,nm])=>{ const note=n||(os==="mac"?nm:nw)||""; return `<div class="scrow"><span>${t}${note?`<small>${note}</small>`:""}</span><span class="ks">${(os==="mac"?m:w).map(k=>`<kbd>${esc2(k)}</kbd>`).join("+")}</span></div>`; }).join("")}</div>`).join("");
+  document.querySelectorAll("#g-os button").forEach(b=>{ const on=b.dataset.v===os; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
+}
+$("g-os").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; cfg.os=b.dataset.v; saveCfg(); renderShortcuts(); b.blur(); });
+
 /* ============ النقل من اللينكات القديمة لـ taqtaqa.com ============ */
 const NEW_HOME="https://taqtaqa.com/";
 function importFromOldLink(){
@@ -1008,7 +1039,7 @@ const TOUR=[
   {sel:"#kbwrap",t:"الكيبورد اللي على الشاشة",b:"الزرار اللي عليك تدوسه بيتلوّن، ولو محتاج Shift بينوّره كمان. ومن فوقه تختار ترتيب ويندوز أو ماك."},
   {sel:"#histbtn",t:"تاريخك",b:"كل اختبار بيتحفظ هنا بسرعتك ودقتك، ومعاه رسمة بتوضح بتتحسن ازاي."},
   {sel:"#themebtn",t:"الثيمات",b:'أكتر من ١٠٠ ثيم، غامق وفاتح. تقدر تفتحها كمان بـ <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
-  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> تعيد نفس النص<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
+  {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> تعيد نفس النص<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> تمسح الكلمة كلها (على ماك <span class="k2">⌥</span>+<span class="k2">⌫</span>)<br><br>وكل الاختصارات اللي هتساعدك تبقى سريع، لويندوز وماك، تحت في آخر الصفحة.<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
 ];
 let tourI=-1, tourSteps=[];
 function tourOpen(){ return tourI>=0; }
@@ -1152,7 +1183,8 @@ function openOnPoem(){
   hist=[{words:clean(q.t,q.tk).split(" ").filter(Boolean),quote:q,count:qs.length}]; hpos=0;
   start(hist[0]);
 }
-applyFont(); buildKb(); applyTheme(cfg.theme);
+if(!cfg.os) cfg.os=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?"mac":"win";
+applyFont(); buildKb(); applyTheme(cfg.theme); renderShortcuts();
 importFromOldLink();
 openOnPoem();
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();

@@ -149,7 +149,17 @@ canvas{display:block;width:100%;height:190px}
 kbd{font-family:var(--f-ui);font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--fg)}
 .actions kbd{background:transparent;border-color:currentColor;color:inherit;opacity:.8;margin-inline-start:6px}
 footer{color:var(--sub);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px}
-footer .keys{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center}
+/* اختصارات هتساعدك تبقى سريع */
+.shortcuts{width:min(760px,100%);display:flex;flex-direction:column;gap:12px;margin-bottom:6px}
+.schead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.schead h2{margin:0;font-size:15px;font-weight:500;color:var(--fg)}
+.schead .seg{background:var(--panel);border-radius:8px;padding:2px}
+.sccols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 36px}
+.sccols h3{margin:6px 0 2px;font-size:12.5px;font-weight:400;color:var(--sub)}
+.scrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)}
+.scrow span{color:var(--fg)}
+.scrow small{display:block;color:var(--sub);font-size:12px}
+.scrow .ks{display:inline-flex;gap:4px;align-items:center;direction:ltr;white-space:nowrap;flex:none}
 footer a{color:var(--sub)}
 footer .flinks{display:flex;gap:18px}
 
@@ -275,6 +285,7 @@ body.typing .kb .k:not(.next){opacity:.45}
 /* على الموبايل والتابلت: كيبورد الجهاز بيغطي الشاشة، فبنخفي الكيبورد المرسوم ونكبّر الزراير */
 @media (pointer:coarse){
   #kbwrap{display:none!important}
+  .shortcuts{display:none}
   .seg button,.fontbtn{min-height:40px;padding-inline:11px}
   .helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{min-height:40px}
 }
