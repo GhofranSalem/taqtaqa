@@ -484,10 +484,8 @@ async function resultCard(r){
   side(EN?"ltr":"rtl");
   /* اللوجو */
   x.font=`700 76px ${disp}`; x.fillStyle=fg;
-  x.direction="rtl"; x.textAlign="right";
-  const lw=x.measureText("طقطقة").width, lx=EN?P+lw:W-P;
-  x.fillText("طقطقة",lx,P+70); x.fillStyle=acc; x.fillText(".",lx-lw,P+70);
-  side(EN?"ltr":"rtl");
+  const lw=x.measureText(LOGO_WORD).width;
+  x.fillText(LOGO_WORD,R,P+70); x.fillStyle=acc; x.fillText(".",mv(R,lw),P+70);
   /* السرعة */
   x.font=`500 300px ${sans}`; x.fillStyle=acc; x.fillText(AR_NUM(Math.round(r.wpm)),R,P+400);
   x.font=`400 46px ${sans}`; x.fillStyle=sub; x.fillText(L("كلمة في الدقيقة","words per minute"),R,P+475);
@@ -1276,9 +1274,11 @@ $("favhbtn").addEventListener("click",()=>{
 });
 /* ============ كشيدة اللوجو ============ */
 /* بنمطّ «طقطقة» بالكشيدة بعد حرفي القاف لحد ما اللوجو يبقى بعرض الجملة اللي تحته، من غير ما يعدّيها */
-const LOGO_WORD="طقطقة";
+/* في الصفحة الإنجليزي اللوجو «Taqtaqa.» من غير كشيدة */
+const LOGO_WORD=EN?"Taqtaqa":"طقطقة";
 function stretchLogo(){
   const lw=$("logoword"), logo=$("logo"), target=$("tagtext").getBoundingClientRect().width;
+  if(EN){ lw.textContent=LOGO_WORD; return LOGO_WORD; }
   if(!target) return lw.textContent;
   let best=LOGO_WORD;
   for(let n=0;n<=16;n++){
