@@ -27,10 +27,43 @@ export default {
 const json = (status, body) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 
+/* ---------- الحماية من السبام ----------
+   - الطلب لازم يكون جاي من صفحة الموقع نفسه (Origin)، فاللي بيبعت من برّه بأداة أو سكريبت بيترفض
+   - كل جهاز (IP): رسالة كل ٣٠ ثانية، و٥ رسايل في اليوم بالكتير
+   - نفس الرسالة بالظبط ما بتتبعتش مرتين في نفس اليوم
+   العدّاد محفوظ في كاش Cloudflare، فمش محتاج أي إعداد في الداشبورد */
+const LIMITS = { gapSec: 30, perDay: 5 };
+const day = () => new Date().toISOString().slice(0, 10);
+async function sha(s) {
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(h)].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+const ckey = (k) => new Request("https://taqtaqa.com/__guard/" + k);
+async function cget(k) { const r = await caches.default.match(ckey(k)); return r ? r.text() : null; }
+async function cput(k, v, ttl) {
+  await caches.default.put(ckey(k), new Response(String(v), { headers: { "cache-control": `max-age=${ttl}` } }));
+}
+async function guard(request, text) {
+  const ip = request.headers.get("cf-connecting-ip") || "0";
+  const who = await sha(ip), today = day();
+  if (await cget("gap-" + who)) return "wait";
+  const n = +(await cget(`n-${today}-${who}`)) || 0;
+  if (n >= LIMITS.perDay) return "day";
+  const same = await sha(today + text.toLowerCase().replace(/\s+/g, " "));
+  if (await cget("t-" + same)) return "dup";
+  await Promise.all([
+    cput("gap-" + who, 1, LIMITS.gapSec),
+    cput(`n-${today}-${who}`, n + 1, 86400),
+    cput("t-" + same, 1, 86400)
+  ]);
+  return null;
+}
+
 async function feedback(request, env) {
   if (request.method !== "POST") return json(405, { ok: false, error: "method" });
   const origin = request.headers.get("origin") || "";
-  if (origin && !/^https:\/\/(taqtaqa\.com|taqtaqa\.[\w-]+\.workers\.dev)$/.test(origin)) return json(403, { ok: false, error: "origin" });
+  if (!/^https:\/\/(taqtaqa\.com|taqtaqa\.[\w-]+\.workers\.dev)$/.test(origin)) return json(403, { ok: false, error: "origin" });
+  if (!(request.headers.get("content-type") || "").includes("application/json")) return json(415, { ok: false, error: "type" });
   let d;
   try { d = await request.json(); } catch { return json(400, { ok: false, error: "json" }); }
   // خانة مستخبية: لو اتملت يبقى ده بوت
@@ -40,6 +73,10 @@ async function feedback(request, env) {
   const contact = String((d && d.contact) || "").trim().slice(0, 200);
   const page = String((d && d.page) || "").slice(0, 300);
   if (text.length < 3 || text.length > 3000) return json(400, { ok: false, error: "length" });
+  // الصفحة دايما بتبعت النص اللي كان قدامك، فالطلب اللي من غيره مش جاي من الموقع
+  if (!page) return json(400, { ok: false, error: "page" });
+  const blocked = await guard(request, text);
+  if (blocked) return json(429, { ok: false, error: blocked });
 
   const lines = [
     `النوع: ${TYPES[type]}`,

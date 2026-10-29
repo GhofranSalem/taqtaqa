@@ -1261,6 +1261,10 @@ slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focu
       const r=await fetch("/api/feedback",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:ftype,text,contact:$("fbcontact").value.trim(),page,website:$("fbsite").value})});
       const j=await r.json().catch(()=>({}));
       if(r.ok&&j.ok){ msg.className="fbmsg ok"; msg.textContent=L("وصلت، شكرا ليك ✓","Sent, thank you ✓"); $("fbtext").value=""; }
+      else if(r.status===429){ msg.className="fbmsg err"; msg.textContent=({
+        wait:L("استنى نص دقيقة قبل الرسالة اللي بعدها.","Wait half a minute before your next message."),
+        day:L("وصلنا منك رسايل كتير النهارده. ابعت تاني بكره.","We got a lot of messages from you today. Send again tomorrow."),
+        dup:L("الرسالة دي وصلتنا قبل كده.","We already got this message.")})[j.error]||L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
       else{ msg.className="fbmsg err"; msg.textContent=L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
     }catch(_){ msg.className="fbmsg err"; msg.textContent=L("مفيش نت. جرّب تاني.","No connection. Try again."); }
     btn.disabled=false;
