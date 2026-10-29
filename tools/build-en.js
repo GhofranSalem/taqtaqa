@@ -40,7 +40,7 @@ const T = [
   ['title="ابدأ من جديد" aria-label="طقطقة، ابدأ من جديد"', 'title="Start over" aria-label="Taqtaqa, start over"'],
   ['<span class="lw" id="logoword">طقطقة</span>', '<span class="lw" id="logoword">Taqtaqa</span>'],
   ['<span id="tagtext">اتمرن على الكتابة بالعربي</span>', '<span id="tagtext">Practice typing in Arabic</span>'],
-  ['>شرح الموقع<', '>Tour<'],
+  ['data-s="؟">شرح الموقع<', 'data-s="?">Tour<'],
   ['>تاريخي<', '>History<'],
   ['title="النصوص اللي حفظتها">مفضلتي<', 'title="Texts you saved">Favorites<'],
   ['<a class="langbtn" id="langbtn" href="/en/" hreflang="en" lang="en" title="Taqtaqa in English">EN</a>', '<a class="langbtn" id="langbtn" href="/" hreflang="ar" lang="ar" title="طقطقة بالعربي">عربي</a>'],

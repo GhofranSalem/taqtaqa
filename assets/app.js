@@ -1,8 +1,11 @@
-/* طقطقة: كود الموقع */
+/* طقطقة: كود الموقع.
+   الأجزاء بالترتيب: الإعدادات واللغة، مساعدات، النصوص والأقسام، حالة الاختبار، الإدخال والاختصارات،
+   العرض، النتيجة، المشاركة، الكيبورد، الثيمات، آخر مرة، المفضلة، التاريخ (والأيام وأحسن الأرقام
+   والحروف والهدف اليومي)، الخطوط، الإعدادات، ادعم طقطقة، الاختصارات، النقل، الجولة، اللوجو، البداية. */
 (function(){
 "use strict";
 
-/* ============ إعدادات ============ */
+/* ============ الإعدادات واللغة ============ */
 const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true,goal:10};
 let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
@@ -37,7 +40,12 @@ const NMAP={"أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ة":"ه","ى":"ي","ؤ":"و
 function N(c){return cfg.lenient?(NMAP[c]||c):c;}
 function eq(a,b){return a===b||N(a)===N(b);}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
-function esc(c){return c==="<"?"&lt;":c===">"?"&gt;":c==="&"?"&amp;":c;}
+/* أي نص بيتحط جوه HTML */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function avgLast(a,k,f){const s=a.slice(-k);return s.length?s.reduce((x,y)=>x+y[f],0)/s.length:0;}
+/* اليوم بتوقيت الجهاز، عشان «النهارده» و«أيام التمرين» */
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
 function toast(msg){ document.querySelectorAll(".toast").forEach(x=>x.remove()); const d=document.createElement("div"); d.className="toast"; d.setAttribute("role","status"); d.textContent=msg; document.body.appendChild(d); setTimeout(()=>d.remove(),5000); }
 
 /* الأقسام العربي، واللي «مكس» بيجمع منها */
@@ -120,10 +128,12 @@ function wordsFor(b){
 /* تاريخ النصوص: Tab للي بعده، Shift+Tab للي قبله */
 let hist=[], hpos=-1;
 function go(dir){
-  if(dir===0&&hpos>=0){ /* نفس النص */ }
-  else if(dir<0){ if(hpos>0) hpos--; else return flashNav(L("ده أول نص","This is the first text")); }
-  else if(hpos<hist.length-1){ hpos++; }
-  else { hist.push(buildWords()); if(hist.length>50) hist.shift(); hpos=hist.length-1; }
+  /* dir: ١ اللي بعده، -١ اللي قبله، ٠ نفس النص */
+  if(dir<0){ if(hpos>0) hpos--; else return flashNav(L("ده أول نص","This is the first text")); }
+  else if(dir>0||hpos<0){
+    if(hpos<hist.length-1) hpos++;
+    else { hist.push(buildWords()); if(hist.length>50) hist.shift(); hpos=hist.length-1; }
+  }
   start(hist[hpos]);
 }
 function resetHistory(){ hist=[]; hpos=-1; go(1); }
@@ -145,7 +155,7 @@ function start(b){
   ti.dir=T.dir; ti.lang=T.dir==="ltr"?"en":"ar";
   if(kbLay!==curLay()) buildKb();
   T.key=T.practice?null:runKey(); T.last=T.key?getLastRuns()[T.key]||null:null;
-  $("results").hidden=true; $("history").hidden=true; $("stage").hidden=false;
+  $("results").hidden=true; $("history").hidden=true; $("stage").hidden=false; document.body.classList.remove("inhist");
   wordsEl.style.transform="";
   wordsEl.innerHTML=T.words.map((_,i)=>`<span class="w">${letters(i)}</span>`).join("");
   ti.value="";
@@ -443,7 +453,7 @@ function showResults(r){
       <div><div class="stat"><div class="lbl">${L("الاختبار","test")}</div></div><div class="v" style="font-size:16px">${modeLabel()}</div></div>
     </div>
     ${q}
-    ${(()=>{const mw=missedWords();return mw.length?`<div class="missline" dir="${T.dir}">${L("غلطت في:","You missed:")} ${mw.map(w=>`<span>${esc2(w)}</span>`).join("")}</div>`:"";})()}
+    ${(()=>{const mw=missedWords();return mw.length?`<div class="missline" dir="${T.dir}">${L("غلطت في:","You missed:")} ${mw.map(w=>`<span>${esc(w)}</span>`).join("")}</div>`:"";})()}
     ${loginNudge()?`<div class="loginline" id="loginline" role="note"><span>${EN?`You have ${getHist().length} ${getHist().length===1?"test":"tests"} saved in this browser only. Sign in to keep your results and progress in your account and follow them on any device.`:`${getHist().length===1?"عندك اختبار واحد محفوظ":`عندك ${AR_NUM(getHist().length)} اختبار محفوظين`} على المتصفح ده بس. سجّل دخول عشان نتايجك وتطورك يتحفظوا في حسابك، وتتابعهم من أي جهاز.`}</span><span class="lbtns"><button type="button" class="pri" id="b-login">${L("سجّل دخول","Sign in")}</button><button type="button" class="later" id="b-later">${L("مش دلوقتي","Not now")}</button></span></div>`
     :(getHist().length%5===0&&getHist().length>0)?`<div class="supline">${L("عجبك طقطقة؟","Enjoying Taqtaqa?")} <button type="button" id="b-sup">${L("ادعمه بمشاركة أو نجمة","Support it with a share or a star")}</button></div>`:""}
     <div class="actions">
@@ -552,7 +562,6 @@ async function shareResult(r){
   }catch(e){ toast(L("ما قدرناش نعمل الصورة. جرّب تاني.","We couldn't make the image. Try again.")); }
   b.disabled=false;
 }
-function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 function drawChart(){
   const cv=$("chart"); if(!cv||!T) return;
   const S=T.samples; const dpr=window.devicePixelRatio||1;
@@ -576,7 +585,6 @@ function drawChart(){
   ctx.fillStyle=tok("--err");
   S.forEach((s,i)=>{if(s.err){ctx.beginPath();ctx.arc(X(i),pt+6,Math.min(2+s.err,6),0,7);ctx.fill();}});
 }
-window.addEventListener("resize",()=>{ if(!$("history").hidden){ const f=histView().a; if(f.length) drawHist(f.slice(-100)); } else if(T&&T.done) drawChart(); else if(T) refresh(); });
 
 /* ============ الكيبورد ============ */
 /* حروف اللاتيني اللي بتظهر صغيرة فوق كل زرار */
@@ -821,6 +829,17 @@ function paintFav(){
 $("favbtn").addEventListener("mousedown",e=>e.preventDefault());
 $("favbtn").addEventListener("click",()=>toggleFav(curQuote()));
 
+/* ============ زرار «مفضلتي» في الهيدر ============ */
+function paintFavHead(){ const b=$("favhbtn"); if(b) b.setAttribute("aria-pressed",cfg.src==="fav"); }
+$("favhbtn").addEventListener("click",()=>{
+  const b=$("favhbtn"); b.blur();
+  if(cfg.src==="fav"){ cfg.src=cfg.prevSrc&&cfg.prevSrc!=="fav"?cfg.prevSrc:"mix"; }
+  else{
+    if(!getFavs().length){ toast(L("لسه مفيش نصوص في مفضلتك. دوس «احفظ» تحت أي نص عشان يتحفظ هنا.","No favorites yet. Click Save under any text to keep it here.")); return; }
+    cfg.prevSrc=cfg.src; cfg.src="fav";
+  }
+  saveCfg(); syncConfig(); resetHistory();
+});
 /* ============ التاريخ ============ */
 const HKEY="tq-history", HMAX=2000;
 function getHist(){try{const a=JSON.parse(localStorage.getItem(HKEY)||"[]");return Array.isArray(a)?a:[];}catch(e){return [];}}
@@ -837,7 +856,6 @@ function addHist(r){
   paintGoal();
   try{window.dispatchEvent(new CustomEvent("tq:result",{detail:a[a.length-1]}));}catch(e){}
 }
-function avgLast(a,k,f){const s=a.slice(-k);return s.length?s.reduce((x,y)=>x+y[f],0)/s.length:0;}
 /* التاريخ مقسوم: كتابة العربي لوحدها والإنجليزي لوحده. والاختبارات القديمة بنعرف لغتها من القسم */
 const histLang=h=>h.lang||(h.src==="en"?"en":"ar");
 let hFilter="all", hLang=null, hSrc="all", hShown=30, hArmed=false;
@@ -845,6 +863,7 @@ function openHistory(){
   if(T&&T.timer&&!T.done){clearInterval(T.timer);}
   setTyping(false);
   $("stage").hidden=true; $("results").hidden=true; $("history").hidden=false; $("kbwrap").hidden=true;
+  document.body.classList.add("inhist");
   hLang=T&&T.dir==="ltr"?"en":"ar"; hSrc="all";
   hShown=30; hArmed=false; renderHistory(); ti.blur(); window.scrollTo(0,0);
 }
@@ -908,10 +927,10 @@ function renderHistory(){
     ${calHTML(all)}
     ${pbCardsHTML(V.langs[hLang])}
     ${secList.length>1||hSrc!=="all"?`<div class="hsecs">
-      <h3>${L("الأقسام","Sections")}${top?` <small>${L("أكتر قسم بتكتب فيه:","Your most typed:")} <b>${esc2(secName(top.k))}</b></small>`:""}</h3>
+      <h3>${L("الأقسام","Sections")}${top?` <small>${L("أكتر قسم بتكتب فيه:","Your most typed:")} <b>${esc(secName(top.k))}</b></small>`:""}</h3>
       <div class="hseclist" id="hsecs">
-        ${secList.map(o=>`<button type="button" class="hsec${hSrc===o.k?" on":""}" data-src="${esc2(o.k)}" aria-pressed="${hSrc===o.k}">
-          <span class="nm">${esc2(secName(o.k))}</span>
+        ${secList.map(o=>`<button type="button" class="hsec${hSrc===o.k?" on":""}" data-src="${esc(o.k)}" aria-pressed="${hSrc===o.k}">
+          <span class="nm">${esc(secName(o.k))}</span>
           <span class="n">${AR_NUM(o.n)} ${L("اختبار","tests")}</span>
           <span class="bar"><i style="width:${Math.max(4,Math.round(o.n/maxN*100))}%"></i></span>
           <span class="av">${L("متوسط","avg")} <b>${AR_NUM(Math.round(o.sum/o.n))}</b></span>
@@ -927,7 +946,7 @@ function renderHistory(){
     </div>
     <div class="htable-wrap"><table class="htable">
       <thead><tr>${(EN?["When","Speed","Accuracy","Raw","Test","Time","Text"]:["الوقت","السرعة","الدقة","الخام","الاختبار","المدة","النص"]).map(x=>`<th>${x}</th>`).join("")}</tr></thead>
-      <tbody>${rows.map(({h,i})=>`<tr class="${pbIdx.has(i)?"hpb":""}"><td>${fmtDate(h.t)}</td><td class="w">${AR_NUM(Math.round(h.wpm))}</td><td>${AR_NUM(Math.round(h.acc))}${PCT}</td><td>${AR_NUM(Math.round(h.raw))}</td><td>${histLabel(h)}</td><td>${AR_NUM(Math.round(h.el))} ${L("ث","s")}</td><td class="q">${h.q?esc2(h.q):""}</td></tr>`).join("")}</tbody>
+      <tbody>${rows.map(({h,i})=>`<tr class="${pbIdx.has(i)?"hpb":""}"><td>${fmtDate(h.t)}</td><td class="w">${AR_NUM(Math.round(h.wpm))}</td><td>${AR_NUM(Math.round(h.acc))}${PCT}</td><td>${AR_NUM(Math.round(h.raw))}</td><td>${histLabel(h)}</td><td>${AR_NUM(Math.round(h.el))} ${L("ث","s")}</td><td class="q">${h.q?esc(h.q):""}</td></tr>`).join("")}</tbody>
     </table></div>`:`<div class="hempty">${L("مفيش اختبارات من النوع ده لسه.","No tests of this type yet.")}</div>`}
     <div class="hfoot">
       ${a.length>hShown?`<button type="button" id="hmore">${L("اعرض ٣٠ كمان","Show 30 more")}</button>`:"<span></span>"}
@@ -946,7 +965,6 @@ function renderHistory(){
 }
 /* ============ خريطة الأيام ============ */
 /* مربع لكل يوم في آخر ٢٦ أسبوع، ولونه بيغمق على قد الدقايق اللي كتبتها */
-const dayKey=t=>{const d=new Date(t);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
 function todayMins(a){ const k=dayKey(Date.now()); return (a||getHist()).reduce((s,h)=>s+(dayKey(h.t)===k?h.el:0),0)/60; }
 function calHTML(all){
   const per=new Map(); all.forEach(h=>{const k=dayKey(h.t),o=per.get(k)||{n:0,s:0}; o.n++; o.s+=h.el; per.set(k,o);});
@@ -958,7 +976,7 @@ function calHTML(all){
     if(o) active++;
     const dt=d.toLocaleDateString(EN?"en-US":"ar-EG",{weekday:"short",day:"numeric",month:"short"});
     const tip=o?(EN?`${dt}: ${o.n} tests, ${Math.max(1,Math.round(m))} min`:`${dt}: ${AR_NUM(o.n)} اختبار، ${AR_NUM(Math.max(1,Math.round(m)))} دقيقة`):(EN?`${dt}: no typing`:`${dt}: ما اتمرنتش`);
-    cells+=`<i class="l${lv}" title="${esc2(tip)}"></i>`; d.setDate(d.getDate()+1);
+    cells+=`<i class="l${lv}" title="${esc(tip)}"></i>`; d.setDate(d.getDate()+1);
   }
   return `<div class="hcal"><h3>${L("أيام التمرين","Practice days")} <small>${EN?`${active} days in the last 6 months`:`${AR_NUM(active)} ${dayWord(active)} في آخر ٦ شهور`}</small></h3>
     <div class="calwrap"><div class="cal">${cells}</div></div>
@@ -971,7 +989,7 @@ function pbCardsHTML(list){
   if(!out.length) return "";
   const nm=(m,n)=>m==="quote"?L("اقتباس","Quote"):EN?`${n} seconds`:`${AR_NUM(n)} ثانية`;
   const dt=t=>new Date(t).toLocaleDateString(EN?"en-US":"ar-EG",{day:"numeric",month:"short"});
-  return `<div class="hpbs"><h3>${L("أحسن أرقامك","Personal bests")}</h3><div class="pbrow">${out.map(x=>`<div class="pbc"><span class="pk">${nm(x.m,x.n)}</span><span class="v">${AR_NUM(Math.round(x.b.wpm))} <small>${WPM}</small></span><span class="s">${AR_NUM(Math.round(x.b.acc))}${PCT} · ${dt(x.b.t)}</span></div>`).join("")}</div></div>`;
+  return `<div class="hpbs"><h3>${L("أحسن أرقامك","Personal bests")}</h3><div class="pbrow">${out.map(x=>`<div class="pbc"><span class="pk">${nm(x.m,x.n)}</span><span class="v">${AR_NUM(Math.round(x.b.wpm))} <small>${WPM}</small></span><span class="s">${AR_NUM(Math.round(x.b.acc))}${PCT}${L("، ",", ")}${dt(x.b.t)}</span></div>`).join("")}</div></div>`;
 }
 /* ============ الحروف اللي بتغلط فيها ============ */
 /* من آخر ٥٠ اختبار، عشان يوريك حالك دلوقتي مش زمان */
@@ -987,11 +1005,11 @@ function weakHTML(list){
   for(let r=0;r<4;r++){
     kb+=`<div class="wrow">${CODES[r].map((code,i)=>{ const [b,sh]=LY[r][i]; const n=(m.get(b)||0)+(sh?m.get(sh)||0:0);
       const lbl=lay==="us"&&/^[a-z]$/.test(b)?b.toUpperCase():b;
-      return `<span class="wk${n?" hot":""}" style="--a:${n?Math.round(18+n/max*82):0}%" title="${esc2(lbl)}${n?`: ${EN?n+" mistakes":AR_NUM(n)+" غلطة"}`:""}">${esc2(lbl)}</span>`; }).join("")}</div>`;
+      return `<span class="wk${n?" hot":""}" style="--a:${n?Math.round(18+n/max*82):0}%" title="${esc(lbl)}${n?`: ${EN?n+" mistakes":AR_NUM(n)+" غلطة"}`:""}">${esc(lbl)}</span>`; }).join("")}</div>`;
   }
   const top=w.slice(0,8), letters=w.filter(([c])=>!isMark(c));
   return `<div class="hweak"><h3>${L("الحروف اللي بتغلط فيها أكتر","Letters you miss most")} <small>${L("من آخر ٥٠ اختبار","from your last 50 tests")}</small></h3>
-    <div class="wtop">${top.map(([c,n])=>`<span class="wch"><b ${hLang==="en"?'dir="ltr"':'lang="ar"'}>${esc2(show(c))}</b>${AR_NUM(n)}</span>`).join("")}</div>
+    <div class="wtop">${top.map(([c,n])=>`<span class="wch"><b ${hLang==="en"?'dir="ltr"':'lang="ar"'}>${esc(show(c))}</b>${AR_NUM(n)}</span>`).join("")}</div>
     <div class="wkb" dir="ltr">${kb}</div>
     ${letters.length?`<button type="button" class="hweakbtn" id="hweak">${L("اتمرن على كلمات فيها الحروف دي","Practice words with these letters")}</button>`:""}</div>`;
 }
@@ -1020,10 +1038,9 @@ function paintGoal(){
 }
 /* اسم الاختبار في التاريخ بلغة الصفحة، حتى لو اتعمل من الصفحة التانية */
 function histLabel(h){
-  if(!h.mode||h.n===undefined||!h.src) return esc2(h.label||"");
+  if(!h.mode||h.n===undefined||!h.src) return esc(h.label||"");
   return labelFor(h.mode,h.n,h.src,/بالتشكيل|diacritics/.test(h.label||""));
 }
-function esc2(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function drawHist(S){
   const cv=$("hchart"); if(!cv) return; const dpr=window.devicePixelRatio||1;
   const W=cv.clientWidth,H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr;
@@ -1109,7 +1126,7 @@ function renderFontMenu(){
     if(!list.length) return;
     h+=`<h4>${gs[0]==="site"?L("خطوط الموقع","Site fonts"):L("خطوط على جهازك","Fonts on your device")}</h4>`;
     /* اسم الخط بالعربي مكتوب بالخط نفسه عشان تشوف شكله */
-    h+=list.map(f=>{const [id,ar]=f; return `<button type="button" role="menuitemradio" aria-checked="${cfg.tfont===id}" class="fopt${cfg.tfont===id?" on":""}" data-id="${esc2(id)}"><span class="smp" lang="ar" style="font-family:${esc2(fontStack(id))}">${ar}</span><span class="nm">${EN?esc2(fontName(f)):gs[0]==="site"?"":esc2(id)}</span></button>`;}).join("");
+    h+=list.map(f=>{const [id,ar]=f; return `<button type="button" role="menuitemradio" aria-checked="${cfg.tfont===id}" class="fopt${cfg.tfont===id?" on":""}" data-id="${esc(id)}"><span class="smp" lang="ar" style="font-family:${esc(fontStack(id))}">${ar}</span><span class="nm">${EN?esc(fontName(f)):gs[0]==="site"?"":esc(id)}</span></button>`;}).join("");
   });
   h+=`<div class="fnote">${L("بيظهر هنا بس الخطوط المتسطّبة على جهازك. الخط بيتغيّر في النص اللي بتكتبه بس.","Only fonts installed on your device show up here. The font changes the text you type, not the rest of the site.")}</div>`;
   M.innerHTML=h;
@@ -1138,7 +1155,6 @@ $("fontmenu").addEventListener("click",e=>{
   if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart();
 });
 document.addEventListener("mousedown",e=>{ if(!$("fontmenu").hidden&&!e.target.closest("#fontmenu")&&!e.target.closest("#fontbtn")) closeFontMenu(false); });
-window.addEventListener("resize",()=>{ if(!$("fontmenu").hidden) placeFontMenu(); });
 window.addEventListener("scroll",()=>{ if(!$("fontmenu").hidden) placeFontMenu(); },{passive:true});
 
 /* ============ قايمة الإعدادات ============ */
@@ -1151,12 +1167,52 @@ function openSetMenu(){ const M=$("setmenu"); M.hidden=false; placeSetMenu(); $(
 function closeSetMenu(back){ if($("setmenu").hidden) return; closeFontMenu(false); $("setmenu").hidden=true; $("setbtn").setAttribute("aria-expanded","false"); if(back&&T&&!T.done) focusInput(); }
 $("setbtn").addEventListener("click",e=>{ e.stopPropagation(); $("setmenu").hidden?openSetMenu():closeSetMenu(true); });
 document.addEventListener("mousedown",e=>{ if(!$("setmenu").hidden&&!e.target.closest("#setmenu")&&!e.target.closest("#setbtn")&&!e.target.closest("#fontmenu")) closeSetMenu(false); });
-window.addEventListener("resize",()=>{ if(!$("setmenu").hidden) placeSetMenu(); });
 window.addEventListener("scroll",()=>{ if(!$("setmenu").hidden) placeSetMenu(); },{passive:true});
+
+/* ============ أزرار الإعدادات ============ */
+function syncConfig(){
+  paintFavHead();
+  if(cfg.mode==="quote"&&cfg.src==="words") cfg.src="mix";
+  document.querySelectorAll(".config .group[data-k], #setmenu .group[data-k], #g-layout").forEach(g=>{
+    const k=g.dataset.k;
+    g.querySelectorAll("button").forEach(b=>{ const on=String(cfg[k])===b.dataset.v; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
+  });
+  document.querySelectorAll(".tog").forEach(b=>{b.classList.toggle("on",!!cfg[b.dataset.t]);b.setAttribute("aria-pressed",!!cfg[b.dataset.t]);});
+  const counts={s:0,m:0,l:0,xl:0}; allQuotes().forEach(q=>counts[lenCat(q.t)]++);
+  if(cfg.qlen!=="all"&&!counts[cfg.qlen]) cfg.qlen="all";
+  document.querySelectorAll("#g-qlen button").forEach(b=>{ const v=b.dataset.v; if(v!=="all"){ b.disabled=!counts[v]; b.title=counts[v]?(EN?counts[v]+" texts":AR_NUM(counts[v])+" نص"):L("مفيش نصوص بالطول ده هنا","No texts of this length here"); } b.classList.toggle("on",cfg.qlen===v); });
+  $("g-time").hidden=cfg.mode!=="time"; $("g-words").hidden=cfg.mode!=="words"; $("g-qlen").hidden=cfg.mode!=="quote";
+  document.querySelector('.group[data-k="src"] button[data-v="words"]').disabled=cfg.mode==="quote";
+  $("kbwrap").hidden=!cfg.kb;
+  $("setbadge").hidden=!cfg.tashkeel;
+  const de=document.documentElement;
+  de.classList.remove("ts-s","ts-l"); if(cfg.tsize!=="m") de.classList.add("ts-"+cfg.tsize);
+}
+function onConfigClick(e){
+  const b=e.target.closest("button"); if(!b||b.disabled||b.id==="setbtn"||b.id==="fontbtn") return;
+  const g=b.closest(".group[data-k]");
+  if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words"||k==="goal")?+b.dataset.v:b.dataset.v; }
+  else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
+  saveCfg(); syncConfig(); b.blur();
+  if(g&&g.dataset.k==="goal"){ paintGoal(); if(T&&!T.done) focusInput(); return; }
+  if(b.dataset.t==="pace"){ if(T&&!T.done){ showLastRun(); placeGhost(); runGhost(); focusInput(); } return; }
+  if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
+  if(g&&(g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
+  if(b.dataset.t==="tashkeel"||b.dataset.t==="punct"){ go(0); return; }
+  if(b.dataset.t==="lenient"&&T&&!T.done){ for(let i=0;i<=T.idx;i++) updateWord(i); refresh(); focusInput(); return; }
+  resetHistory();
+}
+$("config").addEventListener("click",onConfigClick);
+$("setmenu").addEventListener("click",onConfigClick);
+$("g-layout").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  cfg.layout=b.dataset.v; saveCfg(); syncConfig(); buildKb(); b.blur(); updateKb(); if(T&&!T.done) focusInput();
+});
+slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focusInput();} });
 
 /* ============ ادعم طقطقة ============ */
 (function(){
-  const SITE="https://taqtaqa.com"+(EN?"/en/":""), REPO="https://github.com/GhofranSalem/taqtaqa";
+  const SITE="https://taqtaqa.com"+(EN?"/en/":"");
   const pitch=L("اتمرن على الكتابة بالعربي على أمثال مصرية وجمل من الأفلام","Practice typing in Arabic on real proverbs, film lines and poetry");
   const msg=pitch+": "+SITE;
   const enc=encodeURIComponent;
@@ -1206,47 +1262,6 @@ window.addEventListener("scroll",()=>{ if(!$("setmenu").hidden) placeSetMenu(); 
   $("supbtn").onclick=window.openSupport;
 })();
 
-/* ============ أزرار الإعدادات ============ */
-function syncConfig(){
-  paintFavHead();
-  if(cfg.mode==="quote"&&cfg.src==="words") cfg.src="mix";
-  document.querySelectorAll(".config .group[data-k], #setmenu .group[data-k], #g-layout").forEach(g=>{
-    const k=g.dataset.k;
-    g.querySelectorAll("button").forEach(b=>{ const on=String(cfg[k])===b.dataset.v; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
-  });
-  document.querySelectorAll(".tog").forEach(b=>{b.classList.toggle("on",!!cfg[b.dataset.t]);b.setAttribute("aria-pressed",!!cfg[b.dataset.t]);});
-  const counts={s:0,m:0,l:0,xl:0}; allQuotes().forEach(q=>counts[lenCat(q.t)]++);
-  if(cfg.qlen!=="all"&&!counts[cfg.qlen]) cfg.qlen="all";
-  document.querySelectorAll("#g-qlen button").forEach(b=>{ const v=b.dataset.v; if(v!=="all"){ b.disabled=!counts[v]; b.title=counts[v]?(EN?counts[v]+" texts":AR_NUM(counts[v])+" نص"):L("مفيش نصوص بالطول ده هنا","No texts of this length here"); } b.classList.toggle("on",cfg.qlen===v); });
-  $("g-time").hidden=cfg.mode!=="time"; $("g-words").hidden=cfg.mode!=="words"; $("g-qlen").hidden=cfg.mode!=="quote";
-  document.querySelector('.group[data-k="src"] button[data-v="words"]').disabled=cfg.mode==="quote";
-  $("kbwrap").hidden=!cfg.kb;
-  $("setbadge").hidden=!cfg.tashkeel;
-  const de=document.documentElement;
-  de.classList.remove("ts-s","ts-l"); if(cfg.tsize!=="m") de.classList.add("ts-"+cfg.tsize);
-}
-function onConfigClick(e){
-  const b=e.target.closest("button"); if(!b||b.disabled||b.id==="setbtn"||b.id==="fontbtn") return;
-  const g=b.closest(".group[data-k]");
-  if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words"||k==="goal")?+b.dataset.v:b.dataset.v; }
-  else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
-  saveCfg(); syncConfig(); b.blur();
-  if(g&&g.dataset.k==="goal"){ paintGoal(); if(T&&!T.done) focusInput(); return; }
-  if(b.dataset.t==="pace"){ if(T&&!T.done){ showLastRun(); placeGhost(); runGhost(); focusInput(); } return; }
-  if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
-  if(g&&(g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
-  if(b.dataset.t==="tashkeel"||b.dataset.t==="punct"){ go(0); return; }
-  if(b.dataset.t==="lenient"&&T&&!T.done){ for(let i=0;i<=T.idx;i++) updateWord(i); refresh(); focusInput(); return; }
-  resetHistory();
-}
-$("config").addEventListener("click",onConfigClick);
-$("setmenu").addEventListener("click",onConfigClick);
-$("g-layout").addEventListener("click",e=>{
-  const b=e.target.closest("button"); if(!b) return;
-  cfg.layout=b.dataset.v; saveCfg(); syncConfig(); buildKb(); b.blur(); updateKb(); if(T&&!T.done) focusInput();
-});
-slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focusInput();} });
-
 /* ============ اختصارات هتساعدك تبقى سريع ============ */
 /* [الوصف، توضيح صغير، مفاتيح ويندوز، مفاتيح ماك] */
 const SHORTCUTS=EN?[
@@ -1282,7 +1297,7 @@ const SHORTCUTS=EN?[
 ];
 function renderShortcuts(){
   const os=cfg.os==="mac"?"mac":"win";
-  $("sclist").innerHTML=SHORTCUTS.map(([g,rows])=>`<div><h3>${g}</h3>${rows.map(([t,n,w,m,nw,nm])=>{ const note=n||(os==="mac"?nm:nw)||""; return `<div class="scrow"><span>${t}${note?`<small>${note}</small>`:""}</span><span class="ks">${(os==="mac"?m:w).map(k=>`<kbd>${esc2(k)}</kbd>`).join("+")}</span></div>`; }).join("")}</div>`).join("");
+  $("sclist").innerHTML=SHORTCUTS.map(([g,rows])=>`<div><h3>${g}</h3>${rows.map(([t,n,w,m,nw,nm])=>{ const note=n||(os==="mac"?nm:nw)||""; return `<div class="scrow"><span>${t}${note?`<small>${note}</small>`:""}</span><span class="ks">${(os==="mac"?m:w).map(k=>`<kbd>${esc(k)}</kbd>`).join("+")}</span></div>`; }).join("")}</div>`).join("");
   document.querySelectorAll("#g-os button").forEach(b=>{ const on=b.dataset.v===os; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
 }
 $("g-os").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; cfg.os=b.dataset.v; saveCfg(); renderShortcuts(); b.blur(); });
@@ -1408,7 +1423,6 @@ function tourNav(a){
   else if(a==="skip") endTour();
 }
 document.addEventListener("click",e=>{ const b=e.target.closest("#tour [data-a]"); if(b) tourNav(b.dataset.a); });
-window.addEventListener("resize",()=>{ if(tourOpen()) placeTour(tourTarget(tourSteps[tourI])); });
 $("helpbtn").onclick=startTour;
 /* زرار عربي / English: بيفتكر اختيارك، فلو فتحت الموقع تاني بيفتح على نفس اللغة */
 document.querySelectorAll("#langbtn,[data-lang]").forEach(b=>b.addEventListener("click",()=>{ try{localStorage.setItem("tq-lang",b.dataset.lang||(EN?"ar":"en"));}catch(e){} }));
@@ -1418,17 +1432,6 @@ $("logo").addEventListener("click",e=>{ e.preventDefault(); location.reload(); }
   if(location.hash==="#about") d.open=true;
   d.addEventListener("toggle",()=>{ if(d.open) setTimeout(()=>d.scrollIntoView({behavior:"smooth",block:"start"}),30); });
 })();
-/* ============ زرار «مفضلتي» في الهيدر ============ */
-function paintFavHead(){ const b=$("favhbtn"); if(b) b.setAttribute("aria-pressed",cfg.src==="fav"); }
-$("favhbtn").addEventListener("click",()=>{
-  const b=$("favhbtn"); b.blur();
-  if(cfg.src==="fav"){ cfg.src=cfg.prevSrc&&cfg.prevSrc!=="fav"?cfg.prevSrc:"mix"; }
-  else{
-    if(!getFavs().length){ toast(L("لسه مفيش نصوص في مفضلتك. دوس «احفظ» تحت أي نص عشان يتحفظ هنا.","No favorites yet. Click Save under any text to keep it here.")); return; }
-    cfg.prevSrc=cfg.src; cfg.src="fav";
-  }
-  saveCfg(); syncConfig(); resetHistory();
-});
 /* ============ كشيدة اللوجو ============ */
 /* بنمطّ «طقطقة» بالكشيدة بعد حرفي القاف لحد ما اللوجو يبقى بعرض الجملة اللي تحته، من غير ما يعدّيها */
 /* في الصفحة الإنجليزي اللوجو «Taqtaqa.» من غير كشيدة */
@@ -1448,8 +1451,6 @@ function stretchLogo(){
   lw.textContent=best;
   return best;
 }
-let stretchT;
-window.addEventListener("resize",()=>{ if(document.documentElement.classList.contains("intro")) return; clearTimeout(stretchT); stretchT=setTimeout(stretchLogo,150); });
 
 /* ============ افتتاحية اللوجو ============ */
 function playIntro(){
@@ -1476,6 +1477,18 @@ function playIntro(){
   })().catch(()=>{ tg.textContent=tag; H.classList.remove("intro"); stretchLogo(); });
 }
 
+/* ============ تغيير حجم الشاشة ============ */
+/* كل اللي مكانه أو مقاسه بيتحسب بالبكسل بيتعاد حسابه هنا */
+let stretchT;
+window.addEventListener("resize",()=>{
+  if(!$("history").hidden){ const f=histView().a; if(f.length) drawHist(f.slice(-100)); }
+  else if(T&&T.done) drawChart(); else if(T) refresh();
+  if(!$("fontmenu").hidden) placeFontMenu();
+  if(!$("setmenu").hidden) placeSetMenu();
+  if(tourOpen()) placeTour(tourTarget(tourSteps[tourI]));
+  if(!document.documentElement.classList.contains("intro")){ clearTimeout(stretchT); stretchT=setTimeout(stretchLogo,150); }
+});
+
 /* ============ البداية ============ */
 /* الموقع العربي دايما بيفتح على «اقتباس» في «شعر»، وأول نص قصيدة «ولرُبّ نازلة» للإمام الشافعي */
 /* والموقع الإنجليزي بيفتح على «إنجليزي» على اقتباس عشوائي */
@@ -1498,7 +1511,7 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!
 playIntro();
 
 /* واجهة صغيرة لـ cloud.js (الحسابات والمزامنة) */
-window.TQ={L,EN,paintGoal,getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); paintGoal(); }};
+window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); paintGoal(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 
