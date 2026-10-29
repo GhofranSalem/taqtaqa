@@ -903,9 +903,12 @@ function renderFontMenu(){
   h+=`<div class="fnote">بيظهر هنا بس الخطوط المتسطّبة على جهازك. الخط بيتغيّر في النص اللي بتكتبه بس.</div>`;
   M.innerHTML=h;
 }
+/* القايمة بتفتح تحت الزرار، ولو المساحة تحت قليلة (زي على الموبايل) بتفتح فوقه، وطولها على قد المساحة عشان تتعمل سكرول */
 function placeFontMenu(){
-  const r=$("fontbtn").getBoundingClientRect(), M=$("fontmenu"), mw=M.offsetWidth, vw=document.documentElement.clientWidth;
-  M.style.top=(r.bottom+6)+"px";
+  const r=$("fontbtn").getBoundingClientRect(), M=$("fontmenu"), mw=M.offsetWidth, vw=document.documentElement.clientWidth, vh=window.innerHeight;
+  const below=vh-r.bottom-12, above=r.top-12, up=below<260&&above>below;
+  M.style.maxHeight=Math.max(160,Math.min(460,(up?above:below)-6))+"px";
+  M.style.top=(up?Math.max(12,r.top-6-Math.min(M.scrollHeight,parseFloat(M.style.maxHeight))):r.bottom+6)+"px";
   M.style.left=Math.max(16,Math.min(r.right-mw,vw-mw-16))+"px";
 }
 function openFontMenu(){
