@@ -41,10 +41,10 @@ a.logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .tag{margin:0;color:var(--sub);font-size:14px;line-height:1.3;min-height:1.3em}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* أزرار الهيدر: نفس الشكل ونفس الحركة، و«شرح الموقع» بس اللي إطاره ملوّن عشان يبان */
-.helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:7px;min-height:32px;background:none;color:var(--fg);border:1.5px solid color-mix(in srgb,var(--sub) 55%,transparent);border-radius:999px;padding:4px 13px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.helpbtn,.histbtn,.favhbtn,.themebtn,.langbtn,header .authbtn{font:inherit;font-size:13px;display:inline-flex;align-items:center;gap:7px;min-height:32px;background:none;color:var(--fg);border:1.5px solid color-mix(in srgb,var(--sub) 55%,transparent);border-radius:999px;padding:4px 13px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
 .helpbtn{border-color:var(--accent)}
-.helpbtn:hover,.histbtn:hover,.favhbtn:hover,.themebtn:hover,header .authbtn:hover,.favhbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-.helpbtn:focus-visible,.histbtn:focus-visible,.favhbtn:focus-visible,.themebtn:focus-visible,header .authbtn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.helpbtn:hover,.histbtn:hover,.favhbtn:hover,.themebtn:hover,.langbtn:hover,header .authbtn:hover,.favhbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.helpbtn:focus-visible,.histbtn:focus-visible,.favhbtn:focus-visible,.themebtn:focus-visible,.langbtn:focus-visible,header .authbtn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .themebtn{padding-inline:11px}
 header .authbtn:has(.av){padding:0;width:32px;min-width:32px;justify-content:center;border-radius:50%}
 header .authbtn .av{width:26px;height:26px}
@@ -297,7 +297,7 @@ body.typing .kb .k:not(.next){opacity:.45}
   #kbwrap{display:none!important}
   .shortcuts{display:none}
   .seg button,.fontbtn{min-height:40px;padding-inline:11px}
-  .helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{min-height:40px}
+  .helpbtn,.histbtn,.favhbtn,.themebtn,.langbtn,header .authbtn{min-height:40px}
   header .authbtn:has(.av){width:40px;min-width:40px}
   header .authbtn .av{width:32px;height:32px}
 }
@@ -337,7 +337,7 @@ body.typing .kb .k:not(.next){opacity:.45}
   .config{gap:4px 10px}
   .tag{font-size:12.5px}
   .hright,.hpair{gap:6px}
-  .helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{padding-inline:9px;font-size:12.5px}
+  .helpbtn,.histbtn,.favhbtn,.themebtn,.langbtn,header .authbtn{padding-inline:9px;font-size:12.5px}
 }
 @media (prefers-reduced-motion:reduce){.caret{transition:none}.caret.idle{animation:none}html,body,header,.config,footer,.kbhead,.under,.live{transition:none}}
 
@@ -345,8 +345,7 @@ body.typing .kb .k:not(.next){opacity:.45}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 
 /* زرار اللغة */
-.langbtn{font:inherit;font-size:13px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;line-height:1.5}
-.langbtn:hover{color:var(--fg);border-color:var(--sub)}
+.langbtn{text-decoration:none;line-height:1.5}
 /* الصفحة الإنجليزي */
 html[dir=ltr] .sway #fbcontact{text-align:left}
 html[dir=ltr] .sway #fbcontact:placeholder-shown{direction:ltr}

@@ -242,7 +242,6 @@ const AFLAM = [
 
 /* اقتباسات إنجليزي: [النص، القائل أو المصدر]. كلها من مصادر قديمة في الملك العام، أو أمثال، أو جمل قصيرة مشهورة */
 const EN_QUOTES=[
-["The quick brown fox jumps over the lazy dog.","Pangram, uses every letter"],
 ["Pack my box with five dozen liquor jugs.","Pangram, uses every letter"],
 ["Sphinx of black quartz, judge my vow.","Pangram, uses every letter"],
 ["Practice makes perfect.","English proverb"],

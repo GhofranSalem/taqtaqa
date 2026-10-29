@@ -1321,11 +1321,11 @@ function playIntro(){
 
 /* ============ البداية ============ */
 /* الموقع العربي دايما بيفتح على «اقتباس» في «شعر»، وأول نص قصيدة «ولرُبّ نازلة» للإمام الشافعي */
-/* والموقع الإنجليزي بيفتح على «إنجليزي»، وأول نص The quick brown fox */
-const OPENING=EN?"The quick brown fox":"ولرب نازلة";
+/* والموقع الإنجليزي بيفتح على «إنجليزي» على اقتباس عشوائي */
+const OPENING=EN?null:"ولرب نازلة";
 function openOnPoem(){
   cfg.mode="quote"; cfg.src=EN?"en":"sheer"; cfg.qlen="all"; saveCfg(); syncConfig();
-  const qs=allQuotes(), q=qs.find(x=>favKey(x.t).startsWith(OPENING));
+  const qs=allQuotes(), q=OPENING&&qs.find(x=>favKey(x.t).startsWith(OPENING));
   if(!q){ resetHistory(); return; }
   const key="q-"+cfg.src+"-all"; if(!bags[key]) bags[key]=shuffle(qs.filter(x=>x!==q));
   hist=[{words:clean(q.t,q.tk).split(" ").filter(Boolean),quote:q,count:qs.length}]; hpos=0;
