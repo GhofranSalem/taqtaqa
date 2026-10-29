@@ -46,7 +46,8 @@ a.logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .helpbtn:hover,.histbtn:hover,.favhbtn:hover,.themebtn:hover,header .authbtn:hover,.favhbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 .helpbtn:focus-visible,.histbtn:focus-visible,.favhbtn:focus-visible,.themebtn:focus-visible,header .authbtn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .themebtn{padding-inline:11px}
-header .authbtn:has(.av){padding-inline:5px 13px}
+header .authbtn:has(.av){padding:0;width:32px;min-width:32px;justify-content:center;border-radius:50%}
+header .authbtn .av{width:26px;height:26px}
 .hpair{display:inline-flex;gap:8px;flex:none}
 /* افتتاحية: اللوجو بيتكتب، وبعده الجملة، وبعدين الأزرار بتظهر */
 .intro .lw,.intro #tagtext{visibility:hidden}
@@ -288,6 +289,8 @@ body.typing .kb .k:not(.next){opacity:.45}
   .shortcuts{display:none}
   .seg button,.fontbtn{min-height:40px;padding-inline:11px}
   .helpbtn,.histbtn,.favhbtn,.themebtn,header .authbtn{min-height:40px}
+  header .authbtn:has(.av){width:40px;min-width:40px}
+  header .authbtn .av{width:32px;height:32px}
 }
 
 /* التاريخ */

@@ -98,11 +98,14 @@ whenReady(async () => {
   function renderBtn() {
     if (user) {
       const name = user.displayName || (user.email || "").split("@")[0];
-      btn.innerHTML = `<span class="av">${avatar(user)}</span><span class="nm">${esc(name)}</span>`;
-      btn.setAttribute("aria-label", "حسابك");
+      // الصورة بس، والاسم بيظهر لما تقف عليها، عشان الاسم الطويل ما يزقّش الأزرار اللي جنبه
+      btn.innerHTML = `<span class="av">${avatar(user)}</span>`;
+      btn.setAttribute("aria-label", "حسابك: " + name);
+      btn.title = name;
     } else {
       btn.innerHTML = `<span class="nm">سجّل دخول</span>`;
       btn.removeAttribute("aria-label");
+      btn.removeAttribute("title");
     }
     const note = $("hnote");
     if (note) note.textContent = user
