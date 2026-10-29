@@ -145,7 +145,7 @@ function updateNav(){
 }
 function start(b){
   if(T&&T.timer) clearInterval(T.timer);
-  slab.classList.remove("paused"); $("pausemsg").hidden=true;
+  slab.classList.remove("paused","wronglang"); $("pausemsg").hidden=true; $("langmsg").hidden=true;
   setTyping(false);
   gen=makeGen();
   T=fresh(wordsFor(b),b.quote);
@@ -260,6 +260,23 @@ function commitWord(){
   updateWord(i); updateWord(T.idx); updateUnder();
   if(timed()&&T.words.length-T.idx<40) appendWords();
 }
+/* ============ الكيبورد على اللغة الغلط ============ */
+/* لو النص عربي واتكتب حرف إنجليزي (أو العكس)، بننبهك تحوّل اللغة وبنبدأ نفس النص من الأول */
+const LAT_RE=/[A-Za-z]/, AR_RE=/[\u0621-\u064A]/;
+function wrongScript(v,tg){ const re=T.dir==="ltr"?AR_RE:LAT_RE; return re.test(v)&&!re.test(tg); }
+let langT=0;
+function hideLangMsg(){ clearTimeout(langT); $("langmsg").hidden=true; slab.classList.remove("wronglang"); }
+function wrongLang(){
+  const toAr=T.dir!=="ltr", mac=curOS()==="mac";
+  const keys=mac?'<kbd>Ctrl</kbd>+<kbd>Space</kbd>':'<kbd>Alt</kbd>+<kbd>Shift</kbd>';
+  go(0);
+  const M=$("langmsg");
+  M.innerHTML=EN
+    ?`<b>Your keyboard is in ${toAr?"English":"Arabic"}</b><span>Switch to ${toAr?"Arabic":"English"} with <bdi dir="ltr">${keys}</bdi>${mac?" or the 🌐 key":""}, then start typing.</span><span>We restarted the same text.</span>`
+    :`<b>الكيبورد على ${toAr?"الإنجليزي":"العربي"}</b><span>حوّل ${toAr?"للعربي":"للإنجليزي"} بـ <bdi dir="ltr">${keys}</bdi>${mac?" أو زرار 🌐":""}، وابدأ اكتب.</span><span>بدأنا نفس النص من الأول.</span>`;
+  M.hidden=false; slab.classList.add("wronglang");
+  clearTimeout(langT); langT=setTimeout(hideLangMsg,8000);
+}
 ti.addEventListener("input",()=>{
   if(T.paused&&!T.done&&!tourOpen()) resumeTest();
   if(T.done||tourOpen()){ti.value=T.done?"":(T.typed[T.idx]||"");return;}
@@ -267,6 +284,8 @@ ti.addEventListener("input",()=>{
   let v=ti.value.replace(/\n/g," ").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
   v=v.replace(/[\u0670\u0640]/g,"");
   if(cfg.tashkeel) v=canonMarks(v); else if(cfg.lenient) v=v.replace(HARAKAT,"");
+  if(wrongScript(v,T.words[T.idx]||"")){ wrongLang(); return; }
+  if(!$("langmsg").hidden) hideLangMsg();
   const parts=v.split(" ");
   for(let p=0;p<parts.length;p++){
     setTyped(parts[p]); if(T.done) break;

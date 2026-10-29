@@ -133,10 +133,12 @@ body.inhist .config{display:none}
 @keyframes blink{50%{opacity:0}}
 .slab.blur .words{filter:blur(5px);opacity:.5}
 .slab.paused .words{filter:blur(5px);opacity:.35}
-.slab.blur .caret,.slab.paused .caret{opacity:0}
+.slab.wronglang .words{filter:blur(5px);opacity:.35}
+.slab.blur .caret,.slab.paused .caret,.slab.wronglang .caret{opacity:0}
 .focus-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--fg);pointer-events:none;text-align:center}
 .pausemsg{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--sub);font-size:14px;text-align:center}
 .pausemsg b{color:var(--fg);font-size:20px;font-weight:500}
+#langmsg{pointer-events:none}
 #ti{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;border:0;padding:0;resize:none;color:transparent;background:transparent;caret-color:transparent;z-index:2}
 .under{margin-top:6px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:13.5px;min-height:22px}
 .navhint{font-variant-numeric:tabular-nums}
