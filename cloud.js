@@ -327,9 +327,13 @@ whenReady(async () => {
     } catch (ex) { console.warn("taqtaqa clear", ex); }
   });
 
+  // app.js بيسأل من هنا: داخل بحساب ولا لأ، وبيفتح نافذة الدخول من تنبيه النتيجة
+  window.TQ_AUTH = { ready: false, user: false, open: () => openModal(user ? viewAccount : viewSignIn) };
   let wasSignedIn = false;
   onAuthStateChanged(auth, async (u) => {
     user = u; renderBtn();
+    window.TQ_AUTH.ready = true; window.TQ_AUTH.user = !!u;
+    if (u) { const ln = $("loginline"); if (ln) ln.remove(); }
     if (u) {
       wasSignedIn = true;
       try {

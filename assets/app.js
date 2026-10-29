@@ -444,7 +444,8 @@ function showResults(r){
     </div>
     ${q}
     ${(()=>{const mw=missedWords();return mw.length?`<div class="missline" dir="${T.dir}">${L("غلطت في:","You missed:")} ${mw.map(w=>`<span>${esc2(w)}</span>`).join("")}</div>`:"";})()}
-    ${(getHist().length%5===0&&getHist().length>0)?`<div class="supline">${L("عجبك طقطقة؟","Enjoying Taqtaqa?")} <button type="button" id="b-sup">${L("ادعمه بمشاركة أو نجمة","Support it with a share or a star")}</button></div>`:""}
+    ${loginNudge()?`<div class="loginline" id="loginline" role="note"><span>${EN?`You have ${getHist().length} ${getHist().length===1?"test":"tests"} saved in this browser only. Sign in to keep your results and progress in your account and follow them on any device.`:`${getHist().length===1?"عندك اختبار واحد محفوظ":`عندك ${AR_NUM(getHist().length)} اختبار محفوظين`} على المتصفح ده بس. سجّل دخول عشان نتايجك وتطورك يتحفظوا في حسابك، وتتابعهم من أي جهاز.`}</span><span class="lbtns"><button type="button" class="pri" id="b-login">${L("سجّل دخول","Sign in")}</button><button type="button" class="later" id="b-later">${L("مش دلوقتي","Not now")}</button></span></div>`
+    :(getHist().length%5===0&&getHist().length>0)?`<div class="supline">${L("عجبك طقطقة؟","Enjoying Taqtaqa?")} <button type="button" id="b-sup">${L("ادعمه بمشاركة أو نجمة","Support it with a share or a star")}</button></div>`:""}
     <div class="actions">
       <button type="button" class="primary" id="b-new">${L("النص اللي بعده","Next text")}<kbd>Tab</kbd></button>
       ${missedWords().length?`<button type="button" class="practact" id="b-pract">${L("اتمرن على الكلمات دي","Practice these words")} (${AR_NUM(missedWords().length)})</button>`:""}
@@ -461,7 +462,16 @@ function showResults(r){
   $("b-prev").onclick=()=>go(-1);
   if($("b-fav")){ $("b-fav").onclick=()=>toggleFav(curQuote()); paintFav(); }
   if($("b-sup")) $("b-sup").onclick=()=>window.openSupport&&window.openSupport();
+  if($("b-login")) $("b-login").onclick=()=>window.TQ_AUTH&&window.TQ_AUTH.open();
+  if($("b-later")) $("b-later").onclick=()=>{ try{localStorage.setItem("tq-login-later",String(Date.now()+3*864e5));}catch(e){} $("loginline").remove(); };
   drawChart(); showPB();
+}
+/* ============ تنبيه تسجيل الدخول ============ */
+/* بيظهر في النتيجة لو مش داخل بحساب. «مش دلوقتي» بتخفيه ٣ أيام */
+function loginNudge(){
+  const A=window.TQ_AUTH; if(!A||!A.ready||A.user) return false;
+  let later=0; try{later=+localStorage.getItem("tq-login-later")||0;}catch(e){}
+  return Date.now()>later;
 }
 /* ============ تمرين على الكلمات اللي غلطت فيها ============ */
 function missedWords(){
