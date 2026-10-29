@@ -10,7 +10,9 @@
   ],
   "assets": {
     "directory": ".",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    // الـ Worker بيشتغل قبل الملفات، عشان تحويل www يوصل حتى للصفحة الرئيسية
+    "run_worker_first": true
   },
   "send_email": [
     { "name": "FEEDBACK", "destination_address": "ghofran.salem@gmail.com" }
