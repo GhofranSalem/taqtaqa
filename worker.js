@@ -10,6 +10,11 @@ const TYPES = { suggest: "اقتراح نص", bug: "غلطة", note: "رأي أ�
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // www.taqtaqa.com بيحوّل للدومين الأساسي، عشان اللي بيكتب www يوصل برضه
+    if (url.hostname === "www.taqtaqa.com") {
+      url.hostname = "taqtaqa.com";
+      return Response.redirect(url.toString(), 301);
+    }
     if (url.pathname.startsWith("/__/auth/") || url.pathname.startsWith("/__/firebase/")) {
       const target = new URL(url.pathname + url.search, "https://" + FIREBASE_HOST);
       return fetch(new Request(target, request), { redirect: "manual" });
