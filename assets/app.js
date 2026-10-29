@@ -541,13 +541,22 @@ function updateKb(){
 const THEMES=MT.THEMES; /* [name, isDark, [bg,main,caret,sub,subAlt,text,error,errorExtra]] */
 const VARS=["--bg","--panel","--fg","--sub","--dim","--accent","--caret","--accent-soft","--err","--err-dim","--line","--key","--key-fg","--key-edge","--scrim"];
 function prettyName(n){return AR_THEME[n]||n.replace(/_/g," ");}
+/* راحة العين: لو لون النص اللي لسه ما اتكتبش باهت أوي على الخلفية، بنقرّبه من لون النص لحد ما يبقى مقروء */
+function hexRgb(h){h=String(h).trim().replace("#","");if(h.length<6)h=h.split("").map(c=>c+c).join("");return [0,2,4].map(k=>parseInt(h.slice(k,k+2),16));}
+function relLum(rgb){const [r,g,b]=rgb.map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*r+.7152*g+.0722*b;}
+function contrast(a,b){const x=relLum(a),y=relLum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+function readable(col,bg,toward,min){
+  const c=hexRgb(col),B=hexRgb(bg),t=hexRgb(toward);
+  for(let k=0;k<=1.0001;k+=0.05){ const m=c.map((v,i)=>Math.round(v+(t[i]-v)*k)); if(contrast(m,B)>=min) return "#"+m.map(v=>v.toString(16).padStart(2,"0")).join(""); }
+  return toward;
+}
 function applyTheme(name){
   const root=document.documentElement.style;
   const t=THEMES.find(x=>x[0]===name);
   if(!t){ VARS.forEach(v=>root.removeProperty(v)); root.removeProperty("color-scheme"); try{localStorage.setItem("tq-tv","false");}catch(e){} }
   else{
     const [bg,main,car,sub,subAlt,text,err,errX]=t[2];
-    const set={"--bg":bg,"--panel":subAlt,"--fg":text,"--sub":sub,"--dim":sub,"--accent":main,"--caret":car,"--accent-soft":main+"24",
+    const set={"--bg":bg,"--panel":subAlt,"--fg":text,"--sub":readable(sub,bg,text,3),"--dim":readable(sub,bg,text,3.5),"--accent":main,"--caret":car,"--accent-soft":main+"24",
       "--err":err,"--err-dim":errX,"--line":subAlt,"--key":subAlt,"--key-fg":text,"--key-edge":t[1]?"rgba(0,0,0,.45)":sub+"80","--scrim":"rgba(0,0,0,.5)"};
     for(const k in set) root.setProperty(k,set[k]);
     root.setProperty("color-scheme",t[1]?"dark":"light");
@@ -1183,6 +1192,7 @@ function openOnPoem(){
   hist=[{words:clean(q.t,q.tk).split(" ").filter(Boolean),quote:q,count:qs.length}]; hpos=0;
   start(hist[0]);
 }
+if(cfg.theme!=="taqtaqa"&&!THEMES.some(t=>t[0]===cfg.theme)) cfg.theme="vesper";
 if(!cfg.os) cfg.os=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?"mac":"win";
 applyFont(); buildKb(); applyTheme(cfg.theme); renderShortcuts();
 importFromOldLink();
