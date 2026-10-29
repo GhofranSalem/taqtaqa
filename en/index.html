@@ -67,6 +67,7 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
       <div class="pb" id="pb"></div>
       <span id="authslot"></span>
       <button class="helpbtn" id="helpbtn" type="button">Tour</button>
+      <button class="goalbtn" id="goalbtn" type="button" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><circle class="gb" cx="10" cy="10" r="8"/><circle class="gp" cx="10" cy="10" r="8"/></svg><span class="gt"></span></button>
       <span class="hpair"><button class="histbtn" id="histbtn" type="button">History</button>
       <button class="favhbtn" id="favhbtn" type="button" aria-pressed="false" title="Texts you saved">Favorites</button></span>
       <a class="langbtn" id="langbtn" href="/" hreflang="ar" lang="ar" title="طقطقة بالعربي">عربي</a>
@@ -114,6 +115,10 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
       <button type="button" class="tog" data-t="punct"><span class="tt">Punctuation<small>Periods and commas inside the text</small></span></button>
       <button type="button" class="tog" data-t="pace"><span class="tt">Last-time caret<small>If you typed the text before, a caret moves at your old speed</small></span></button>
       <button type="button" class="tog" data-t="kb"><span class="tt">Keyboard<small>Shows you the next key</small></span></button>
+    </div>
+    <h4>Daily goal</h4>
+    <div class="group seg goalseg" data-k="goal">
+      <button type="button" data-v="0">Off</button><button type="button" data-v="5">5 min</button><button type="button" data-v="10">10 min</button><button type="button" data-v="15">15 min</button><button type="button" data-v="30">30 min</button>
     </div>
     <h4>Text font</h4>
     <div class="fontpick">

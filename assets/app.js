@@ -3,7 +3,7 @@
 "use strict";
 
 /* ============ إعدادات ============ */
-const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true};
+const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true,goal:10};
 let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
 if(cfg.src==="tashkeel") cfg.src="mix";
@@ -94,7 +94,7 @@ function makeGen(){
 /* ============ حالة الاختبار ============ */
 let T;
 function fresh(words,quote){
-  return {words,typed:[""],idx:0,started:false,done:false,t0:0,ok:0,bad:0,secKeys:0,secErr:0,samples:[],nextSec:1,timer:null,quote,missed:new Set()};
+  return {words,typed:[""],idx:0,started:false,done:false,t0:0,ok:0,bad:0,secKeys:0,secErr:0,samples:[],nextSec:1,timer:null,quote,missed:new Set(),ek:{}};
 }
 function buildWords(){
   if(cfg.src==="fav"&&!getFavs().length){ cfg.src="mix"; saveCfg(); syncConfig(); toast(L("مفضلتك فاضية، فرجعناك لـ«مكس».","Your favorites are empty, so we switched you to Mix.")); }
@@ -233,6 +233,8 @@ function setTyped(nv){
   let k=0; while(k<old.length&&k<nv.length&&old[k]===nv[k]) k++;
   for(let j=k;j<nv.length;j++){
     const good=j<tg.length&&eq(nv[j],tg[j]);
+    /* الحرف اللي كان المفروض يتكتب واتكتب غلط، عشان «الحروف اللي بتغلط فيها» */
+    if(!good&&j<tg.length){ const c=tg[j]; T.ek[c]=(T.ek[c]||0)+1; }
     if(good)T.ok++;else{T.bad++;T.secErr++;T.missed.add(T.idx);flashBad();}
     T.secKeys++;
   }
@@ -817,8 +819,12 @@ function addHist(r){
   const a=getHist();
   a.push({v:1,t:Date.now(),wpm:+r.wpm.toFixed(1),raw:+r.raw.toFixed(1),acc:+r.acc.toFixed(1),el:+r.el.toFixed(1),
     c:r.c,b:r.b,x:r.x,m:r.m,mode:T.practice?"practice":cfg.mode,n:T.practice?T.words.length:cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,src:T.practice?"practice":cfg.src,
-    q:T.quote?T.quote.s:null,label:modeLabel(),lang:T.dir==="ltr"?"en":"ar"});
+    q:T.quote?T.quote.s:null,label:modeLabel(),lang:T.dir==="ltr"?"en":"ar",...(Object.keys(T.ek).length?{ek:T.ek}:{})});
+  const before=todayMins(a.slice(0,-1));
   setHist(a);
+  /* الهدف اليومي: لو الاختبار ده كمّله، بنقولك */
+  if(cfg.goal>0&&before<cfg.goal&&todayMins(a)>=cfg.goal) setTimeout(()=>toast(EN?`You hit today's goal: ${cfg.goal} minutes of typing.`:`خلّصت هدف النهارده: ${AR_NUM(cfg.goal)} دقايق كتابة.`),400);
+  paintGoal();
   try{window.dispatchEvent(new CustomEvent("tq:result",{detail:a[a.length-1]}));}catch(e){}
 }
 function avgLast(a,k,f){const s=a.slice(-k);return s.length?s.reduce((x,y)=>x+y[f],0)/s.length:0;}
@@ -889,6 +895,8 @@ function renderHistory(){
       <div><div class="v">${AR_NUM(mins<60?Math.round(mins):+(mins/60).toFixed(1))} <small>${mins<60?L("دقيقة","min"):L("ساعة","hr")}</small></div><div class="lbl">${L("وقت الكتابة","time typing")}</div></div>
       <div><div class="v">${AR_NUM(st.n)} <small>${dayWord(st.n)}</small></div><div class="lbl">${L("ورا بعض","in a row")}${st.total>st.n?(EN?`, of ${st.total} days`:`، من ${AR_NUM(st.total)} ${dayWord(st.total)} اتمرنت فيهم`):""}</div></div>
     </div>
+    ${calHTML(all)}
+    ${pbCardsHTML(V.langs[hLang])}
     ${secList.length>1||hSrc!=="all"?`<div class="hsecs">
       <h3>${L("الأقسام","Sections")}${top?` <small>${L("أكتر قسم بتكتب فيه:","Your most typed:")} <b>${esc2(secName(top.k))}</b></small>`:""}</h3>
       <div class="hseclist" id="hsecs">
@@ -902,6 +910,7 @@ function renderHistory(){
       </div>
       ${hSrc!=="all"?`<button type="button" class="hsecall" id="hsecall">${L("اعرض كل الأقسام","Show all sections")}</button>`:""}
     </div>`:""}
+    ${weakHTML(V.langs[hLang])}
     <div>
       <canvas id="hchart" role="img" aria-label="${L("السرعة في كل اختبار","Speed in each test")}"></canvas>
       <div class="hlegend"><span style="--c:var(--sub)">${L("كل اختبار","each test")}</span><span style="--c:var(--accent)">${L("متوسط آخر ١٠","last 10 average")}</span></div>
@@ -922,7 +931,82 @@ function renderHistory(){
   if($("hsecall")) $("hsecall").onclick=()=>{hSrc="all";hShown=30;renderHistory();};
   if($("hmore")) $("hmore").onclick=()=>{hShown+=30;renderHistory();};
   $("hclear").onclick=()=>{ if(!hArmed){hArmed=true;renderHistory();return;} setHist([]); try{localStorage.removeItem("tq-pb");}catch(e){} hArmed=false; renderHistory(); showPB(); try{window.dispatchEvent(new Event("tq:clear"));}catch(e){} };
+  if($("hweak")) $("hweak").onclick=()=>practiceKeys(weakKeys(V.langs[hLang]).filter(([c])=>!isMark(c)).slice(0,5).map(([c])=>c),hLang);
   if(a.length) drawHist(a.slice(-100));
+}
+/* ============ خريطة الأيام ============ */
+/* مربع لكل يوم في آخر ٢٦ أسبوع، ولونه بيغمق على قد الدقايق اللي كتبتها */
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();};
+function todayMins(a){ const k=dayKey(Date.now()); return (a||getHist()).reduce((s,h)=>s+(dayKey(h.t)===k?h.el:0),0)/60; }
+function calHTML(all){
+  const per=new Map(); all.forEach(h=>{const k=dayKey(h.t),o=per.get(k)||{n:0,s:0}; o.n++; o.s+=h.el; per.set(k,o);});
+  const end=new Date(); end.setHours(12,0,0,0);
+  const d=new Date(end); d.setDate(d.getDate()-d.getDay()-25*7);
+  let cells="", active=0;
+  while(d<=end){
+    const o=per.get(dayKey(d)), m=o?o.s/60:0, lv=!o?0:m<5?1:m<15?2:m<30?3:4;
+    if(o) active++;
+    const dt=d.toLocaleDateString(EN?"en-US":"ar-EG",{weekday:"short",day:"numeric",month:"short"});
+    const tip=o?(EN?`${dt}: ${o.n} tests, ${Math.max(1,Math.round(m))} min`:`${dt}: ${AR_NUM(o.n)} اختبار، ${AR_NUM(Math.max(1,Math.round(m)))} دقيقة`):(EN?`${dt}: no typing`:`${dt}: ما اتمرنتش`);
+    cells+=`<i class="l${lv}" title="${esc2(tip)}"></i>`; d.setDate(d.getDate()+1);
+  }
+  return `<div class="hcal"><h3>${L("أيام التمرين","Practice days")} <small>${EN?`${active} days in the last 6 months`:`${AR_NUM(active)} ${dayWord(active)} في آخر ٦ شهور`}</small></h3>
+    <div class="calwrap"><div class="cal">${cells}</div></div>
+    <div class="callegend">${L("أقل","Less")}<i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i>${L("أكتر","More")}</div></div>`;
+}
+/* ============ أحسن أرقامك ============ */
+function pbCardsHTML(list){
+  const C=[["time",15],["time",30],["time",60],["time",120],["quote",null]];
+  const out=C.map(([m,n])=>{ let b=null; list.forEach(h=>{ if(h.mode===m&&(n===null||+h.n===n)&&(!b||h.wpm>b.wpm)) b=h; }); return {m,n,b}; }).filter(x=>x.b);
+  if(!out.length) return "";
+  const nm=(m,n)=>m==="quote"?L("اقتباس","Quote"):EN?`${n} seconds`:`${AR_NUM(n)} ثانية`;
+  const dt=t=>new Date(t).toLocaleDateString(EN?"en-US":"ar-EG",{day:"numeric",month:"short"});
+  return `<div class="hpbs"><h3>${L("أحسن أرقامك","Personal bests")}</h3><div class="pbrow">${out.map(x=>`<div class="pbc"><span class="pk">${nm(x.m,x.n)}</span><span class="v">${AR_NUM(Math.round(x.b.wpm))} <small>${WPM}</small></span><span class="s">${AR_NUM(Math.round(x.b.acc))}${PCT} · ${dt(x.b.t)}</span></div>`).join("")}</div></div>`;
+}
+/* ============ الحروف اللي بتغلط فيها ============ */
+/* من آخر ٥٠ اختبار، عشان يوريك حالك دلوقتي مش زمان */
+function weakKeys(list){
+  const e={}; list.slice(-50).forEach(h=>{ for(const c in (h.ek||{})) e[c]=(e[c]||0)+h.ek[c]; });
+  return Object.entries(e).sort((a,b)=>b[1]-a[1]);
+}
+function weakHTML(list){
+  const w=weakKeys(list); if(!w.length) return "";
+  const lay=hLang==="en"?"us":(LAYOUTS[cfg.layout]?cfg.layout:"pc"), LY=LAYOUTS[lay], m=new Map(w), max=w[0][1];
+  const show=c=>isMark(c)?"ـ"+c:c;
+  let kb="";
+  for(let r=0;r<4;r++){
+    kb+=`<div class="wrow">${CODES[r].map((code,i)=>{ const [b,sh]=LY[r][i]; const n=(m.get(b)||0)+(sh?m.get(sh)||0:0);
+      const lbl=lay==="us"&&/^[a-z]$/.test(b)?b.toUpperCase():b;
+      return `<span class="wk${n?" hot":""}" style="--a:${n?Math.round(18+n/max*82):0}%" title="${esc2(lbl)}${n?`: ${EN?n+" mistakes":AR_NUM(n)+" غلطة"}`:""}">${esc2(lbl)}</span>`; }).join("")}</div>`;
+  }
+  const top=w.slice(0,8), letters=w.filter(([c])=>!isMark(c));
+  return `<div class="hweak"><h3>${L("الحروف اللي بتغلط فيها أكتر","Letters you miss most")} <small>${L("من آخر ٥٠ اختبار","from your last 50 tests")}</small></h3>
+    <div class="wtop">${top.map(([c,n])=>`<span class="wch"><b ${hLang==="en"?'dir="ltr"':'lang="ar"'}>${esc2(show(c))}</b>${AR_NUM(n)}</span>`).join("")}</div>
+    <div class="wkb" dir="ltr">${kb}</div>
+    ${letters.length?`<button type="button" class="hweakbtn" id="hweak">${L("اتمرن على كلمات فيها الحروف دي","Practice words with these letters")}</button>`:""}</div>`;
+}
+/* تمرين: كلمات فيها الحروف اللي بتغلط فيها */
+function practiceKeys(chars,lang){
+  if(!chars.length) return;
+  let pool=lang==="en"?[...new Set(EN_QUOTES.flatMap(([t])=>t.split(" ")).map(w=>w.replace(/[^A-Za-z']/g,"")).filter(w=>w.length>2))]:[...new Set(WORDS.map(w=>clean(w)).filter(w=>w&&!w.includes(" ")))];
+  let pick=pool.filter(w=>chars.some(c=>w.includes(c)||(lang!=="en"&&[...w].some(x=>N(x)===N(c)))));
+  if(pick.length<5) return toast(L("مالقيناش كلمات كفاية فيها الحروف دي.","We couldn't find enough words with these letters."));
+  let list=[]; while(list.length<40) list=list.concat(shuffle(pick)); list=list.slice(0,40);
+  $("history").hidden=true; $("kbwrap").hidden=!cfg.kb;
+  hist.push({words:list,quote:null,practice:true,dir:lang==="en"?"ltr":"rtl"}); if(hist.length>50) hist.shift(); hpos=hist.length-1;
+  start(hist[hpos]);
+}
+/* ============ الهدف اليومي ============ */
+/* دايرة صغيرة في الهيدر بتتملي على قد اللي كتبته النهارده */
+function paintGoal(){
+  const b=$("goalbtn"); if(!b) return;
+  b.hidden=!(cfg.goal>0); if(b.hidden) return;
+  const m=todayMins(), p=Math.min(1,m/cfg.goal), C=2*Math.PI*8;
+  b.classList.toggle("done",p>=1);
+  b.querySelector(".gp").style.strokeDasharray=`${(C*p).toFixed(2)} ${C.toFixed(2)}`;
+  const t=EN?`Today's goal: ${Math.floor(m)} of ${cfg.goal} min`:`هدف النهارده: ${AR_NUM(Math.floor(m))} من ${AR_NUM(cfg.goal)} دقايق`;
+  b.title=t; b.setAttribute("aria-label",t);
+  b.querySelector(".gt").textContent=p>=1?"✓":AR_NUM(Math.floor(m));
 }
 /* اسم الاختبار في التاريخ بلغة الصفحة، حتى لو اتعمل من الصفحة التانية */
 function histLabel(h){
@@ -944,6 +1028,7 @@ function drawHist(S){
   ctx.strokeStyle=tok("--accent"); ctx.lineWidth=2.5; ctx.lineJoin="round"; ctx.beginPath(); avg.forEach((v,i)=>i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v))); ctx.stroke();
 }
 $("histbtn").onclick=openHistory;
+if($("goalbtn")) $("goalbtn").onclick=openHistory;
 $("hclose").onclick=closeHistory;
 
 /* ============ خطوط النص ============ */
@@ -1133,9 +1218,10 @@ function syncConfig(){
 function onConfigClick(e){
   const b=e.target.closest("button"); if(!b||b.disabled||b.id==="setbtn"||b.id==="fontbtn") return;
   const g=b.closest(".group[data-k]");
-  if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words")?+b.dataset.v:b.dataset.v; }
+  if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words"||k==="goal")?+b.dataset.v:b.dataset.v; }
   else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
   saveCfg(); syncConfig(); b.blur();
+  if(g&&g.dataset.k==="goal"){ paintGoal(); if(T&&!T.done) focusInput(); return; }
   if(b.dataset.t==="pace"){ if(T&&!T.done){ showLastRun(); placeGhost(); runGhost(); focusInput(); } return; }
   if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
   if(g&&(g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
@@ -1394,7 +1480,7 @@ function openOnPoem(){
 }
 if(cfg.theme!=="taqtaqa"&&!THEMES.some(t=>t[0]===cfg.theme)) cfg.theme="vesper";
 if(!cfg.os) cfg.os=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?"mac":"win";
-applyFont(); buildKb(); applyTheme(cfg.theme); renderShortcuts();
+applyFont(); buildKb(); applyTheme(cfg.theme); renderShortcuts(); paintGoal();
 importFromOldLink();
 openOnPoem();
 (function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
@@ -1402,7 +1488,7 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!
 playIntro();
 
 /* واجهة صغيرة لـ cloud.js (الحسابات والمزامنة) */
-window.TQ={L,EN,getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); }};
+window.TQ={L,EN,paintGoal,getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,showPB,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); paintGoal(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 
