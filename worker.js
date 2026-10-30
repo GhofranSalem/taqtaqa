@@ -1,6 +1,7 @@
 // طقطقة: الـ Worker بيعرض ملفات الموقع، وبيوصّل صفحات تسجيل الدخول بتاعة Firebase
 // على taqtaqa.com نفسه، وبيستقبل رسايل «ادعم طقطقة» ويبعتها على الإيميل.
 import { EmailMessage } from "cloudflare:email";
+import { telegram, weekly } from "./bot.js";
 
 const FIREBASE_HOST = "taqtaqa-type.firebaseapp.com";
 const FROM = "feedback@taqtaqa.com";
@@ -8,7 +9,9 @@ const TO = "ghofran.salem@gmail.com";
 const TYPES = { suggest: "اقتراح نص", bug: "غلطة", note: "رأي أو رسالة" };
 
 export default {
-  async fetch(request, env) {
+  // كل سبت الساعة ١٢:١٠ بليل بتوقيت جرينتش: البوت بينزّل أوائل الأسبوع في جروب تليجرام
+  async scheduled(event, env, ctx) { ctx.waitUntil(weekly(env)); },
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     // www.taqtaqa.com بيحوّل للدومين الأساسي، عشان اللي بيكتب www يوصل برضه
     if (url.hostname === "www.taqtaqa.com") {
@@ -20,6 +23,7 @@ export default {
       return fetch(new Request(target, request), { redirect: "manual" });
     }
     if (url.pathname === "/api/feedback") return feedback(request, env);
+    if (url.pathname === "/api/tg" || url.pathname === "/api/tg/setup") return telegram(request, env, ctx);
     // بيقول بس هل المفتاح السري بتاع Turnstile متحط ولا لأ، من غير ما يبيّن قيمته
     if (url.pathname === "/api/health") return json(200, { ok: true, turnstile: !!env.TURNSTILE_SECRET });
     return secure(await env.ASSETS.fetch(request));

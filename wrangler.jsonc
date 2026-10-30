@@ -22,5 +22,9 @@
   "send_email": [
     { "name": "FEEDBACK", "destination_address": "ghofran.salem@gmail.com" }
   ],
+  // تخزين بوت تليجرام (أقسام الجروب، والأعضاء الجداد، والسبام). Cloudflare بيعمله لوحده أول نشر
+  "kv_namespaces": [{ "binding": "BOT" }],
+  // كل سبت: البوت بينزّل أوائل الترتيب الأسبوعي
+  "triggers": { "crons": ["10 0 * * 6"] },
   "observability": { "enabled": true }
 }
