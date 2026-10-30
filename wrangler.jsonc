@@ -3,7 +3,7 @@
   "name": "taqtaqa",
   "main": "worker.js",
   "compatibility_date": "2026-10-23",
-  "workers_dev": true,
+  "workers_dev": false,
   "routes": [
     { "pattern": "taqtaqa.com", "custom_domain": true },
     { "pattern": "www.taqtaqa.com", "custom_domain": true }

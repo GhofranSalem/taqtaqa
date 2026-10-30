@@ -10,6 +10,9 @@
   "use strict";
   var BETA = true;
   var CHANGES = [
+    { v: "0.10.1", d: "2026-10-31", items: [
+      ["شيلنا كود النقل من اللينكات التجريبية القديمة", "Removed the migration code for the old test links"]
+    ]},
     { v: "0.10.0", d: "2026-10-30", big: true, items: [
       ["مجتمع طقطقة على تليجرام: t.me/taqtaqaclub، ولينكه في آخر الصفحة وفي «ادعم طقطقة»", "Taqtaqa community on Telegram: t.me/taqtaqaclub, linked at the bottom of the page and in Support Taqtaqa"]
     ]},

@@ -34,8 +34,6 @@ const T = [
   ['src="cloud.js"', 'src="/cloud.js"'],
 
   ['<div class="page" dir="rtl" lang="ar">', '<div class="page" dir="ltr" lang="en">'],
-  ['<span>طقطقة بقى على <strong>taqtaqa.com</strong></span>', '<span>Taqtaqa now lives at <strong>taqtaqa.com</strong></span>'],
-  ['>انقل تاريخي وافتح الموقع الجديد<', '>Move my history and open the new site<'],
   ['title="ابدأ من جديد" aria-label="طقطقة، ابدأ من جديد"', 'title="Start over" aria-label="Taqtaqa, start over"'],
   ['<span class="lw" id="logoword">طقطقة</span>', '<span class="lw" id="logoword">Taqtaqa</span>'],
   ['<span id="tagtext">اتمرن على الكتابة بالعربي</span>', '<span id="tagtext">Practice typing in Arabic</span>'],

@@ -2,7 +2,7 @@
    الأجزاء بالترتيب: الإعدادات واللغة، مساعدات، النصوص والأقسام، حالة الاختبار، الكيبورد على اللغة الغلط،
    الإدخال والاختصارات، العرض، النتيجة (وتنبيه الدخول)، المشاركة، الكيبورد والإيدين، الثيمات، آخر مرة،
    المفضلة، التاريخ (والأيام وأحسن الأرقام والحروف والهدف اليومي وتاب الترتيب)، الخطوط، الإعدادات،
-   ادعم طقطقة (وTurnstile)، الاختصارات، النقل، الجولة، اللوجو، حجم الشاشة، البداية.
+   ادعم طقطقة (وTurnstile)، الاختصارات، اختيار اللغة، الجولة، اللوجو، حجم الشاشة، البداية.
    الترتيب الأسبوعي نفسه في assets/board.js، والحسابات في cloud.js. */
 (function(){
 "use strict";
@@ -1457,47 +1457,6 @@ function detectOS(){
 function curOS(){ return cfg.osPick==="mac"||cfg.osPick==="win"?cfg.osPick:detectOS(); }
 $("g-os").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; cfg.osPick=b.dataset.v===detectOS()?undefined:b.dataset.v; saveCfg(); renderShortcuts(); b.blur(); });
 
-/* ============ النقل من اللينكات القديمة لـ taqtaqa.com ============ */
-const NEW_HOME="https://taqtaqa.com/";
-const isNum=(v,max)=>typeof v==="number"&&isFinite(v)&&v>=0&&v<=max;
-/* اختبار جاي من برّه: بناخد الخانات المعروفة بس وبأنواعها الصح */
-function cleanRun(x){
-  if(!x||!isNum(x.t,4e12)||!isNum(x.wpm,1000)||!isNum(x.acc,100)) return null;
-  const o={v:1,t:x.t,wpm:x.wpm,acc:x.acc};
-  ["raw","el","c","b","x","m"].forEach(k=>{ if(isNum(x[k],1e6)) o[k]=x[k]; });
-  if(["time","words","quote","practice"].includes(x.mode)) o.mode=x.mode;
-  if(x.src in SRC_NAME) o.src=x.src;
-  if(isNum(x.n,1000)||["all","s","m","l","xl"].includes(x.n)) o.n=x.n;
-  if(typeof x.q==="string") o.q=x.q.slice(0,200);
-  if(typeof x.label==="string") o.label=x.label.slice(0,120);
-  return o;
-}
-function importFromOldLink(){
-  const h=location.hostname;
-  if(/\.workers\.dev$|\.github\.io$/.test(h)){
-    $("movebar").hidden=false;
-    $("movebtn").onclick=()=>{
-      let pb={},cf=null; try{pb=JSON.parse(localStorage.getItem("tq-pb")||"{}");cf=JSON.parse(localStorage.getItem("tq-cfg")||"null");}catch(e){}
-      const data={h:getHist(),pb,cfg:cf};
-      location.href=NEW_HOME+"#import="+encodeURIComponent(JSON.stringify(data));
-    };
-  }
-  /* لينك النقل بيتقبل بس لو جاي فعلًا من اللينك القديم، عشان محدش يبعتلك لينك يحط في تاريخك حاجات */
-  if(location.hash.startsWith("#import=")&&/\.workers\.dev|\.github\.io/.test(document.referrer)){
-    try{
-      const d=JSON.parse(decodeURIComponent(location.hash.slice(8)));
-      const cur=getHist(), seen=new Set(cur.map(x=>x.t));
-      const add=(Array.isArray(d.h)?d.h:[]).slice(-HMAX).map(cleanRun).filter(x=>x&&!seen.has(x.t));
-      setHist(cur.concat(add).sort((a,b)=>a.t-b.t));
-      const pbs=getPBs(); for(const k in (d.pb||{})){ const v=d.pb[k]; if(/^[\w-]{1,40}$/.test(k)&&v&&isNum(v.wpm,1000)&&isNum(v.acc,100)&&(!pbs[k]||v.wpm>pbs[k].wpm)) pbs[k]={wpm:v.wpm,acc:v.acc}; } setPBs(pbs);
-      let had=null; try{had=localStorage.getItem("tq-cfg");}catch(e){}
-      if(!had&&d.cfg&&typeof d.cfg==="object"){ const c={}; for(const k in DEF) if(typeof d.cfg[k]===typeof DEF[k]) c[k]=d.cfg[k]; cfg=Object.assign({},DEF,c); saveCfg(); syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme); }
-      toast(add.length?(EN?`Your history moved: ${add.length} tests`:`اتنقل تاريخك: ${AR_NUM(add.length)} اختبار`):L("تاريخك موجود هنا بالفعل","Your history is already here"));
-      showPB();
-    }catch(e){ toast(L("ما قدرناش ننقل التاريخ. جرّب تاني من اللينك القديم.","We couldn't move your history. Try again from the old link.")); }
-    try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){ location.hash=""; }
-  }
-}
 
 /* ============ جولة التعريف (أول مرة بس) ============ */
 const TOUR=EN?[
@@ -1698,7 +1657,6 @@ function openOnPoem(){
 if(cfg.theme!=="taqtaqa"&&!THEMES.some(t=>t[0]===cfg.theme)) cfg.theme="vesper";
 delete cfg.os; /* كان بيتحفظ لوحده زمان، فبقى بيثبت على أول جهاز */
 applyFont(); buildKb(); applyTheme(cfg.theme); renderShortcuts(); paintGoal();
-importFromOldLink();
 openOnPoem();
 /* أول زيارة: نسأل عربي ولا إنجليزي قبل الشرح، عشان اللي مش بيعرف عربي يلاقي الموقع والشرح بلغته على طول */
 (function(){

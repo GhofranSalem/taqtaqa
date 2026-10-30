@@ -96,8 +96,6 @@ header .authbtn .av{width:26px;height:26px}
 .intro .hright.show>*{opacity:1;transform:none}
 .intro .hright.show>:nth-child(2){transition-delay:.05s}.intro .hright.show>:nth-child(3){transition-delay:.1s}.intro .hright.show>:nth-child(4){transition-delay:.15s}.intro .hright.show>:nth-child(5){transition-delay:.2s}.intro .hright.show>:nth-child(6){transition-delay:.25s}
 /* شريط النقل من اللينكات القديمة */
-.movebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;background:var(--accent-soft);color:var(--fg);border-radius:10px;padding:10px 14px;font-size:14px;text-align:center}
-.movebar button{font:inherit;font-size:13.5px;font-weight:600;background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:6px 14px;cursor:pointer}
 
 /* ============ شريط الإعدادات ============ */
 .config{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;align-items:center;background:var(--panel);border-radius:10px;padding:6px 10px}
