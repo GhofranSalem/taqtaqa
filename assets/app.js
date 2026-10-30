@@ -220,7 +220,14 @@ function appendWords(){
 }
 
 /* ============ الإدخال ============ */
-function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); runGhost(); }
+function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); runGhost(); fitStage(); }
+/* أول ما تبدأ تكتب: لو النص أو الكيبورد مش باينين كاملين، الصفحة بتتظبط عليهم (النص فوق والكيبورد تحته).
+   من غيرها المتصفح كان بيطلع الصفحة لمكان عشوائي عشان يوري خانة الكتابة */
+function fitStage(){
+  const st=$("stage").getBoundingClientRect(), kw=$("kbwrap");
+  const bottom=cfg.kb&&!kw.hidden&&kw.offsetParent?kw.getBoundingClientRect().bottom:st.bottom;
+  if(st.top<0||bottom>window.innerHeight) window.scrollTo({top:Math.max(0,window.scrollY+st.top-12),behavior:"instant"});
+}
 function pauseTest(){
   if(!T||!T.started||T.done||T.paused) return;
   T.paused=performance.now(); clearInterval(T.timer); cancelAnimationFrame(ghostRAF);
