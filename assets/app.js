@@ -455,7 +455,7 @@ function showPB(){
 function showResults(r){
   $("stage").hidden=true;
   const R=$("results"); R.hidden=false; R.className="results";
-  const q=T.quote?`<div class="quote-done" dir="${qDir(T.quote)}">${clean(T.quote.t,T.quote.tk)}<small>— ${T.quote.s}</small></div>`:"";
+  const q=T.quote?`<div class="quote-done" dir="${qDir(T.quote)}">${esc(clean(T.quote.t,T.quote.tk))}<small>— ${esc(T.quote.s)}</small></div>`:"";
   R.innerHTML=`
     <div class="big">
       <div class="stat"><div class="lbl">${L("كلمة في الدقيقة","words per minute")}</div><div class="val">${AR_NUM(Math.round(r.wpm))}</div></div>
@@ -469,7 +469,7 @@ function showResults(r){
       <div><div class="stat"><div class="lbl">${L("السرعة الخام","raw speed")}</div></div><div class="v">${AR_NUM(Math.round(r.raw))}</div></div>
       <div><div class="stat"><div class="lbl">${L("الحروف: صح / غلط / زيادة / ناقصة","characters: correct / wrong / extra / missed")}</div></div><div class="v">${AR_NUM(r.c)} <i>/</i> ${AR_NUM(r.b)} <i>/</i> ${AR_NUM(r.x)} <i>/</i> ${AR_NUM(r.m)}</div></div>
       <div><div class="stat"><div class="lbl">${L("الوقت","time")}</div></div><div class="v">${AR_NUM(Math.round(r.el))} <i>${L("ث","s")}</i></div></div>
-      <div><div class="stat"><div class="lbl">${L("الاختبار","test")}</div></div><div class="v" style="font-size:16px">${modeLabel()}</div></div>
+      <div><div class="stat"><div class="lbl">${L("الاختبار","test")}</div></div><div class="v" style="font-size:16px">${esc(modeLabel())}</div></div>
     </div>
     ${q}
     ${(()=>{const mw=missedWords();return mw.length?`<div class="missline" dir="${T.dir}">${L("غلطت في:","You missed:")} ${mw.map(w=>`<span>${esc(w)}</span>`).join("")}</div>`:"";})()}
@@ -1058,7 +1058,7 @@ function paintGoal(){
 /* اسم الاختبار في التاريخ بلغة الصفحة، حتى لو اتعمل من الصفحة التانية */
 function histLabel(h){
   if(!h.mode||h.n===undefined||!h.src) return esc(h.label||"");
-  return labelFor(h.mode,h.n,h.src,/بالتشكيل|diacritics/.test(h.label||""));
+  return esc(labelFor(h.mode,h.n,h.src,/بالتشكيل|diacritics/.test(h.label||"")));
 }
 function drawHist(S){
   const cv=$("hchart"); if(!cv) return; const dpr=window.devicePixelRatio||1;
@@ -1250,27 +1250,42 @@ slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focu
   $("fbtext").placeholder=L("المثل أو الجملة، ومصدرها لو تعرفه…","The proverb or line, and its source if you know it…");
   $("mailcopy").onclick=async()=>{ const b=$("mailcopy"); try{ await navigator.clipboard.writeText("hello@taqtaqa.com"); b.textContent=L("اتنسخ ✓","Copied ✓"); }catch(e){ b.textContent="hello@taqtaqa.com"; } setTimeout(()=>b.textContent=L("انسخ","Copy"),2000); };
   if(!onSite){ $("fbsend").disabled=true; $("fbmsg").textContent=L("الفورم شغال على taqtaqa.com","The form works on taqtaqa.com"); }
+  /* Cloudflare Turnstile: بيتأكد إن اللي بيبعت مش بوت، من غير ما تدوس على حاجة في الغالب.
+     بيتحمّل لما نافذة «ادعم طقطقة» تتفتح بس، والمفتاح ده عام ومش سري */
+  const TS_KEY=document.documentElement.dataset.ts||"";
+  let tsId=null, tsToken=null, tsWait=null;
+  function loadTurnstile(){
+    if(!TS_KEY||!onSite||tsId!==null||window.__tsLoading) return;
+    window.__tsLoading=true;
+    window.__tsReady=()=>{ tsId=turnstile.render("#tsbox",{sitekey:TS_KEY,appearance:"interaction-only",language:EN?"en":"ar",
+      callback:t=>{ tsToken=t; if(tsWait){ tsWait(); tsWait=null; } },"expired-callback":()=>{ tsToken=null; },"error-callback":()=>{ tsToken=null; }}); };
+    const s=document.createElement("script"); s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__tsReady"; s.async=true; document.head.appendChild(s);
+  }
+  const tokenReady=()=>!TS_KEY||!onSite||tsToken?Promise.resolve():new Promise(res=>{ tsWait=res; setTimeout(res,8000); });
   $("fbform").addEventListener("submit",async e=>{
     e.preventDefault();
     const msg=$("fbmsg"), btn=$("fbsend"), text=$("fbtext").value.trim();
     msg.className="fbmsg";
     if(text.length<3){ msg.className="fbmsg err"; msg.textContent=L("اكتب رسالتك الأول.","Write your message first."); $("fbtext").focus(); return; }
     btn.disabled=true; msg.textContent=L("بيتبعت…","Sending…");
+    loadTurnstile(); await tokenReady();
     const page=(T&&T.words)?T.words.slice(0,40).join(" "):"";
     try{
-      const r=await fetch("/api/feedback",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:ftype,text,contact:$("fbcontact").value.trim(),page,website:$("fbsite").value})});
+      const r=await fetch("/api/feedback",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:ftype,text,contact:$("fbcontact").value.trim(),page,website:$("fbsite").value,ts:tsToken||""})});
+      tsToken=null; if(tsId!==null) try{ turnstile.reset(tsId); }catch(_){}
       const j=await r.json().catch(()=>({}));
       if(r.ok&&j.ok){ msg.className="fbmsg ok"; msg.textContent=L("وصلت، شكرا ليك ✓","Sent, thank you ✓"); $("fbtext").value=""; }
       else if(r.status===429){ msg.className="fbmsg err"; msg.textContent=({
         wait:L("استنى نص دقيقة قبل الرسالة اللي بعدها.","Wait half a minute before your next message."),
         day:L("وصلنا منك رسايل كتير النهارده. ابعت تاني بكره.","We got a lot of messages from you today. Send again tomorrow."),
-        dup:L("الرسالة دي وصلتنا قبل كده.","We already got this message.")})[j.error]||L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
+        dup:L("الرسالة دي وصلتنا قبل كده.","We already got this message.")})[j.error]
+          ||(j.error==="captcha"?L("ما قدرناش نتأكد إنك مش روبوت. جرّب تاني.","We couldn't confirm you're not a bot. Try again."):"")||L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
       else{ msg.className="fbmsg err"; msg.textContent=L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
     }catch(_){ msg.className="fbmsg err"; msg.textContent=L("مفيش نت. جرّب تاني.","No connection. Try again."); }
     btn.disabled=false;
   });
   const M=$("smodal");
-  window.openSupport=function(){ closeFontMenu(false); closeSetMenu(false); setTyping(false); try{ti.blur();}catch(e){} M.hidden=false; $("sshare").focus(); };
+  window.openSupport=function(){ closeFontMenu(false); closeSetMenu(false); setTyping(false); try{ti.blur();}catch(e){} M.hidden=false; $("sshare").focus(); loadTurnstile(); };
   function close(){ M.hidden=true; focusInput(); }
   $("sclose").onclick=close;
   M.addEventListener("mousedown",e=>{ if(e.target===M) close(); });
@@ -1333,6 +1348,19 @@ $("g-os").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!
 
 /* ============ النقل من اللينكات القديمة لـ taqtaqa.com ============ */
 const NEW_HOME="https://taqtaqa.com/";
+const isNum=(v,max)=>typeof v==="number"&&isFinite(v)&&v>=0&&v<=max;
+/* اختبار جاي من برّه: بناخد الخانات المعروفة بس وبأنواعها الصح */
+function cleanRun(x){
+  if(!x||!isNum(x.t,4e12)||!isNum(x.wpm,1000)||!isNum(x.acc,100)) return null;
+  const o={v:1,t:x.t,wpm:x.wpm,acc:x.acc};
+  ["raw","el","c","b","x","m"].forEach(k=>{ if(isNum(x[k],1e6)) o[k]=x[k]; });
+  if(["time","words","quote","practice"].includes(x.mode)) o.mode=x.mode;
+  if(x.src in SRC_NAME) o.src=x.src;
+  if(isNum(x.n,1000)||["all","s","m","l","xl"].includes(x.n)) o.n=x.n;
+  if(typeof x.q==="string") o.q=x.q.slice(0,200);
+  if(typeof x.label==="string") o.label=x.label.slice(0,120);
+  return o;
+}
 function importFromOldLink(){
   const h=location.hostname;
   if(/\.workers\.dev$|\.github\.io$/.test(h)){
@@ -1343,15 +1371,16 @@ function importFromOldLink(){
       location.href=NEW_HOME+"#import="+encodeURIComponent(JSON.stringify(data));
     };
   }
-  if(location.hash.startsWith("#import=")){
+  /* لينك النقل بيتقبل بس لو جاي فعلًا من اللينك القديم، عشان محدش يبعتلك لينك يحط في تاريخك حاجات */
+  if(location.hash.startsWith("#import=")&&/\.workers\.dev|\.github\.io/.test(document.referrer)){
     try{
       const d=JSON.parse(decodeURIComponent(location.hash.slice(8)));
       const cur=getHist(), seen=new Set(cur.map(x=>x.t));
-      const add=(Array.isArray(d.h)?d.h:[]).filter(x=>x&&typeof x.t==="number"&&typeof x.wpm==="number"&&!seen.has(x.t));
+      const add=(Array.isArray(d.h)?d.h:[]).slice(-HMAX).map(cleanRun).filter(x=>x&&!seen.has(x.t));
       setHist(cur.concat(add).sort((a,b)=>a.t-b.t));
-      const pbs=getPBs(); for(const k in (d.pb||{})){ const v=d.pb[k]; if(v&&typeof v.wpm==="number"&&(!pbs[k]||v.wpm>pbs[k].wpm)) pbs[k]=v; } setPBs(pbs);
+      const pbs=getPBs(); for(const k in (d.pb||{})){ const v=d.pb[k]; if(/^[\w-]{1,40}$/.test(k)&&v&&isNum(v.wpm,1000)&&isNum(v.acc,100)&&(!pbs[k]||v.wpm>pbs[k].wpm)) pbs[k]={wpm:v.wpm,acc:v.acc}; } setPBs(pbs);
       let had=null; try{had=localStorage.getItem("tq-cfg");}catch(e){}
-      if(!had&&d.cfg&&typeof d.cfg==="object"){ cfg=Object.assign({},DEF,d.cfg); saveCfg(); syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme); }
+      if(!had&&d.cfg&&typeof d.cfg==="object"){ const c={}; for(const k in DEF) if(typeof d.cfg[k]===typeof DEF[k]) c[k]=d.cfg[k]; cfg=Object.assign({},DEF,c); saveCfg(); syncConfig(); applyFont(); buildKb(); applyTheme(cfg.theme); }
       toast(add.length?(EN?`Your history moved: ${add.length} tests`:`اتنقل تاريخك: ${AR_NUM(add.length)} اختبار`):L("تاريخك موجود هنا بالفعل","Your history is already here"));
       showPB();
     }catch(e){ toast(L("ما قدرناش ننقل التاريخ. جرّب تاني من اللينك القديم.","We couldn't move your history. Try again from the old link.")); }

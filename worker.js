@@ -20,9 +20,58 @@ export default {
       return fetch(new Request(target, request), { redirect: "manual" });
     }
     if (url.pathname === "/api/feedback") return feedback(request, env);
-    return env.ASSETS.fetch(request);
+    return secure(await env.ASSETS.fetch(request));
   }
 };
+
+/* ---------- هيدرز الأمان على كل صفحات وملفات الموقع ----------
+   CSP بتقول للمتصفح يشغّل كود من الموقع نفسه ومن الخدمات اللي بنستخدمها بس:
+   Firebase (الحسابات)، وCloudflare (عدد الزيارات وTurnstile). أي كود تاني بيترفض */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' https://www.gstatic.com https://apis.google.com https://*.googleapis.com https://static.cloudflareinsights.com https://challenges.cloudflare.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://*.googleusercontent.com https://www.gstatic.com",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.googleapis.com https://www.gstatic.com https://cloudflareinsights.com https://challenges.cloudflare.com",
+  "frame-src 'self' https://taqtaqa.com https://challenges.cloudflare.com https://*.firebaseapp.com https://accounts.google.com https://apis.google.com",
+  "worker-src 'self'",
+  "manifest-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'"
+].join("; ");
+const SECURITY = {
+  "Content-Security-Policy": CSP,
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  // تسجيل الدخول بجوجل بيفتح نافذة، فلازم نسمح بالنوافذ اللي بنفتحها
+  "Cross-Origin-Opener-Policy": "same-origin-allow-popups"
+};
+function secure(res) {
+  const out = new Response(res.body, res);
+  for (const k in SECURITY) out.headers.set(k, SECURITY[k]);
+  return out;
+}
+
+/* Turnstile: لو المفتاح السري متحط في إعدادات الـ Worker، كل رسالة لازم يكون معاها إثبات إن اللي بعتها مش بوت */
+async function human(token, request, env) {
+  if (!env.TURNSTILE_SECRET) return true;
+  if (!token) return false;
+  const body = new FormData();
+  body.append("secret", env.TURNSTILE_SECRET);
+  body.append("response", token);
+  body.append("remoteip", request.headers.get("cf-connecting-ip") || "");
+  try {
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body });
+    const j = await r.json();
+    return !!j.success && (!j.hostname || /(^|\.)taqtaqa\.com$|\.workers\.dev$/.test(j.hostname));
+  } catch { return false; }
+}
 
 const json = (status, body) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
@@ -75,6 +124,7 @@ async function feedback(request, env) {
   if (text.length < 3 || text.length > 3000) return json(400, { ok: false, error: "length" });
   // الصفحة دايما بتبعت النص اللي كان قدامك، فالطلب اللي من غيره مش جاي من الموقع
   if (!page) return json(400, { ok: false, error: "page" });
+  if (!(await human(String((d && d.ts) || ""), request, env))) return json(429, { ok: false, error: "captcha" });
   const blocked = await guard(request, text);
   if (blocked) return json(429, { ok: false, error: blocked });
 

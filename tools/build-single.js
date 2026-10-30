@@ -12,6 +12,7 @@ let css = read("assets/app.css").replace(/url\(\.\.\/fonts\/([\w.-]+\.woff2)\)/g
 let html = read("index.html")
   .replace(/<link rel="preload" href="fonts\/[^"]+" as="font"[^>]*>\n?/g, "")
   .replace('<link rel="stylesheet" href="assets/app.css">', () => `<style>\n${css}</style>`)
+  .replace('<script src="assets/boot.js"></script>', () => `<script>\n${read("assets/boot.js")}</script>`)
   .replace('<script src="assets/data.js"></script>', () => `<script>\n${read("assets/data.js")}</script>`)
   .replace('<script src="assets/app.js"></script>', () => `<script>\n${read("assets/app.js")}</script>`)
   // الحسابات بتشتغل على taqtaqa.com بس

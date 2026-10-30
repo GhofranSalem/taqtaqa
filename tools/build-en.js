@@ -15,7 +15,6 @@ const DESC = "Taqtaqa is a free Arabic typing test and Arabic keyboard trainer. 
 const T = [
   ['<html lang="ar" dir="rtl">', '<html lang="en" dir="ltr">'],
   ['<meta name="apple-mobile-web-app-title" content="طقطقة">', '<meta name="apple-mobile-web-app-title" content="Taqtaqa">'],
-  ['(function(){try{if(localStorage.getItem("tq-lang")==="en"&&!/[?&]lang=ar/.test(location.search))location.replace("/en/"+location.hash);}catch(e){}})();', ''],
   ['<link rel="canonical" href="https://taqtaqa.com/">', `<link rel="canonical" href="${SITE}">`],
   ['<meta property="og:site_name" content="طقطقة">', '<meta property="og:site_name" content="Taqtaqa">'],
   ['<meta property="og:locale" content="ar_EG">', '<meta property="og:locale" content="en_US">\n<meta property="og:locale:alternate" content="ar_EG">'],

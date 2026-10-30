@@ -9,17 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Taqtaqa">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script>
-/* لو اخترت الإنجليزي قبل كده من زرار اللغة، الموقع بيفتح عليه */
-
-/* افتتاحية اللوجو: بتتلغي لو الجهاز طالب حركة أقل، وبتتشال لوحدها لو حصل أي خطأ */
-(function(){try{var seen=false;try{seen=sessionStorage.getItem("tq-intro")==="1";}catch(e){}
-if(!seen&&!matchMedia("(prefers-reduced-motion: reduce)").matches){var h=document.documentElement;h.classList.add("intro");setTimeout(function(){h.classList.remove("intro");},4000);}}catch(e){}})();
-/* بيطبّق الثيم قبل ما الصفحة تظهر، عشان ما يبانش الثيم القديم لحظة */
-(function(){var d=null;try{d=JSON.parse(localStorage.getItem("tq-tv")||"null");}catch(e){}
-if(d===null)d={v:{"--bg":"#101010","--panel":"#1c1c1c","--fg":"#ffffff","--sub":"#a0a0a0","--dim":"#a0a0a0","--accent":"#ffc799","--caret":"#99ffe4","--accent-soft":"#ffc79924","--err":"#ff8080","--err-dim":"#b25959","--line":"#1c1c1c","--key":"#1c1c1c","--key-fg":"#ffffff","--key-edge":"rgba(0,0,0,.45)","--scrim":"rgba(0,0,0,.5)"},cs:"dark"};
-if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k,d.v[k]);r.setProperty("color-scheme",d.cs);}})();
-</script>
+<script src="/assets/boot.js"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -231,6 +221,7 @@ if(d&&d.v){var r=document.documentElement.style;for(var k in d.v)r.setProperty(k
       <textarea id="fbtext" rows="4" maxlength="3000" placeholder="Write here…" aria-label="Message"></textarea>
       <input id="fbcontact" type="text" maxlength="200" autocomplete="email" placeholder="Your email, if you want a reply (optional)" aria-label="Your email, if you want a reply">
       <input id="fbsite" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+      <div id="tsbox"></div>
       <div class="srow"><button type="submit" class="pri" id="fbsend">Send</button><span class="fbmsg" id="fbmsg" role="status"></span></div>
       <span class="fbmail">Or email <a href="mailto:hello@taqtaqa.com" dir="ltr">hello@taqtaqa.com</a> <button type="button" id="mailcopy">Copy</button></span>
     </form>
