@@ -95,8 +95,10 @@ async function cput(k, v, ttl) {
   await caches.default.put(ckey(k), new Response(String(v), { headers: { "cache-control": `max-age=${ttl}` } }));
 }
 async function guard(request, text, env) {
+  // بنحسب على الشبكة مش الجهاز بالظبط (أول ٣ أجزاء من IPv4، وأول ٤ من IPv6)، عشان اللي بيغيّر الـ IP كل طلب ما يعدّيش
   const ip = request.headers.get("cf-connecting-ip") || "0";
-  const who = await sha(ip), today = day();
+  const net = ip.includes(":") ? ip.split(":").slice(0, 4).join(":") : ip.split(".").slice(0, 3).join(".");
+  const who = await sha(net), today = day();
   // الحد الأساسي من Cloudflare نفسه (Rate Limiting)، والكاش تحت للحد اليومي والرسايل المكررة
   for (const rl of [env.FB_BURST, env.FB_MINUTE]) {
     if (rl) { try { const { success } = await rl.limit({ key: who }); if (!success) return "wait"; } catch {} }
@@ -128,11 +130,11 @@ async function feedback(request, env) {
   const contact = String((d && d.contact) || "").trim().slice(0, 200);
   const page = String((d && d.page) || "").slice(0, 300);
   if (text.length < 3 || text.length > 3000) return json(400, { ok: false, error: "length" });
+  const blocked = await guard(request, text, env);
+  if (blocked) return json(429, { ok: false, error: blocked });
   // الصفحة دايما بتبعت النص اللي كان قدامك، فالطلب اللي من غيره مش جاي من الموقع
   if (!page) return json(400, { ok: false, error: "page" });
   if (!(await human(d && d.ts, request, env))) return json(403, { ok: false, error: "captcha" });
-  const blocked = await guard(request, text, env);
-  if (blocked) return json(429, { ok: false, error: blocked });
 
   const lines = [
     `النوع: ${TYPES[type]}`,
