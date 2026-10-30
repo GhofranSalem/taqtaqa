@@ -53,6 +53,10 @@
 
 لو عدّلت `index.html`، شغّل `node tools/build-en.js` عشان النسخة الإنجليزي تتحدث. والكلام اللي بيظهر من الكود مكتوب بالشكل ده: `L("عربي","English")`.
 
+## النشر
+
+أي push على `main` بيتنشر على Cloudflare لوحده من GitHub Actions (`.github/workflows/deploy.yml`) في حوالي دقيقة. ولو عاوز تعيد النشر: تاب Actions ثم Deploy to Cloudflare ثم Run workflow.
+
 ## الإصدارات
 
 الموقع لسه تجريبي، والرقم شكله `0.Y.Z`. مع كل تحديث بيتنشر، ضيف إدخال في أول `assets/changelog.js`:
