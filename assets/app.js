@@ -323,6 +323,12 @@ ti.addEventListener("blur",()=>{ if(!T.done){slab.classList.add("blur");fmsg.hid
 function focusInput(){ if(!$("tpanel").hidden||tourOpen()) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
 
 document.addEventListener("keydown",e=>{
+  if(langPick){
+    if(e.key==="Escape"){ e.preventDefault(); chooseLang(EN?"en":"ar"); }
+    else if(e.key==="Tab"||e.key.startsWith("Arrow")){ e.preventDefault(); const bs=[...$("langpick").querySelectorAll("button")]; bs[(bs.indexOf(document.activeElement)+1)%bs.length].focus(); }
+    else if(e.key.length===1&&!e.ctrlKey&&!e.metaKey&&e.key!==" "){ e.preventDefault(); }
+    return;
+  }
   if(tourOpen()){
     if(e.key==="Escape"){ e.preventDefault(); endTour(); }
     else if(e.key===(EN?"ArrowRight":"ArrowLeft")||e.key==="Enter"&&document.activeElement.tagName!=="BUTTON"){ e.preventDefault(); tourNav("next"); }
@@ -1520,7 +1526,7 @@ const TOUR=EN?[
   {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده (قبل ما تبدأ، أو بعد Esc)<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> توقّف مؤقتًا وتكمّل<br><span class="k2">Shift</span>+<span class="k2">Enter</span> تبدأ النص من الأول<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> تمسح الكلمة كلها (على ماك <span class="k2">⌥</span>+<span class="k2">⌫</span>)<br><br>وكل الاختصارات اللي هتساعدك تبقى سريع، لويندوز وماك، تحت في آخر الصفحة.<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
 ];
 let tourI=-1, tourSteps=[];
-function tourOpen(){ return tourI>=0; }
+function tourOpen(){ return tourI>=0||langPick; }
 function tourTarget(st){
   if(!st.sel) return null;
   const el=typeof st.sel==="function"?st.sel():document.querySelector(st.sel);
@@ -1587,6 +1593,30 @@ function tourNav(a){
 }
 document.addEventListener("click",e=>{ const b=e.target.closest("#tour [data-a]"); if(b) tourNav(b.dataset.a); });
 $("helpbtn").onclick=startTour;
+/* ============ اختيار اللغة أول مرة ============ */
+/* الكارت مكتوب باللغتين، واللغة اللي المتصفح عليها بتبقى الأولى ومتعلّم عليها */
+let langPick=false;
+function openLangPick(){
+  closeFontMenu(false); closeSetMenu(false);
+  setTyping(false); try{ti.blur();}catch(e){}
+  const navAr=/^ar\b/i.test(navigator.language||"");
+  const ar=`<button type="button" data-pick="ar" lang="ar" dir="rtl"><b>عربي</b><span>الموقع والشرح بالعربي</span></button>`;
+  const en=`<button type="button" data-pick="en" lang="en" dir="ltr"><b>English</b><span>Site and tour in English</span></button>`;
+  const root=document.createElement("div"); root.id="langpick"; root.className="langpick";
+  root.setAttribute("role","dialog"); root.setAttribute("aria-modal","true"); root.setAttribute("aria-labelledby","lp-t");
+  root.innerHTML=`<div class="lpbox"><h3 id="lp-t"><span lang="ar" dir="rtl">تحب تستخدم طقطقة بأنهي لغة؟</span><span lang="en" dir="ltr">Which language would you like to use?</span></h3>
+    <p lang="en" dir="ltr">You can practice typing in Arabic and English either way, and switch any time from the top bar.</p>
+    <div class="lpopts">${navAr?ar+en:en+ar}</div></div>`;
+  document.body.appendChild(root); langPick=true;
+  root.querySelector('[data-pick]').focus({preventScroll:true});
+  root.addEventListener("click",e=>{ const b=e.target.closest("[data-pick]"); if(b) chooseLang(b.dataset.pick); });
+}
+function chooseLang(l){
+  try{localStorage.setItem("tq-lang",l);}catch(e){}
+  if(l!==(EN?"en":"ar")){ location.href=l==="en"?"/en/":"/"; return; }
+  const r=$("langpick"); if(r) r.remove(); langPick=false;
+  startTour();
+}
 /* زرار عربي / English: بيفتكر اختيارك، فلو فتحت الموقع تاني بيفتح على نفس اللغة */
 document.querySelectorAll("#langbtn,[data-lang]").forEach(b=>b.addEventListener("click",()=>{ try{localStorage.setItem("tq-lang",b.dataset.lang||(EN?"ar":"en"));}catch(e){} }));
 $("logo").addEventListener("click",e=>{ e.preventDefault(); location.reload(); });
@@ -1670,7 +1700,13 @@ delete cfg.os; /* كان بيتحفظ لوحده زمان، فبقى بيثبت 
 applyFont(); buildKb(); applyTheme(cfg.theme); renderShortcuts(); paintGoal();
 importFromOldLink();
 openOnPoem();
-(function(){ let seen=null; try{seen=localStorage.getItem("tq-tour");}catch(e){} if(!seen) setTimeout(startTour,450); })();
+/* أول زيارة: نسأل عربي ولا إنجليزي قبل الشرح، عشان اللي مش بيعرف عربي يلاقي الموقع والشرح بلغته على طول */
+(function(){
+  let seen=null, lang=null; try{seen=localStorage.getItem("tq-tour"); lang=localStorage.getItem("tq-lang");}catch(e){}
+  if(seen) return;
+  if(lang) { setTimeout(startTour,450); return; }
+  setTimeout(openLangPick,450);
+})();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 playIntro();
 

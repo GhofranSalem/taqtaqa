@@ -416,6 +416,20 @@ footer .ver:hover{color:var(--accent);border-color:var(--accent)}
 .tdots{display:flex;gap:5px}
 .tdots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
 .tdots i.on{background:var(--accent)}
+/* اختيار اللغة أول مرة */
+.langpick{position:fixed;inset:0;z-index:41;background:rgba(0,0,0,.68);display:flex;align-items:center;justify-content:center;padding:16px}
+.lpbox{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.45);width:min(420px,100%);padding:22px 20px 20px;display:flex;flex-direction:column;gap:12px;text-align:center}
+.lpbox h3{margin:0;display:flex;flex-direction:column;gap:2px;font-family:var(--f-display);font-weight:700;font-size:21px;line-height:1.4}
+.lpbox [lang=en]{font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+.lpbox h3 [lang=en]{font-size:16px;font-weight:600;color:var(--sub)}
+.lpbox p{margin:0;font-size:13.5px;line-height:1.6;color:var(--sub)}
+.lpopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.lpopts button{font:inherit;display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;transition:border-color .15s,background .15s}
+.lpopts button b{font-size:19px}
+.lpopts button span{font-size:12.5px;color:var(--sub)}
+.lpopts button:hover,.lpopts button:focus-visible{border-color:var(--accent);outline:none}
+.lpopts button:first-child{border-color:var(--accent)}
+@media (max-width:360px){.lpopts{grid-template-columns:1fr}}
 /* ادعم طقطقة */
 .smodal{position:fixed;inset:0;z-index:45;background:var(--scrim);display:flex;align-items:flex-start;justify-content:center;padding-block:calc(60px + env(safe-area-inset-top,0px)) 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow:auto}
 .sbox{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:14px;width:min(440px,100%);padding:22px 20px 18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.4)}

@@ -10,6 +10,9 @@
   "use strict";
   var BETA = true;
   var CHANGES = [
+    { v: "0.9.3", d: "2026-10-30", items: [
+      ["أول ما تدخل الموقع بيسألك عربي ولا إنجليزي، والشرح بيظهر باللغة اللي اخترتها", "On your first visit the site asks Arabic or English, and the tour shows in the language you pick"]
+    ]},
     { v: "0.9.2", d: "2026-10-30", items: [
       ["رقم الإصدار في آخر الصفحة، وصفحة «سجل التحديثات» دي", "Version number at the bottom of the page, and this changelog page"]
     ]},
