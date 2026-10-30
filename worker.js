@@ -94,9 +94,13 @@ async function cget(k) { const r = await caches.default.match(ckey(k)); return r
 async function cput(k, v, ttl) {
   await caches.default.put(ckey(k), new Response(String(v), { headers: { "cache-control": `max-age=${ttl}` } }));
 }
-async function guard(request, text) {
+async function guard(request, text, env) {
   const ip = request.headers.get("cf-connecting-ip") || "0";
   const who = await sha(ip), today = day();
+  // الحد الأساسي من Cloudflare نفسه (Rate Limiting)، والكاش تحت للحد اليومي والرسايل المكررة
+  for (const rl of [env.FB_BURST, env.FB_MINUTE]) {
+    if (rl) { try { const { success } = await rl.limit({ key: who }); if (!success) return "wait"; } catch {} }
+  }
   if (await cget("gap-" + who)) return "wait";
   const n = +(await cget(`n-${today}-${who}`)) || 0;
   if (n >= LIMITS.perDay) return "day";
@@ -127,7 +131,7 @@ async function feedback(request, env) {
   // الصفحة دايما بتبعت النص اللي كان قدامك، فالطلب اللي من غيره مش جاي من الموقع
   if (!page) return json(400, { ok: false, error: "page" });
   if (!(await human(d && d.ts, request, env))) return json(403, { ok: false, error: "captcha" });
-  const blocked = await guard(request, text);
+  const blocked = await guard(request, text, env);
   if (blocked) return json(429, { ok: false, error: blocked });
 
   const lines = [

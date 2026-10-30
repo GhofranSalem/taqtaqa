@@ -14,6 +14,11 @@
     // الـ Worker بيشتغل قبل الملفات، عشان تحويل www يوصل حتى للصفحة الرئيسية
     "run_worker_first": true
   },
+  // حد لعدد رسايل «ادعم طقطقة» من كل جهاز: رسالة كل ١٠ ثواني، و٣ في الدقيقة
+  "ratelimits": [
+    { "name": "FB_BURST", "namespace_id": "1101", "simple": { "limit": 1, "period": 10 } },
+    { "name": "FB_MINUTE", "namespace_id": "1102", "simple": { "limit": 3, "period": 60 } }
+  ],
   "send_email": [
     { "name": "FEEDBACK", "destination_address": "ghofran.salem@gmail.com" }
   ],
