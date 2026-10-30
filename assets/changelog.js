@@ -5,18 +5,22 @@
 //   تحديث كبير (ميزة جديدة):           زوّد الرقم اللي قبله  0.9.3 ← 0.10.0
 //   الرقم الأول هيفضل 0 طول ما الموقع تجريبي، ويبقى 1.0.0 لما يخلص.
 //
+// السجل للمستخدمين: اكتب بس الحاجات اللي يحسّوا بيها (ميزة جديدة، أو حاجة اتغيرت قدامهم).
+// أي حاجة أمان تتكتب «تحديثات أمنية»، وأي تصليح أو تنضيف في الواجهة أو الكود يتكتب «تحسينات في واجهة الموقع»،
+// من غير تفاصيل تقنية.
+//
 // الفوتر في الصفحة الرئيسية بياخد الرقم من أول إدخال، وصفحة changelog.html بتعرض القايمة كلها.
 (function () {
   "use strict";
   var BETA = true;
   var CHANGES = [
     { v: "0.10.2", d: "2026-10-31", items: [
-      ["مراجعة أمان: ملفات كانت بتتنشر من غير لزوم بقت مخفية، وبوت تليجرام بقى أقوى ضد اللعب في الأقسام", "Security review: files that were published by mistake are now hidden, and the Telegram bot is harder to tamper with"],
-      ["الاختصارات في آخر الصفحة ما بقتش بتعدّي عرض الشاشة على الموبايلات الصغيرة", "Shortcuts at the bottom no longer overflow on small phones"],
+      ["تحديثات أمنية", "Security updates"],
+      ["تحسينات في واجهة الموقع", "Interface improvements"],
       ["صفحة الخصوصية فيها جزء عن جروب تليجرام", "The privacy page now covers the Telegram group"]
     ]},
     { v: "0.10.1", d: "2026-10-31", items: [
-      ["شيلنا كود النقل من اللينكات التجريبية القديمة", "Removed the migration code for the old test links"]
+      ["تحسينات في واجهة الموقع", "Interface improvements"]
     ]},
     { v: "0.10.0", d: "2026-10-30", big: true, items: [
       ["مجتمع طقطقة على تليجرام: t.me/taqtaqaclub، ولينكه في آخر الصفحة وفي «ادعم طقطقة»", "Taqtaqa community on Telegram: t.me/taqtaqaclub, linked at the bottom of the page and in Support Taqtaqa"]
@@ -28,7 +32,7 @@
       ["رقم الإصدار في آخر الصفحة، وصفحة «سجل التحديثات» دي", "Version number at the bottom of the page, and this changelog page"]
     ]},
     { v: "0.9.1", d: "2026-10-30", items: [
-      ["عنوان «تاريخي» ما بيتكررش مع التابات، وتظبيطات صغيرة في الترتيب الأسبوعي", "The history title no longer repeats the tabs, plus small leaderboard fixes"]
+      ["تحسينات في واجهة الموقع", "Interface improvements"]
     ]},
     { v: "0.9.0", d: "2026-10-30", big: true, items: [
       ["الترتيب الأسبوعي: بتتنافس مع ناس في نفس مستواك (ريشة، قلم، كاتب، خطّاط، طقطاق)", "Weekly leaderboard: you compete with people at your level (five leagues)"],
@@ -43,15 +47,14 @@
       ["أول ما تبدأ تكتب، الصفحة بتتظبط على النص والكيبورد بدل ما تطلع لفوق", "When you start typing, the page scrolls to the text and keyboard instead of jumping to the top"]
     ]},
     { v: "0.7.1", d: "2026-10-30", items: [
-      ["حماية فورم الرسايل من السبام (Turnstile وحد للرسايل)", "Spam protection for the message form (Turnstile and rate limits)"],
-      ["هيدرز أمان للموقع كله", "Security headers across the site"]
+      ["تحديثات أمنية", "Security updates"]
     ]},
     { v: "0.7.0", d: "2026-10-30", big: true, items: [
       ["تنبيه لو الكيبورد على اللغة الغلط، والنص بيبدأ من الأول لما تحوّل", "A heads-up when your keyboard is on the wrong language; the text restarts once you switch"],
       ["الاختصارات بتتعرض على حسب نظام جهازك (ويندوز أو ماك)", "Shortcuts are shown for your device's system (Windows or Mac)"]
     ]},
     { v: "0.6.1", d: "2026-10-30", items: [
-      ["مراجعة للتصميم وتنضيف للكود", "Design review and code cleanup"],
+      ["تحسينات في واجهة الموقع", "Interface improvements"],
       ["«نص رقم ١ وفي ٨٠ نص في القسم ده»", "Clearer text counter in each section"]
     ]},
     { v: "0.6.0", d: "2026-10-30", big: true, items: [
