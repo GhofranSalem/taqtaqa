@@ -58,18 +58,20 @@ function secure(res) {
   return out;
 }
 
-/* Turnstile: لو المفتاح السري متحط في إعدادات الـ Worker، كل رسالة لازم يكون معاها إثبات إن اللي بعتها مش بوت */
+/* Turnstile: لو المفتاح السري متحط في إعدادات الـ Worker (TURNSTILE_SECRET)، كل رسالة لازم يكون معاها
+   إثبات من المتصفح إن اللي بعتها مش بوت. الإثبات بيتستخدم مرة واحدة بس */
+const TURNSTILE_HOSTNAMES = ["taqtaqa.com"];
 async function human(token, request, env) {
   if (!env.TURNSTILE_SECRET) return true;
-  if (!token) return false;
+  if (typeof token !== "string" || !token || token.length > 2048 || !TURNSTILE_HOSTNAMES.length) return false;
   const body = new FormData();
   body.append("secret", env.TURNSTILE_SECRET);
   body.append("response", token);
   body.append("remoteip", request.headers.get("cf-connecting-ip") || "");
   try {
-    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body });
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body, signal: AbortSignal.timeout(8000) });
     const j = await r.json();
-    return !!j.success && (!j.hostname || /(^|\.)taqtaqa\.com$|\.workers\.dev$/.test(j.hostname));
+    return j.success === true && j.action === "feedback" && TURNSTILE_HOSTNAMES.includes(j.hostname);
   } catch { return false; }
 }
 
@@ -124,7 +126,7 @@ async function feedback(request, env) {
   if (text.length < 3 || text.length > 3000) return json(400, { ok: false, error: "length" });
   // الصفحة دايما بتبعت النص اللي كان قدامك، فالطلب اللي من غيره مش جاي من الموقع
   if (!page) return json(400, { ok: false, error: "page" });
-  if (!(await human(String((d && d.ts) || ""), request, env))) return json(429, { ok: false, error: "captcha" });
+  if (!(await human(d && d.ts, request, env))) return json(403, { ok: false, error: "captcha" });
   const blocked = await guard(request, text);
   if (blocked) return json(429, { ok: false, error: blocked });
 

@@ -1252,16 +1252,16 @@ slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focu
   if(!onSite){ $("fbsend").disabled=true; $("fbmsg").textContent=L("الفورم شغال على taqtaqa.com","The form works on taqtaqa.com"); }
   /* Cloudflare Turnstile: بيتأكد إن اللي بيبعت مش بوت، من غير ما تدوس على حاجة في الغالب.
      بيتحمّل لما نافذة «ادعم طقطقة» تتفتح بس، والمفتاح ده عام ومش سري */
-  const TS_KEY=document.documentElement.dataset.ts||"";
+  const TS_KEY="0x4AAAAAAFr4BYmazyg61nrc", tsOn=/(^|\.)taqtaqa\.com$/.test(location.hostname);
   let tsId=null, tsToken=null, tsWait=null;
   function loadTurnstile(){
-    if(!TS_KEY||!onSite||tsId!==null||window.__tsLoading) return;
+    if(!tsOn||tsId!==null||window.__tsLoading) return;
     window.__tsLoading=true;
-    window.__tsReady=()=>{ tsId=turnstile.render("#tsbox",{sitekey:TS_KEY,appearance:"interaction-only",language:EN?"en":"ar",
+    window.__tsReady=()=>{ tsId=turnstile.render("#tsbox",{sitekey:TS_KEY,action:"feedback",appearance:"interaction-only",language:EN?"en":"ar",
       callback:t=>{ tsToken=t; if(tsWait){ tsWait(); tsWait=null; } },"expired-callback":()=>{ tsToken=null; },"error-callback":()=>{ tsToken=null; }}); };
-    const s=document.createElement("script"); s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__tsReady"; s.async=true; document.head.appendChild(s);
+    const s=document.createElement("script"); s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__tsReady"; s.async=true; s.defer=true; document.head.appendChild(s);
   }
-  const tokenReady=()=>!TS_KEY||!onSite||tsToken?Promise.resolve():new Promise(res=>{ tsWait=res; setTimeout(res,8000); });
+  const tokenReady=()=>!tsOn||tsToken?Promise.resolve():new Promise(res=>{ tsWait=res; setTimeout(res,8000); });
   $("fbform").addEventListener("submit",async e=>{
     e.preventDefault();
     const msg=$("fbmsg"), btn=$("fbsend"), text=$("fbtext").value.trim();
@@ -1275,11 +1275,11 @@ slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focu
       tsToken=null; if(tsId!==null) try{ turnstile.reset(tsId); }catch(_){}
       const j=await r.json().catch(()=>({}));
       if(r.ok&&j.ok){ msg.className="fbmsg ok"; msg.textContent=L("وصلت، شكرا ليك ✓","Sent, thank you ✓"); $("fbtext").value=""; }
+      else if(r.status===403&&j.error==="captcha"){ msg.className="fbmsg err"; msg.textContent=L("ما قدرناش نتأكد إنك مش روبوت. جرّب تاني.","We couldn't confirm you're not a bot. Try again."); }
       else if(r.status===429){ msg.className="fbmsg err"; msg.textContent=({
         wait:L("استنى نص دقيقة قبل الرسالة اللي بعدها.","Wait half a minute before your next message."),
         day:L("وصلنا منك رسايل كتير النهارده. ابعت تاني بكره.","We got a lot of messages from you today. Send again tomorrow."),
-        dup:L("الرسالة دي وصلتنا قبل كده.","We already got this message.")})[j.error]
-          ||(j.error==="captcha"?L("ما قدرناش نتأكد إنك مش روبوت. جرّب تاني.","We couldn't confirm you're not a bot. Try again."):"")||L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
+        dup:L("الرسالة دي وصلتنا قبل كده.","We already got this message.")})[j.error]||L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
       else{ msg.className="fbmsg err"; msg.textContent=L("ما وصلتش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit."); }
     }catch(_){ msg.className="fbmsg err"; msg.textContent=L("مفيش نت. جرّب تاني.","No connection. Try again."); }
     btn.disabled=false;
