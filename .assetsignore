@@ -9,3 +9,7 @@ tools
 .wrangler
 bot.js
 .github
+package.json
+package-lock.json
+.nojekyll
+README.md

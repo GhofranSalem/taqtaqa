@@ -331,7 +331,7 @@ footer .ver:hover{color:var(--accent);border-color:var(--accent)}
 .shortcuts{width:min(760px,100%);display:flex;flex-direction:column;gap:12px;margin-bottom:6px}
 .schead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .schead h2{margin:0;font-size:15px;font-weight:500;color:var(--fg)}
-.sccols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 36px}
+.sccols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:4px 36px}
 .sccols h3{margin:6px 0 2px;font-size:12.5px;font-weight:400;color:var(--sub)}
 .scrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)}
 .scrow span{color:var(--fg)}

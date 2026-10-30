@@ -38,7 +38,7 @@ export async function telegram(request, env, ctx) {
 export async function weekly(env) {
   if (!env.TG_TOKEN) return;
   const week = weekId(Date.now() - 2 * DAY);
-  const ar = await boardText(week, "ar", "ar"), en = await boardText(week, "en", "ar");
+  const ar = await readBoard(week, "ar", "ar"), en = await readBoard(week, "en", "ar");
   if (!ar && !en) return;
   const cfg = await getCfg(env);
   const text = `🏆 <b>أوائل الأسبوع اللي فات</b>\n<i>Last week's top typists</i>\n\n${ar ? "<b>عربي</b>\n" + ar + "\n" : ""}${en ? "<b>English</b>\n" + en + "\n" : ""}\nأسبوع جديد بدأ والترتيب اتصفّر، يلا 👇\nA new week has started.`;
@@ -54,7 +54,7 @@ async function setup(env, url) {
   const me = await api(env, "getMe", {});
   const hook = await api(env, "setWebhook", {
     url: `https://${url.hostname}/api/tg`, secret_token: await hookSecret(env),
-    allowed_updates: ["message", "edited_message"], drop_pending_updates: true
+    allowed_updates: ["message", "edited_message"], drop_pending_updates: false
   });
   const cmdsAr = [
     { command: "help", description: "البوت بيعمل إيه" },
@@ -225,6 +225,15 @@ function weekId(t) {
   return new Date(d.getTime() - ((d.getUTCDay() + 1) % 7) * DAY).toISOString().slice(0, 10);
 }
 async function boardText(week, lang, ui) {
+  // محفوظ ٥ دقايق، عشان /lb لو اتكتب كتير ما يقراش من Firestore كل مرة
+  const key = `${SITE}/__bot/board/${week}_${lang}_${ui}`;
+  const hit = await caches.default.match(key);
+  if (hit) return hit.text();
+  const text = await readBoard(week, lang, ui);
+  await caches.default.put(key, new Response(text, { headers: { "cache-control": "max-age=300" } }));
+  return text;
+}
+async function readBoard(week, lang, ui) {
   const lines = [];
   for (const [id, ar, en] of LEAGUES) {
     let rows = [];
@@ -376,10 +385,11 @@ async function setupTopics(m, env, cfg) {
   return reply(env, m, made.length ? "✅ عملت الأقسام دي:\n" + made.join("\n") : "كل الأقسام موجودة ✅");
 }
 function learnTopic(m, cfg) {
-  const t = m.forum_topic_created || m.forum_topic_edited || m.reply_to_message && m.reply_to_message.forum_topic_created;
+  const t = m.forum_topic_created || m.reply_to_message && m.reply_to_message.forum_topic_created;
   if (!t || !t.name || !m.message_thread_id) return false;
   const hit = TOPIC_NAMES.find(([, re]) => re.test(t.name));
-  if (!hit || cfg.topics[hit[0]] === m.message_thread_id) return false;
+  // القسم اللي اتعرف قبل كده ما بيتغيرش، عشان محدش يعمل قسم بنفس الاسم ويسحب رسايل «مشاكل» لعنده
+  if (!hit || cfg.topics[hit[0]]) return false;
   cfg.topics[hit[0]] = m.message_thread_id;
   return true;
 }

@@ -10,6 +10,11 @@
   "use strict";
   var BETA = true;
   var CHANGES = [
+    { v: "0.10.2", d: "2026-10-31", items: [
+      ["مراجعة أمان: ملفات كانت بتتنشر من غير لزوم بقت مخفية، وبوت تليجرام بقى أقوى ضد اللعب في الأقسام", "Security review: files that were published by mistake are now hidden, and the Telegram bot is harder to tamper with"],
+      ["الاختصارات في آخر الصفحة ما بقتش بتعدّي عرض الشاشة على الموبايلات الصغيرة", "Shortcuts at the bottom no longer overflow on small phones"],
+      ["صفحة الخصوصية فيها جزء عن جروب تليجرام", "The privacy page now covers the Telegram group"]
+    ]},
     { v: "0.10.1", d: "2026-10-31", items: [
       ["شيلنا كود النقل من اللينكات التجريبية القديمة", "Removed the migration code for the old test links"]
     ]},
