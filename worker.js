@@ -33,7 +33,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.googleusercontent.com https://www.gstatic.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.googleapis.com https://www.gstatic.com https://cloudflareinsights.com https://challenges.cloudflare.com",
+  "connect-src 'self' data: https://*.googleapis.com https://www.gstatic.com https://cloudflareinsights.com https://challenges.cloudflare.com",
   "frame-src 'self' https://taqtaqa.com https://challenges.cloudflare.com https://*.firebaseapp.com https://accounts.google.com https://apis.google.com",
   "worker-src 'self'",
   "manifest-src 'self'",
