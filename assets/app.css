@@ -150,7 +150,17 @@ body.inhist .config{display:none}
 /* ============ الكيبورد ============ */
 .kbwrap{display:flex;flex-direction:column;gap:10px}
 .kbhead{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;color:var(--sub);font-size:13px}
-.kb{direction:ltr;display:flex;flex-direction:column;gap:5px;max-width:860px;width:100%;margin:0 auto}
+.kbbox{position:relative;max-width:860px;width:100%;margin:0 auto}
+.kbbox.withhands{padding-bottom:clamp(24px,4vw,40px)}
+.kb{direction:ltr;display:flex;flex-direction:column;gap:5px;width:100%}
+/* الإيدين: شفافين فوق الزراير عشان الحروف تفضل باينة، والصباع اللي عليه الدور بلون الثيم */
+.hands{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.hands .rest{opacity:.13;transition:opacity .35s}
+.hands .rest rect{fill:var(--fg)}
+.hands .fg{stroke:var(--fg);stroke-linecap:round}
+.hands .act .fg{stroke:var(--accent);opacity:0;transition:opacity .15s}
+.hands .act .fg.on{opacity:.6}
+body.typing .hands .rest{opacity:.09}
 .row{display:grid;gap:5px}
 .r0{grid-template-columns:repeat(13,1fr) 2fr}
 .r1{grid-template-columns:1.5fr repeat(12,1fr) 1.5fr}

@@ -6,7 +6,7 @@
 "use strict";
 
 /* ============ الإعدادات واللغة ============ */
-const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true,goal:10};
+const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true,goal:10,hands:true};
 let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
 if(cfg.src==="tashkeel") cfg.src="mix";
@@ -667,6 +667,7 @@ function buildKb(){
   h+=`<div class="row r4">${fn("AltLeft",cfg.layout==="mac"?"⌥":"Alt")}${fn("Space",L("مسافة","Space"))}${fn("AltRight",cfg.layout==="mac"?"⌥":"Alt")}</div>`;
   $("kb").innerHTML=h;
   $("g-layout").hidden=lay==="us";
+  requestAnimationFrame(()=>{ handsLayout(); updateKb(); });
   $("kblabel").textContent=lay==="us"?L("الكيبورد الإنجليزي (US)","English keyboard (US)"):L("ترتيب الكيبورد","Keyboard layout");
   KMAP[" "]={code:"Space",shift:false};
 }
@@ -684,9 +685,74 @@ function updateKb(){
   else{
     const ch=tg[ty.length];
     const m=KMAP[ch]||KMAP[N(ch)];
-    if(m){ mark=[m.code]; if(m.shift) mark.push("ShiftLeft","ShiftRight"); }
+    /* Shift بيتداس بالإيد التانية: حرف من ناحية الشمال يبقى Shift اليمين، والعكس */
+    if(m){ mark=[m.code]; if(m.shift) mark.push(FINGER[m.code]&&FINGER[m.code][0]==="L"?"ShiftRight":"ShiftLeft"); }
   }
   mark.forEach(c=>{const k=kEl(c);if(k)k.classList.add("next");});
+  handsTo(mark);
+}
+
+/* ============ الإيدين على الكيبورد ============ */
+/* إيدين شفافين فوق الكيبورد: كل صباع قاعد على زراره في صف الوسط (ش س ي ب / ت ن م ك)،
+   والصباع اللي عليه الدور بيتحرك للزرار الجاي ويتلوّن. بيشتغل بمكان الزرار، فنفس الحاجة في العربي والإنجليزي وويندوز وماك */
+const FINGER={};
+[["L5","Backquote Digit1 KeyQ KeyA KeyZ Tab CapsLock ShiftLeft"],["L4","Digit2 KeyW KeyS KeyX"],["L3","Digit3 KeyE KeyD KeyC"],
+ ["L2","Digit4 Digit5 KeyR KeyT KeyF KeyG KeyV KeyB"],["R2","Digit6 Digit7 KeyY KeyU KeyH KeyJ KeyN KeyM"],["R3","Digit8 KeyI KeyK Comma"],
+ ["R4","Digit9 KeyO KeyL Period"],["R5","Digit0 Minus Equal KeyP BracketLeft BracketRight Backslash Semicolon Quote Slash Enter ShiftRight Backspace"],
+ ["R1","Space AltRight"],["L1","AltLeft"]].forEach(([f,cs])=>cs.split(" ").forEach(c=>FINGER[c]=f));
+const HOME={L5:"KeyA",L4:"KeyS",L3:"KeyD",L2:"KeyF",L1:"Space",R1:"Space",R2:"KeyJ",R3:"KeyK",R4:"KeyL",R5:"Semicolon"};
+let HG=null, handAnim=0;
+/* بيحسب أماكن الصوابع من أماكن الزراير الحقيقية على الشاشة */
+function handsLayout(){
+  const svg=$("hands"), box=$("kbbox");
+  const on=cfg.kb&&cfg.hands&&!$("kbwrap").hidden&&box.offsetParent;
+  box.classList.toggle("withhands",!!on);
+  if(!on){ cancelAnimationFrame(handAnim); svg.innerHTML=""; HG=null; return; }
+  const B=box.getBoundingClientRect(), kr=$("kb").getBoundingClientRect();
+  const c=code=>{ const k=kEl(code); if(!k) return null; const r=k.getBoundingClientRect(); return {x:r.left-B.left+r.width/2,y:r.top-B.top+r.height/2,w:r.width,h:r.height}; };
+  const a=c("KeyA"), sp=c("Space"); if(!a||!sp) return;
+  /* الكف قاعد على صف المسافة، والصوابع طالعة منه لصف الوسط */
+  const kw=a.w, kh=a.h, fw=kw*.44, baseY=sp.y+kh*.05, palmH=Math.max(30,B.bottom-B.top-baseY+kh*.4);
+  const keyPos={}; document.querySelectorAll("#kb .k").forEach(k=>{ keyPos[k.dataset.code]=c(k.dataset.code); });
+  const hands={L:["L5","L4","L3","L2"],R:["R2","R3","R4","R5"]}, G={keyPos,fw,kh,fingers:{},palms:[]};
+  for(const side of ["L","R"]){
+    const fs=hands[side], homes=fs.map(f=>keyPos[HOME[f]]), cx=(homes[0].x+homes[3].x)/2;
+    /* قاعدة الصوابع أقرب لبعض من أطرافها، زي الإيد الحقيقية */
+    const pinky=side==="L"?0:3;
+    fs.forEach((f,i)=>{ const h=homes[i]; G.fingers[f]={base:{x:cx+(h.x-cx)*.72,y:baseY+(i===pinky?kh*.35:i===0||i===3?kh*.12:0)},tip:{x:h.x,y:h.y},home:HOME[f]}; });
+    const xs=fs.map(f=>G.fingers[f].base.x), x0=Math.min(...xs)-fw*.7, x1=Math.max(...xs)+fw*.7;
+    G.palms.push({x:x0,y:baseY-fw*.15,w:x1-x0,h:palmH});
+    /* الإبهام: من جنب الكف لحد زرار المسافة */
+    const tf=side==="L"?"L1":"R1", tipX=sp.x+(side==="L"?-1:1)*sp.w*.22;
+    G.fingers[tf]={base:{x:side==="L"?x1-fw*.3:x0+fw*.3,y:baseY+kh*.75},tip:{x:tipX,y:sp.y-kh*.1},home:"Space",thumb:true,side};
+  }
+  for(const f in G.fingers){ const F=G.fingers[f]; F.cur={...F.tip}; F.to={...F.tip}; }
+  svg.setAttribute("viewBox",`0 0 ${B.width} ${B.height}`);
+  svg.innerHTML=`<defs><linearGradient id="hfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".55" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="hmask"><rect x="0" y="${baseY-kh}" width="${B.width}" height="${B.height}" fill="url(#hfade)"/><rect x="0" y="0" width="${B.width}" height="${baseY-kh}" fill="#fff"/></mask></defs>
+    <g mask="url(#hmask)"><g class="rest">${G.palms.map(p=>`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="${fw*1.3}"/>`).join("")}
+    ${Object.keys(G.fingers).map(f=>`<line class="fg" data-f="${f}" stroke-width="${G.fingers[f].thumb?fw*1.15:fw}"/>`).join("")}</g>
+    <g class="act">${Object.keys(G.fingers).map(f=>`<line class="fg" data-f="${f}" stroke-width="${G.fingers[f].thumb?fw*1.15:fw}"/>`).join("")}</g></g>`;
+  HG=G; drawHands();
+}
+function drawHands(){
+  if(!HG) return;
+  $("hands").querySelectorAll(".fg").forEach(l=>{ const F=HG.fingers[l.dataset.f]; l.setAttribute("x1",F.base.x); l.setAttribute("y1",F.base.y); l.setAttribute("x2",F.cur.x); l.setAttribute("y2",F.cur.y); });
+}
+/* الصباع اللي عليه الدور بيروح للزرار، والباقي بيرجع مكانه */
+function handsTo(codes){
+  if(!HG) handsLayout();
+  if(!HG) return;
+  const act=new Set();
+  for(const f in HG.fingers){ const F=HG.fingers[f], hp=HG.keyPos[F.home]; F.to={x:F.thumb?F.tip.x:hp.x,y:F.thumb?F.tip.y:hp.y}; }
+  (codes||[]).forEach(code=>{ const f=FINGER[code], p=HG.keyPos[code]; if(!f||!p) return; act.add(f); if(!HG.fingers[f].thumb) HG.fingers[f].to={x:p.x,y:p.y+HG.kh*.3}; }); /* طرف الصباع تحت الحرف شوية عشان الحرف يفضل باين */
+  $("hands").querySelectorAll(".fg").forEach(l=>l.classList.toggle("on",act.has(l.dataset.f)));
+  cancelAnimationFrame(handAnim);
+  const step=()=>{ if(!HG) return; let moving=false;
+    for(const f in HG.fingers){ const F=HG.fingers[f]; const dx=F.to.x-F.cur.x, dy=F.to.y-F.cur.y;
+      if(Math.abs(dx)+Math.abs(dy)>.4){ F.cur.x+=dx*.35; F.cur.y+=dy*.35; moving=true; } else { F.cur.x=F.to.x; F.cur.y=F.to.y; } }
+    drawHands(); if(moving) handAnim=requestAnimationFrame(step); };
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){ for(const f in HG.fingers){ HG.fingers[f].cur={...HG.fingers[f].to}; } drawHands(); }
+  else handAnim=requestAnimationFrame(step);
 }
 
 /* ============ الثيمات (من Monkeytype) ============ */
@@ -1222,7 +1288,7 @@ function onConfigClick(e){
   saveCfg(); syncConfig(); b.blur();
   if(g&&g.dataset.k==="goal"){ paintGoal(); if(T&&!T.done) focusInput(); return; }
   if(b.dataset.t==="pace"){ if(T&&!T.done){ showLastRun(); placeGhost(); runGhost(); focusInput(); } return; }
-  if(b.dataset.t==="kb"){ if(!T.done){updateKb();focusInput();} return; }
+  if(b.dataset.t==="kb"||b.dataset.t==="hands"){ requestAnimationFrame(()=>{ handsLayout(); updateKb(); }); if(T&&!T.done) focusInput(); return; }
   if(g&&(g.dataset.k==="tsize")){ if(T&&!T.done) requestAnimationFrame(()=>{refresh();focusInput();}); else if(T&&T.done) drawChart(); return; }
   if(b.dataset.t==="tashkeel"||b.dataset.t==="punct"){ go(0); return; }
   if(b.dataset.t==="lenient"&&T&&!T.done){ for(let i=0;i<=T.idx;i++) updateWord(i); refresh(); focusInput(); return; }
@@ -1404,7 +1470,7 @@ const TOUR=EN?[
   {sel:'.config .group[data-k="mode"]',t:"Pick a test type",b:"<b>Time:</b> type as much as you can in a number of seconds.<br><b>Words:</b> finish a set number of words.<br><b>Quote:</b> one full text from start to end."},
   {sel:()=>["#g-time","#g-words","#g-qlen"].map(s=>$(s.slice(1))).find(e=>e&&!e.hidden),t:"Pick the length",b:"Set the seconds, the word count, or the quote length, depending on the test type."},
   {sel:"#setbtn",t:"Settings",b:"<ul><li><b>Diacritics:</b> every Arabic text shows simple marks that you type too.</li><li><b>Lenient hamza:</b> أ, إ and آ count as ا.</li><li><b>Punctuation</b> and the <b>keyboard</b>.</li><li><b>Text font</b> and <b>size</b>.</li></ul>"},
-  {sel:"#kbwrap",t:"On-screen keyboard",b:"The key you need to press lights up, and so does Shift when you need it. Above it you can pick the Windows or Mac Arabic layout."},
+  {sel:"#kbwrap",t:"On-screen keyboard",b:"The key you need to press lights up, and so does Shift when you need it. The hands show where your fingers rest, and the finger that should press the key moves to it. Above it you can pick the Windows or Mac Arabic layout."},
   {sel:"#histbtn",t:"History",b:"Every test is saved here with your speed and accuracy, plus a chart of how you're improving."},
   {sel:"#themebtn",t:"Themes",b:'More than 100 dark and light themes. You can also open them with <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
   {sel:null,t:"Shortcuts you'll need",b:'<span class="k2">Tab</span> next text (before you start, or after Esc)<br><span class="k2">Shift</span>+<span class="k2">Tab</span> previous text<br><span class="k2">Esc</span> pause and resume<br><span class="k2">Shift</span>+<span class="k2">Enter</span> restart the text<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> delete the whole word (<span class="k2">⌥</span>+<span class="k2">⌫</span> on Mac)<br><br>All the shortcuts that help you type faster, for Windows and Mac, are at the bottom of the page.<br><br>To see this tour again, click Tour at the top.',last:true}
@@ -1416,7 +1482,7 @@ const TOUR=EN?[
   {sel:'.config .group[data-k="mode"]',t:"اختار طريقة الاختبار",b:"<b>وقت:</b> اكتب أكتر ما تقدر في عدد ثواني.<br><b>عدد كلمات:</b> خلّص عدد كلمات معين.<br><b>اقتباس:</b> نص واحد كامل من أوله لآخره."},
   {sel:()=>["#g-time","#g-words","#g-qlen"].map(s=>$(s.slice(1))).find(e=>e&&!e.hidden),t:"اختار المدة أو الطول",b:"هنا بتحدد عدد الثواني، أو عدد الكلمات، أو طول الاقتباس، على حسب الطريقة اللي اخترتها."},
   {sel:"#setbtn",t:"الإعدادات",b:"<ul><li><b>التشكيل:</b> كل النصوص بتظهر بحركات بسيطة ولازم تكتبها.</li><li><b>تساهل في الهمزات:</b> أ وإ وآ بتتحسب ا.</li><li><b>علامات الترقيم</b> و<b>الكيبورد</b>.</li><li><b>خط النص</b> و<b>حجمه</b>.</li></ul>"},
-  {sel:"#kbwrap",t:"الكيبورد اللي على الشاشة",b:"الزرار اللي عليك تدوسه بيتلوّن، ولو محتاج Shift بينوّره كمان. ومن فوقه تختار ترتيب ويندوز أو ماك."},
+  {sel:"#kbwrap",t:"الكيبورد اللي على الشاشة",b:"الزرار اللي عليك تدوسه بيتلوّن، ولو محتاج Shift بينوّره كمان. والإيدين بيوروك تحط صوابعك فين، والصباع اللي المفروض يدوس بيتحرك للزرار. ومن فوقه تختار ترتيب ويندوز أو ماك."},
   {sel:"#histbtn",t:"تاريخك",b:"كل اختبار بيتحفظ هنا بسرعتك ودقتك، ومعاه رسمة بتوضح بتتحسن ازاي."},
   {sel:"#themebtn",t:"الثيمات",b:'أكتر من ١٠٠ ثيم، غامق وفاتح. تقدر تفتحها كمان بـ <span class="k2">Ctrl</span>+<span class="k2">Shift</span>+<span class="k2">P</span>.'},
   {sel:null,t:"اختصارات هتحتاجها",b:'<span class="k2">Tab</span> النص اللي بعده (قبل ما تبدأ، أو بعد Esc)<br><span class="k2">Shift</span>+<span class="k2">Tab</span> النص اللي قبله<br><span class="k2">Esc</span> توقّف مؤقتًا وتكمّل<br><span class="k2">Shift</span>+<span class="k2">Enter</span> تبدأ النص من الأول<br><span class="k2">Ctrl</span>+<span class="k2">⌫</span> تمسح الكلمة كلها (على ماك <span class="k2">⌥</span>+<span class="k2">⌫</span>)<br><br>وكل الاختصارات اللي هتساعدك تبقى سريع، لويندوز وماك، تحت في آخر الصفحة.<br><br>ولو حبيت تشوف الشرح ده تاني، اضغط «شرح الموقع» فوق.',last:true}
@@ -1550,6 +1616,7 @@ window.addEventListener("resize",()=>{
   else if(T&&T.done) drawChart(); else if(T) refresh();
   if(!$("fontmenu").hidden) placeFontMenu();
   if(!$("setmenu").hidden) placeSetMenu();
+  handsLayout(); updateKb();
   if(tourOpen()) placeTour(tourTarget(tourSteps[tourI]));
   if(!document.documentElement.classList.contains("intro")){ clearTimeout(stretchT); stretchT=setTimeout(stretchLogo,150); }
 });

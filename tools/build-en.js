@@ -72,6 +72,7 @@ const T = [
   ['علامات الترقيم<small>النقط والفواصل جوه النص</small>', 'Punctuation<small>Periods and commas inside the text</small>'],
   ['مؤشر آخر مرة<small>لو كتبت النص قبل كده، مؤشر بيمشي بسرعتك القديمة</small>', 'Last-time caret<small>If you typed the text before, a caret moves at your old speed</small>'],
   ['الكيبورد<small>بيوريك الزرار الجاي</small>', 'Keyboard<small>Shows you the next key</small>'],
+  ['الإيدين على الكيبورد<small>بتوريك أنهي صباع يدوس كل زرار</small>', 'Hands on the keyboard<small>Shows which finger presses each key</small>'],
   ['<h4>خط النص</h4>', '<h4>Text font</h4>'],
   ['<h4>هدف يومي</h4>', '<h4>Daily goal</h4>'],
   ['data-v="0">مفيش<', 'data-v="0">Off<'],
