@@ -10,6 +10,9 @@
   "use strict";
   var BETA = true;
   var CHANGES = [
+    { v: "0.10.0", d: "2026-10-30", big: true, items: [
+      ["مجتمع طقطقة على تليجرام: t.me/taqtaqaclub، ولينكه في آخر الصفحة وفي «ادعم طقطقة»", "Taqtaqa community on Telegram: t.me/taqtaqaclub, linked at the bottom of the page and in Support Taqtaqa"]
+    ]},
     { v: "0.9.3", d: "2026-10-30", items: [
       ["أول ما تدخل الموقع بيسألك عربي ولا إنجليزي، والشرح بيظهر باللغة اللي اخترتها", "On your first visit the site asks Arabic or English, and the tour shows in the language you pick"]
     ]},
