@@ -111,6 +111,7 @@ async function handle(u, env) {
 
   const text = (m.text || "").trim();
   const cmd = command(text);
+  if (cmd === "topics") return from.id === await ownerId(env, cfg) ? setupTopics(m, env, cfg) : null;
   if (cmd) return answerCommand(cmd, text, m, env);
   const mentioned = text.toLowerCase().includes("@" + BOT) || (m.reply_to_message && m.reply_to_message.from && m.reply_to_message.from.username === BOT);
   if (mentioned) return reply(env, m, faqAnswer(text.replace(new RegExp("@" + BOT, "ig"), "")));
@@ -340,7 +341,40 @@ async function hookSecret(env) {
 }
 
 /* أقسام الجروب: البوت بيعرفها من أساميها */
-const TOPIC_NAMES = [["bugs", /مشاكل|مشكلة|bug|issue/i], ["results", /نتا[يئ]ج|result|score/i], ["ideas", /اقتراح|suggest|idea/i], ["welcome", /أهل|اهل|ترحيب|قواعد|welcome|rules/i], ["en", /english/i]];
+const TOPIC_NAMES = [["bugs", /مشاكل|مشكلة|bug|issue/i], ["results", /نتا[يئ]ج|result|score/i], ["ideas", /اقتراح|suggest|idea/i], ["welcome", /أهل|اهل|ترحيب|قواعد|welcome|rules/i], ["chat", /دردشة|chat/i], ["en", /english/i]];
+
+/* /topics (لصاحب الجروب بس): البوت بيعمل الأقسام اللي ناقصة، وبيثبّت القواعد في «أهلًا» */
+const TOPICS = [
+  ["welcome", "👋 أهلًا وقواعد", 7322096],
+  ["results", "🏆 نتايجكم", 16766590],
+  ["ideas", "💡 اقتراحات", 9367192],
+  ["bugs", "🐞 مشاكل", 16478047],
+  ["chat", "💬 دردشة", 13338331],
+  ["en", "🌍 English", 16749490]
+];
+const TOPIC_INTRO = {
+  welcome: null,
+  results: "🏆 نزّل هنا سكرين نتيجتك من الموقع (زرار «شارك نتيجتك»)، وكل سبت بنزّل هنا أوائل الترتيب الأسبوعي.\nShare your result screenshots here. Every Saturday the weekly top typists are posted here.",
+  ideas: "💡 عندك فكرة لميزة، أو نص تحب يتضاف، أو قسم جديد؟ اكتبه هنا.\nIdeas for features, texts or new sections go here.",
+  bugs: "🐞 لقيت حاجة مش شغالة؟ اكتبها هنا ومعاها سكرين لو تقدر، وقول جهازك والمتصفح. كل رسالة هنا بتوصل لصاحب الموقع على طول.\nFound something broken? Post it here with a screenshot, your device and browser. It goes straight to the site owner.",
+  chat: "💬 أي كلام عن الكتابة والكيبوردات وأي حاجة تانية.\nGeneral chat about typing, keyboards and anything else.",
+  en: "🌍 English chat lives here. Ask anything about Taqtaqa, or mention @" + BOT + " for quick answers."
+};
+async function setupTopics(m, env, cfg) {
+  const made = [];
+  for (const [key, name, color] of TOPICS) {
+    if (cfg.topics[key]) continue;
+    const r = await api(env, "createForumTopic", { chat_id: m.chat.id, name, icon_color: color });
+    if (!r.ok) return reply(env, m, `ما قدرتش أعمل قسم «${esc(name)}»: ${esc(r.description || "")}\nاتأكد إن الأقسام متفعّلة وإن البوت عنده صلاحية Manage Topics.`);
+    const id = r.result.message_thread_id;
+    cfg.topics[key] = id; made.push(name);
+    await putCfg(env, cfg);
+    const intro = key === "welcome" ? RULES : TOPIC_INTRO[key];
+    const p = await api(env, "sendMessage", { chat_id: m.chat.id, message_thread_id: id, text: intro, parse_mode: "HTML", link_preview_options: { is_disabled: true }, reply_markup: key === "welcome" ? joinButtons() : undefined });
+    if (p.ok) await api(env, "pinChatMessage", { chat_id: m.chat.id, message_id: p.result.message_id, disable_notification: true });
+  }
+  return reply(env, m, made.length ? "✅ عملت الأقسام دي:\n" + made.join("\n") : "كل الأقسام موجودة ✅");
+}
 function learnTopic(m, cfg) {
   const t = m.forum_topic_created || m.forum_topic_edited || m.reply_to_message && m.reply_to_message.forum_topic_created;
   if (!t || !t.name || !m.message_thread_id) return false;
