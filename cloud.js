@@ -249,6 +249,13 @@ whenReady(async () => {
       ...(ud.exists() ? {} : { createdAt: serverTimestamp() })
     }, { merge: true });
     try { localStorage.setItem(OWNER_KEY, u.uid); } catch (e) {}
+    // عدّاد الإحصائيات: حساب نشط النهارده (ولو جديد). بيتبعت مرة في الجلسة، والسيرفر بيتأكد من تسجيل الدخول
+    try {
+      if (window.TQ_PING && sessionStorage.getItem("tq-acct") !== u.uid) {
+        window.TQ_PING({ a: await u.getIdToken(), n: !ud.exists() });
+        sessionStorage.setItem("tq-acct", u.uid);
+      }
+    } catch (e) {}
     // المفضلة: بنجمع اللي على الجهاز مع اللي في الحساب
     try {
       const cf = ud.exists() && Array.isArray(ud.data().fav) ? ud.data().fav : [];

@@ -2,7 +2,7 @@
    الأجزاء بالترتيب: الإعدادات واللغة، مساعدات، النصوص والأقسام، حالة الاختبار، الكيبورد على اللغة الغلط،
    الإدخال والاختصارات، العرض، النتيجة (وتنبيه الدخول)، المشاركة، الكيبورد والإيدين، الثيمات، آخر مرة،
    المفضلة، التاريخ (والأيام وأحسن الأرقام والحروف والهدف اليومي وتاب الترتيب)، الخطوط، الإعدادات،
-   ادعم طقطقة (وTurnstile)، الاختصارات، اختيار اللغة، الجولة، اللوجو، حجم الشاشة، البداية.
+   ادعم طقطقة (وTurnstile)، الاختصارات، اختيار اللغة، الجولة، عدّاد الزيارات، اللوجو، حجم الشاشة، البداية.
    الترتيب الأسبوعي نفسه في assets/board.js، والحسابات في cloud.js. */
 (function(){
 "use strict";
@@ -1667,6 +1667,30 @@ openOnPoem();
 })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 playIntro();
+
+/* ============ عدّاد الزيارات ============ */
+/* لإحصائيات صاحب الموقع: نبضة كل دقيقة والصفحة قدامك، برقم عشوائي للجلسة بس. مفيش كوكيز ولا حاجة بتعرّفك */
+(function(){
+  if(location.hostname!=="taqtaqa.com") return;
+  let sid=null, first=false, last=0;
+  try{ sid=sessionStorage.getItem("tq-sid"); }catch(e){}
+  if(!sid||!/^[a-f0-9]{16}$/.test(sid)){
+    sid=[...crypto.getRandomValues(new Uint8Array(8))].map(b=>b.toString(16).padStart(2,"0")).join(""); first=true;
+    try{ sessionStorage.setItem("tq-sid",sid); }catch(e){}
+  }
+  const mob=matchMedia("(pointer:coarse)").matches;
+  let ref=""; try{ const r=document.referrer&&new URL(document.referrer); if(r&&r.hostname!==location.hostname) ref=r.hostname; }catch(e){}
+  const send=extra=>{
+    if(!extra&&Date.now()-last<20000) return;
+    last=Date.now();
+    try{ fetch("/api/ping",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({s:sid,l:EN?"en":"ar",m:mob},extra||{})),keepalive:true}).catch(()=>{}); }catch(e){}
+  };
+  send(first?{f:true,r:ref}:null);
+  setInterval(()=>{ if(document.visibilityState==="visible") send(); },60000);
+  document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") send(); });
+  window.addEventListener("tq:result",e=>{ const h=e.detail||{}; if(typeof h.wpm==="number"&&h.mode!=="practice") send({e:{type:"test",wpm:h.wpm,src:String(h.src||"other")}}); });
+  window.TQ_PING=send;
+})();
 
 /* واجهة صغيرة لـ cloud.js (الحسابات والمزامنة) */
 window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden){ renderHistory(); if(hTab==="lb"&&window.TQ_LB) window.TQ_LB.render($("lbbody")); } showPB(); paintGoal(); }};

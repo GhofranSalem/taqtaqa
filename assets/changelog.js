@@ -16,7 +16,7 @@
   var BETA = true;
   var CHANGES = [
     { v: "0.3.1", d: "2026-10-31", items: [
-      ["صفحة الخصوصية فيها جزء عن جروب تليجرام", "The privacy page now covers the Telegram group"],
+      ["صفحة الخصوصية اتحدثت: جروب تليجرام وعدّاد الزيارات", "Privacy page updated: the Telegram group and the visit counter"],
       ["تحديثات أمنية", "Security updates"],
       ["تحسينات في واجهة الموقع", "Interface improvements"]
     ]},

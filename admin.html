@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>طقطقة: الإحصائيات</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<style>
+@font-face{font-family:"TQ Sans";src:url(fonts/sans-400.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"TQ Sans";src:url(fonts/sans-700.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"TQ Display";src:url(fonts/display-700.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--bg:#101010;--panel:#1a1a1a;--panel2:#222;--fg:#f2f2f2;--sub:#9a9a9a;--accent:#ffc799;--live:#99ffe4;--line:#262626;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"TQ Sans","Geeza Pro","Segoe UI",Tahoma,system-ui,sans-serif;font-size:15px;line-height:1.6}
+main{max-width:1080px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-left,0px)) 56px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-family:"TQ Display",serif;font-size:30px;margin:0;line-height:1.3}
+h1 i{color:var(--accent);font-style:normal}
+.meta{color:var(--sub);font-size:13px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.meta button,.btn{font:inherit;background:none;color:var(--sub);border:1px solid var(--line);border-radius:8px;padding:4px 12px;cursor:pointer}
+.meta button:hover{color:var(--fg)}
+.btn.pri{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700;padding:9px 20px;font-size:15px}
+.gate{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px 22px;text-align:center;max-width:440px;margin:60px auto;display:flex;flex-direction:column;gap:14px;align-items:center}
+.gate p{margin:0;color:var(--sub)}
+.grid{display:grid;gap:12px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.kpi .n{font-size:30px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--sub);font-size:13px}
+.kpi.live{border-color:color-mix(in srgb,var(--live) 40%,var(--line))}
+.kpi.live .n{color:var(--live);display:flex;align-items:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 var(--live);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 60%,transparent)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
+.cols{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card h3{margin:0 0 8px;font-size:14px;color:var(--sub);font-weight:400}
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rows li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:14px;position:relative}
+.rows li .bar{grid-column:1/-1;height:4px;border-radius:2px;background:var(--panel2);overflow:hidden}
+.rows li .bar i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.rows li b{font-variant-numeric:tabular-nums;font-weight:700}
+.empty{color:var(--sub);font-size:13px}
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--sub);margin-bottom:6px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px;background:var(--c)}
+.links{display:flex;flex-wrap:wrap;gap:10px}
+.links a{color:var(--fg);text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px}
+.links a:hover{border-color:var(--accent)}
+.links a small{display:block;color:var(--sub);font-size:12px}
+.err{color:#ff8080;font-size:13px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>إحصائيات طقطقة<i>.</i></h1>
+    <div class="meta"><span id="upd"></span><span id="who"></span><button type="button" id="out" hidden>خروج</button></div>
+  </header>
+
+  <section class="gate" id="gate" hidden>
+    <p id="gatemsg">الصفحة دي لصاحب الموقع بس. سجّل دخول بحسابك.</p>
+    <button type="button" class="btn pri" id="signin">سجّل دخول بـ Google</button>
+    <p class="err" id="gateerr" hidden></p>
+  </section>
+
+  <div id="dash" hidden>
+    <div class="grid kpis">
+      <div class="card kpi live"><div class="n"><span class="dot" aria-hidden="true"></span><span id="k-live">٠</span></div><div class="l">فاتحين الموقع دلوقتي</div></div>
+      <div class="card kpi"><div class="n" id="k-visits">٠</div><div class="l">زيارة النهارده</div></div>
+      <div class="card kpi"><div class="n" id="k-tests">٠</div><div class="l">اختبار اتعمل النهارده</div></div>
+      <div class="card kpi"><div class="n" id="k-wpm">٠</div><div class="l">متوسط السرعة النهارده (ك/د)</div></div>
+      <div class="card kpi"><div class="n" id="k-acct">٠</div><div class="l">حساب دخل النهارده</div></div>
+      <div class="card kpi"><div class="n" id="k-new">٠</div><div class="l">حساب جديد النهارده</div></div>
+      <div class="card kpi"><div class="n" id="k-fb">٠</div><div class="l">رسالة من «ادعم طقطقة»</div></div>
+    </div>
+
+    <h2>دلوقتي</h2>
+    <div class="grid cols">
+      <div class="card"><h3>اللغة</h3><ul class="rows" id="l-lang"></ul></div>
+      <div class="card"><h3>الجهاز</h3><ul class="rows" id="l-dev"></ul></div>
+      <div class="card"><h3>الدول</h3><ul class="rows" id="l-ctry"></ul></div>
+    </div>
+
+    <h2>آخر ١٤ يوم</h2>
+    <div class="card">
+      <div class="legend"><span style="--c:var(--accent)">زيارات</span><span style="--c:var(--live)">اختبارات</span></div>
+      <svg class="chart" id="chart" viewBox="0 0 700 200" role="img" aria-label="الزيارات والاختبارات في آخر ١٤ يوم"></svg>
+    </div>
+
+    <h2>النهارده</h2>
+    <div class="grid cols">
+      <div class="card"><h3>الأقسام اللي اتكتب فيها</h3><ul class="rows" id="t-src"></ul></div>
+      <div class="card"><h3>الدول</h3><ul class="rows" id="t-ctry"></ul></div>
+      <div class="card"><h3>جايين منين</h3><ul class="rows" id="t-ref"></ul></div>
+      <div class="card"><h3>اللغة والجهاز</h3><ul class="rows" id="t-ld"></ul></div>
+    </div>
+
+    <h2>المجتمع</h2>
+    <div class="grid kpis">
+      <div class="card kpi"><div class="n" id="k-lbar">٠</div><div class="l">في الترتيب الأسبوعي (عربي)</div></div>
+      <div class="card kpi"><div class="n" id="k-lben">٠</div><div class="l">في الترتيب الأسبوعي (إنجليزي)</div></div>
+      <div class="card kpi"><div class="n" id="k-tg">٠</div><div class="l">عضو في جروب تليجرام</div></div>
+    </div>
+
+    <h2>لينكات</h2>
+    <div class="links">
+      <a href="https://console.firebase.google.com/project/taqtaqa-type/authentication/users" target="_blank" rel="noopener">كل الحسابات<small>Firebase</small></a>
+      <a href="https://dash.cloudflare.com/?to=/:account/web-analytics" target="_blank" rel="noopener">الزيارات بالتفصيل<small>Cloudflare Web Analytics</small></a>
+      <a href="https://github.com/GhofranSalem/taqtaqa/actions" target="_blank" rel="noopener">النشر<small>GitHub Actions</small></a>
+      <a href="https://t.me/taqtaqaclub" target="_blank" rel="noopener">جروب تليجرام<small>t.me/taqtaqaclub</small></a>
+      <a href="changelog.html">سجل التحديثات<small id="ver"></small></a>
+    </div>
+  </div>
+</main>
+<script src="assets/changelog.js"></script>
+<script type="module" src="assets/admin.js"></script>
+</body>
+</html>

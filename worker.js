@@ -2,6 +2,8 @@
 // على taqtaqa.com نفسه، وبيستقبل رسايل «ادعم طقطقة» ويبعتها على الإيميل.
 import { EmailMessage } from "cloudflare:email";
 import { telegram, weekly } from "./bot.js";
+import { ping, stats, countFeedback } from "./stats.js";
+export { Stats } from "./stats.js";
 
 const FIREBASE_HOST = "taqtaqa-type.firebaseapp.com";
 const FROM = "feedback@taqtaqa.com";
@@ -24,6 +26,15 @@ export default {
     }
     if (url.pathname === "/api/feedback") return feedback(request, env);
     if (url.pathname === "/api/tg" || url.pathname === "/api/tg/setup") return telegram(request, env, ctx);
+    if (url.pathname === "/api/ping") return ping(request, env);
+    if (url.pathname === "/api/stats") return stats(request, env);
+    // صفحة الإحصائيات ما تظهرش في جوجل. الأرقام نفسها ما بتتجابش غير بتسجيل دخول صاحب الموقع
+    if (url.pathname === "/admin" || url.pathname === "/admin.html") {
+      const res = secure(await env.ASSETS.fetch(request));
+      res.headers.set("X-Robots-Tag", "noindex, nofollow");
+      res.headers.set("Cache-Control", "no-store");
+      return res;
+    }
     // بيقول بس هل المفتاح السري بتاع Turnstile متحط ولا لأ، من غير ما يبيّن قيمته
     if (url.pathname === "/api/health") return json(200, { ok: true, turnstile: !!env.TURNSTILE_SECRET });
     return secure(await env.ASSETS.fetch(request));
@@ -161,6 +172,7 @@ async function feedback(request, env) {
   });
   try {
     await env.FEEDBACK.send(new EmailMessage(FROM, TO, raw));
+    await countFeedback(env);
     return json(200, { ok: true });
   } catch (e) {
     return json(502, { ok: false, error: "send" });

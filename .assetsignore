@@ -13,3 +13,4 @@ package.json
 package-lock.json
 .nojekyll
 README.md
+stats.js

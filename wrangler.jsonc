@@ -17,8 +17,13 @@
   // حد لعدد رسايل «ادعم طقطقة» من كل جهاز: رسالة كل ١٠ ثواني، و٣ في الدقيقة
   "ratelimits": [
     { "name": "FB_BURST", "namespace_id": "1101", "simple": { "limit": 1, "period": 10 } },
-    { "name": "FB_MINUTE", "namespace_id": "1102", "simple": { "limit": 3, "period": 60 } }
+    { "name": "FB_MINUTE", "namespace_id": "1102", "simple": { "limit": 3, "period": 60 } },
+    // نبضات عدّاد الإحصائيات: ٣٠ في الدقيقة من كل IP
+    { "name": "STATS_RL", "namespace_id": "1103", "simple": { "limit": 30, "period": 60 } }
   ],
+  // عدّاد الإحصائيات (stats.js)
+  "durable_objects": { "bindings": [{ "name": "STATS", "class_name": "Stats" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Stats"] }],
   "send_email": [
     { "name": "FEEDBACK", "destination_address": "ghofran.salem@gmail.com" }
   ],
