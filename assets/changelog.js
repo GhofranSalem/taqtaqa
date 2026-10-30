@@ -1,93 +1,55 @@
 // طقطقة: رقم الإصدار وسجل التحديثات، من مكان واحد.
 //
-// مع كل تحديث بيتنشر، ضيف إدخال جديد في أول القايمة:
-//   تحديث صغير (تصليح أو تعديل بسيط): زوّد الرقم الأخير    0.9.2 ← 0.9.3
-//   تحديث كبير (ميزة جديدة):           زوّد الرقم اللي قبله  0.9.3 ← 0.10.0
+// إدخال واحد لكل يوم فيه تحديثات، وآخر اليوم بنجمع فيه كل اللي اتعمل. اليوم اللي ما اتعملش فيه حاجة ما لوش إدخال.
+//   لو اليوم فيه ميزة جديدة: زوّد الرقم اللي في النص وصفّر الأخير   0.3.1 ← 0.4.0  (وحط big: true)
+//   لو كله تصليحات وتحسينات: زوّد الرقم الأخير                      0.3.0 ← 0.3.1
+//   لو اتعمل حاجة تانية في نفس اليوم، بتتضاف لإدخال اليوم ده، ولو كانت ميزة والإدخال صغير يبقى كبير.
 //   الرقم الأول هيفضل 0 طول ما الموقع تجريبي، ويبقى 1.0.0 لما يخلص.
 //
 // السجل للمستخدمين: اكتب بس الحاجات اللي يحسّوا بيها (ميزة جديدة، أو حاجة اتغيرت قدامهم).
 // أي حاجة أمان تتكتب «تحديثات أمنية»، وأي تصليح أو تنضيف في الواجهة أو الكود يتكتب «تحسينات في واجهة الموقع»،
-// من غير تفاصيل تقنية.
+// من غير تفاصيل تقنية، ومرة واحدة بس في اليوم.
 //
 // الفوتر في الصفحة الرئيسية بياخد الرقم من أول إدخال، وصفحة changelog.html بتعرض القايمة كلها.
 (function () {
   "use strict";
   var BETA = true;
   var CHANGES = [
-    { v: "0.10.2", d: "2026-10-31", items: [
+    { v: "0.3.1", d: "2026-10-31", items: [
+      ["صفحة الخصوصية فيها جزء عن جروب تليجرام", "The privacy page now covers the Telegram group"],
       ["تحديثات أمنية", "Security updates"],
-      ["تحسينات في واجهة الموقع", "Interface improvements"],
-      ["صفحة الخصوصية فيها جزء عن جروب تليجرام", "The privacy page now covers the Telegram group"]
-    ]},
-    { v: "0.10.1", d: "2026-10-31", items: [
       ["تحسينات في واجهة الموقع", "Interface improvements"]
     ]},
-    { v: "0.10.0", d: "2026-10-30", big: true, items: [
-      ["مجتمع طقطقة على تليجرام: t.me/taqtaqaclub، ولينكه في آخر الصفحة وفي «ادعم طقطقة»", "Taqtaqa community on Telegram: t.me/taqtaqaclub, linked at the bottom of the page and in Support Taqtaqa"]
-    ]},
-    { v: "0.9.3", d: "2026-10-30", items: [
-      ["أول ما تدخل الموقع بيسألك عربي ولا إنجليزي، والشرح بيظهر باللغة اللي اخترتها", "On your first visit the site asks Arabic or English, and the tour shows in the language you pick"]
-    ]},
-    { v: "0.9.2", d: "2026-10-30", items: [
-      ["رقم الإصدار في آخر الصفحة، وصفحة «سجل التحديثات» دي", "Version number at the bottom of the page, and this changelog page"]
-    ]},
-    { v: "0.9.1", d: "2026-10-30", items: [
-      ["تحسينات في واجهة الموقع", "Interface improvements"]
-    ]},
-    { v: "0.9.0", d: "2026-10-30", big: true, items: [
-      ["الترتيب الأسبوعي: بتتنافس مع ناس في نفس مستواك (ريشة، قلم، كاتب، خطّاط، طقطاق)", "Weekly leaderboard: you compete with people at your level (five leagues)"],
-      ["ترتيب بالسرعة، وبالتحسّن عن مستواك، وبالدقايق اللي اتمرنتها", "Rank by speed, by improvement over your own level, or by minutes practiced"],
-      ["الانضمام اختياري، وتقدر تختار اسمك أو تخرج في أي وقت", "Joining is optional; pick your display name or leave any time"]
-    ]},
-    { v: "0.8.0", d: "2026-10-30", big: true, items: [
-      ["إيدين على الكيبورد: بتوريك تحط صوابعك فين، والصباع اللي عليه الدور بيتحرك للزرار", "Hands on the keyboard: shows where your fingers rest and moves the right finger to each key"],
-      ["تقدر تقفلها من «إعدادات»", "You can turn them off in Settings"]
-    ]},
-    { v: "0.7.2", d: "2026-10-30", items: [
-      ["أول ما تبدأ تكتب، الصفحة بتتظبط على النص والكيبورد بدل ما تطلع لفوق", "When you start typing, the page scrolls to the text and keyboard instead of jumping to the top"]
-    ]},
-    { v: "0.7.1", d: "2026-10-30", items: [
-      ["تحديثات أمنية", "Security updates"]
-    ]},
-    { v: "0.7.0", d: "2026-10-30", big: true, items: [
-      ["تنبيه لو الكيبورد على اللغة الغلط، والنص بيبدأ من الأول لما تحوّل", "A heads-up when your keyboard is on the wrong language; the text restarts once you switch"],
-      ["الاختصارات بتتعرض على حسب نظام جهازك (ويندوز أو ماك)", "Shortcuts are shown for your device's system (Windows or Mac)"]
-    ]},
-    { v: "0.6.1", d: "2026-10-30", items: [
-      ["تحسينات في واجهة الموقع", "Interface improvements"],
-      ["«نص رقم ١ وفي ٨٠ نص في القسم ده»", "Clearer text counter in each section"]
-    ]},
-    { v: "0.6.0", d: "2026-10-30", big: true, items: [
-      ["«تاريخي»: العربي والإنجليزي كل واحد لوحده، وكارت لكل قسم", "History: Arabic and English kept apart, with a card per section"],
-      ["الحروف اللي بتغلط فيها، وخريطة الأيام، وأحسن أرقامك، وأيام ورا بعض", "Your weak keys, a calendar of active days, personal bests and a streak"],
+    { v: "0.3.0", d: "2026-10-30", big: true, items: [
+      ["الترتيب الأسبوعي: بتتنافس مع ناس في نفس مستواك في ٥ دوريات (ريشة، قلم، كاتب، خطّاط، طقطاق)، بالسرعة أو بالتحسّن أو بالدقايق. الانضمام اختياري وباسم تختاره", "Weekly leaderboard: compete with people at your level in five leagues, by speed, improvement or minutes. Joining is optional, under a name you choose"],
+      ["إيدين على الكيبورد بتوريك تحط صوابعك فين، والصباع اللي عليه الدور بيتحرك للزرار", "Hands on the keyboard show where your fingers rest and move the right finger to each key"],
+      ["«تاريخي»: العربي والإنجليزي كل واحد لوحده، وكارت لكل قسم، والحروف اللي بتغلط فيها، وخريطة الأيام، وأحسن أرقامك", "History: Arabic and English kept apart, a card per section, your weak keys, a calendar of active days and your personal bests"],
       ["هدف يومي بالدقايق", "A daily goal in minutes"],
-      ["تنبيه بتسجيل الدخول عشان نتايجك تتحفظ", "A reminder to sign in so your results are saved"]
+      ["تنبيه لو الكيبورد على اللغة الغلط، والنص بيبدأ من الأول لما تحوّل", "A heads-up when your keyboard is on the wrong language; the text restarts once you switch"],
+      ["الاختصارات بتتعرض على حسب جهازك (ويندوز أو ماك)", "Shortcuts are shown for your device (Windows or Mac)"],
+      ["أول ما تبدأ تكتب، الصفحة بتتظبط على النص والكيبورد", "When you start typing, the page scrolls to the text and keyboard"],
+      ["أول ما تدخل الموقع بيسألك عربي ولا إنجليزي، والشرح بيظهر باللغة اللي اخترتها", "On your first visit the site asks Arabic or English, and the tour shows in that language"],
+      ["مجتمع طقطقة على تليجرام: t.me/taqtaqaclub", "Taqtaqa community on Telegram: t.me/taqtaqaclub"],
+      ["رقم الإصدار في آخر الصفحة، وصفحة «سجل التحديثات» دي", "Version number at the bottom of the page, and this changelog page"],
+      ["تنبيه بتسجيل الدخول عشان نتايجك تتحفظ", "A reminder to sign in so your results are saved"],
+      ["تحديثات أمنية", "Security updates"],
+      ["تحسينات في واجهة الموقع", "Interface improvements"]
     ]},
-    { v: "0.5.1", d: "2026-10-29", items: [
-      ["Tab ما بيغيرش النص وانت بتكتب", "Tab no longer changes the text while you type"]
-    ]},
-    { v: "0.5.0", d: "2026-10-29", big: true, items: [
-      ["قسم «قرآن»: ٨٠ آية من مصحف تنزيل", "Quran section: 80 verses from the Tanzil text"]
-    ]},
-    { v: "0.4.0", d: "2026-10-29", big: true, items: [
-      ["نسخة إنجليزي كاملة من الموقع", "A full English version of the site"],
-      ["قسم اقتباسات إنجليزي", "English quotes section"]
-    ]},
-    { v: "0.3.0", d: "2026-10-29", big: true, items: [
-      ["هيدر ولوجو جداد", "New header and logo"],
+    { v: "0.2.0", d: "2026-10-29", big: true, items: [
+      ["نسخة إنجليزي كاملة من الموقع، وقسم اقتباسات إنجليزي", "A full English version of the site, and an English quotes section"],
+      ["قسم «قرآن»: ٨٠ آية من مصحف تنزيل", "Quran section: 80 verses from the Tanzil text"],
       ["زرار «شارك نتيجتك» بيعمل صورة للنتيجة", "Share your result as an image"],
-      ["قسم الاختصارات، وEsc بيوقّف الاختبار مؤقتًا", "Shortcuts section, and Esc pauses the test"],
       ["اتمرن على الكلمات اللي غلطت فيها", "Practice the words you got wrong"],
-      ["التشكيل بقى على كل النصوص، وثيمات أريح للعين", "Diacritics on every text, and easier-on-the-eyes themes"]
-    ]},
-    { v: "0.2.0", d: "2026-10-28", big: true, items: [
-      ["حسابات بـ Google: تاريخك وأحسن أرقامك على أي جهاز", "Google accounts: your history and bests on any device"],
-      ["المفضلة، و«آخر مرة» بمؤشر بيمشي بسرعتك القديمة", "Favorites, and a ghost caret at your last speed"],
-      ["قسم «أمثال سعودية»، وفورم «ابعتلنا رسالة»", "Saudi proverbs section, and a contact form"]
+      ["قسم الاختصارات، وEsc بيوقّف الاختبار مؤقتًا، وTab ما بيغيرش النص وانت بتكتب", "Shortcuts section, Esc pauses the test, and Tab no longer changes the text while you type"],
+      ["التشكيل بقى على كل النصوص", "Diacritics on every text"],
+      ["هيدر ولوجو جداد، وثيمات أريح للعين", "New header and logo, and easier-on-the-eyes themes"]
     ]},
     { v: "0.1.0", d: "2026-10-28", big: true, items: [
-      ["أول نسخة من طقطقة: اختبار كتابة بالعربي على أمثال وأفلام وحواديت وشعر", "First version of Taqtaqa: an Arabic typing test on proverbs, film lines, folk tales and poetry"],
+      ["أول نسخة من طقطقة: اختبار كتابة بالعربي على أمثال مصرية وسعودية، وأفلام، وحواديت، وشعر", "First version of Taqtaqa: an Arabic typing test on Egyptian and Saudi proverbs, film lines, folk tales and poetry"],
       ["كيبورد على الشاشة، وخط ثمانية، وثيمات، وتشكيل", "On-screen keyboard, the Thmanyah font, themes and diacritics"],
+      ["حسابات بـ Google: تاريخك وأحسن أرقامك على أي جهاز", "Google accounts: your history and bests on any device"],
+      ["المفضلة، و«آخر مرة» بمؤشر بيمشي بسرعتك القديمة", "Favorites, and a ghost caret at your last speed"],
+      ["فورم «ابعتلنا رسالة»", "A contact form"],
       ["الموقع بيشتغل من غير نت ويتنزّل كتطبيق", "Works offline and installs as an app"]
     ]}
   ];
