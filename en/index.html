@@ -139,10 +139,11 @@
 
   <section class="history" id="history" hidden aria-label="Test history">
     <div class="hhead">
-      <div><h2>Your history</h2><p id="hnote">Saved in this browser only. Sign in to keep it in your account and see it on any device.</p></div>
+      <div><div class="seg htabs" id="htabs" role="tablist"><button type="button" data-v="hist" class="on" role="tab">History</button><button type="button" data-v="lb" role="tab">Weekly leaderboard</button></div><h2 id="htitle">Your history</h2><p id="hnote">Saved in this browser only. Sign in to keep it in your account and see it on any device.</p></div>
       <button type="button" class="hclose" id="hclose">Back to typing <kbd>Esc</kbd></button>
     </div>
     <div id="hbody"></div>
+    <div id="lbbody" hidden></div>
   </section>
 
   <section class="kbwrap" id="kbwrap">

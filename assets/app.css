@@ -155,12 +155,13 @@ body.inhist .config{display:none}
 .kb{direction:ltr;display:flex;flex-direction:column;gap:5px;width:100%}
 /* الإيدين: شفافين فوق الزراير عشان الحروف تفضل باينة، والصباع اللي عليه الدور بلون الثيم */
 .hands{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
-.hands .rest{opacity:.13;transition:opacity .35s}
-.hands .rest rect{fill:var(--fg)}
-.hands .fg{stroke:var(--fg);stroke-linecap:round}
-.hands .act .fg{stroke:var(--accent);opacity:0;transition:opacity .15s}
-.hands .act .fg.on{opacity:.6}
-body.typing .hands .rest{opacity:.09}
+.hands .rest{opacity:.42;transition:opacity .35s}
+.hands .sk{fill:color-mix(in srgb,var(--fg) 28%,var(--key));stroke:var(--fg);stroke-opacity:.6;stroke-width:1.3;stroke-linejoin:round}
+.hands .nail{display:none}
+.hands .act .fg{opacity:0;transition:opacity .15s}
+.hands .act .sk{fill:var(--accent);fill-opacity:.45;stroke:var(--accent);stroke-opacity:1}
+.hands .act .fg.on{opacity:1}
+body.typing .hands .rest{opacity:.3}
 .row{display:grid;gap:5px}
 .r0{grid-template-columns:repeat(13,1fr) 2fr}
 .r1{grid-template-columns:1.5fr repeat(12,1fr) 1.5fr}
@@ -282,6 +283,44 @@ body.typing .hands .rest{opacity:.09}
 .hfoot button.danger{color:var(--err);border-color:transparent;background:none}
 .hfoot button.danger.armed{background:var(--err);color:var(--bg)}
 .hempty{color:var(--sub);padding:30px 0;font-size:15px}
+/* تابات «تاريخي»: تاريخك والترتيب الأسبوعي */
+.htabs{background:var(--panel);border-radius:8px;padding:2px;display:inline-flex;margin-bottom:10px}
+#lbbody{display:flex;flex-direction:column;gap:18px}
+#lbbody[hidden]{display:none}
+/* الترتيب الأسبوعي */
+.lbtop{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+.lbleague{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lbleague .lbl{color:var(--sub);font-size:13px}
+.lbleague b{font-family:var(--f-display);font-size:30px;color:var(--accent);line-height:1.1}
+.lbleague .rng{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums}
+.lbweek{color:var(--sub);font-size:13.5px}
+.lbpromo{margin:0;font-size:14.5px;color:var(--fg)}
+.lbjoin{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:12px;padding:14px 16px}
+.lbjoin b{font-size:15px}
+.lbjoin span{font-size:13.5px;color:var(--sub);line-height:1.7}
+.lbjoin .srow{display:flex;gap:8px;flex-wrap:wrap}
+.lbjoin input{font:inherit;font-size:15px;flex:1 1 180px;min-width:0;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 11px}
+.lbjoin input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.lbjoin button{font:inherit;font-size:14px;border-radius:8px;padding:8px 16px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--bg);font-weight:600}
+.lbjoin .err{color:var(--err);font-size:13px;min-height:1em}
+.lbleagues{display:flex;flex-wrap:wrap;gap:6px}
+.lbleagues button{font:inherit;font-size:13px;border-radius:999px;padding:4px 12px;cursor:pointer;border:1px solid var(--line);background:none;color:var(--sub)}
+.lbleagues button.mine{border-color:color-mix(in srgb,var(--accent) 55%,transparent)}
+.lbleagues button.on{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.lbnote{margin:0;color:var(--sub);font-size:13px}
+.lblist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;max-width:560px}
+.lblist li{display:grid;grid-template-columns:2.4em 1fr auto;align-items:baseline;gap:12px;background:var(--panel);border-radius:8px;padding:9px 14px;font-variant-numeric:tabular-nums}
+.lblist li .rk{color:var(--sub);font-size:13.5px}
+.lblist li:nth-child(-n+3):not(.gap) .rk{color:var(--accent);font-weight:600}
+.lblist li .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lblist li .nm em{font-style:normal;font-size:12px;color:var(--accent);margin-inline-start:4px}
+.lblist li .vl{font-weight:600}
+.lblist li .vl small{font-weight:400;color:var(--sub);font-size:12px}
+.lblist li.me{outline:1.5px solid var(--accent)}
+.lblist li.gap{display:block;background:none;text-align:center;color:var(--sub);padding:0}
+.lbchase{margin:0;font-size:14px;color:var(--accent)}
+.lbfoot{margin:0;color:var(--sub);font-size:13px}
+.lbfoot button{font:inherit;font-size:13px;background:none;border:0;color:var(--sub);text-decoration:underline;cursor:pointer;padding:0;margin-inline-start:6px}
 
 /* ============ الفوتر ============ */
 footer{color:var(--sub);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px}

@@ -296,6 +296,11 @@ whenReady(async () => {
     TQ.refreshHistory();
   }
 
+  /* الترتيب الأسبوعي: ملف لوحده بيستخدم نفس Firebase */
+  let board = null;
+  import("./assets/board.js").then((m) => { board = m; m.init({ db, F, TQ, getUser: () => user, openSignIn: () => openModal(viewSignIn) }); })
+    .catch((ex) => console.warn("taqtaqa board", ex));
+
   window.addEventListener("tq:result", async (e) => {
     if (!user) return;
     try {
@@ -303,6 +308,7 @@ whenReady(async () => {
       await setDoc(doc(resultsCol(user.uid), String(h.t)), clean(h));
       await setDoc(userDoc(user.uid), { pb: TQ.getPBs(), updatedAt: serverTimestamp() }, { merge: true });
     } catch (ex) { console.warn("taqtaqa sync", ex); }
+    if (board) board.publish();
   });
   window.addEventListener("tq:fav", async (e) => {
     if (!user) return;
@@ -338,6 +344,7 @@ whenReady(async () => {
       wasSignedIn = true;
       try {
         const r = await syncDown(u);
+        if (board) board.publish();
         TQ.toast(r.up ? (EN ? `Your history was saved to your account (${r.up} tests)` : `اتحفظ تاريخك في حسابك (${r.up.toLocaleString("ar-EG")} اختبار)`) : L("دخلت حسابك، وتاريخك متزامن", "You're signed in, and your history is synced"));
       } catch (ex) { console.warn("taqtaqa sync", ex); TQ.toast(L("ما قدرناش نزامن تاريخك دلوقتي. هنحاول تاني.", "We couldn't sync your history right now. We'll try again.")); }
     } else if (wasSignedIn) {

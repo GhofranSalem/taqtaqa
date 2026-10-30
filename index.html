@@ -137,10 +137,11 @@
 
   <section class="history" id="history" hidden aria-label="تاريخ الاختبارات">
     <div class="hhead">
-      <div><h2>تاريخك</h2><p id="hnote">محفوظ على المتصفح ده بس. سجّل دخول عشان يتحفظ في حسابك ويظهر على أي جهاز.</p></div>
+      <div><div class="seg htabs" id="htabs" role="tablist"><button type="button" data-v="hist" class="on" role="tab">تاريخك</button><button type="button" data-v="lb" role="tab">الترتيب الأسبوعي</button></div><h2 id="htitle">تاريخك</h2><p id="hnote">محفوظ على المتصفح ده بس. سجّل دخول عشان يتحفظ في حسابك ويظهر على أي جهاز.</p></div>
       <button type="button" class="hclose" id="hclose">رجوع للكتابة <kbd>Esc</kbd></button>
     </div>
     <div id="hbody"></div>
+    <div id="lbbody" hidden></div>
   </section>
 
   <section class="kbwrap" id="kbwrap">

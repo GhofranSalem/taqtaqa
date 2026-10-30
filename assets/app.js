@@ -486,6 +486,7 @@ function showResults(r){
       <button type="button" class="primary" id="b-new">${L("النص اللي بعده","Next text")}<kbd>Tab</kbd></button>
       ${missedWords().length?`<button type="button" class="practact" id="b-pract">${L("اتمرن على الكلمات دي","Practice these words")} (${AR_NUM(missedWords().length)})</button>`:""}
       <button type="button" class="shareact" id="b-share">${L("شارك نتيجتك","Share your result")}</button>
+      <button type="button" id="b-lb">${L("الترتيب الأسبوعي","Weekly leaderboard")}</button>
       <button type="button" id="b-same">${L("نفس النص تاني","Same text again")}<kbd>Shift+Enter</kbd></button>
       <button type="button" id="b-prev">${L("اللي قبله","Previous")}<kbd>Shift+Tab</kbd></button>
       ${curQuote()?'<button type="button" class="favact" id="b-fav"></button>':""}
@@ -493,6 +494,7 @@ function showResults(r){
   T.result=r;
   $("b-new").onclick=()=>go(1);
   $("b-share").onclick=()=>shareResult(r);
+  $("b-lb").onclick=()=>openHistory("lb");
   if($("b-pract")) $("b-pract").onclick=practiceMissed;
   $("b-same").onclick=()=>go(0);
   $("b-prev").onclick=()=>go(-1);
@@ -708,35 +710,57 @@ function handsLayout(){
   const on=cfg.kb&&cfg.hands&&!$("kbwrap").hidden&&box.offsetParent;
   box.classList.toggle("withhands",!!on);
   if(!on){ cancelAnimationFrame(handAnim); svg.innerHTML=""; HG=null; return; }
-  const B=box.getBoundingClientRect(), kr=$("kb").getBoundingClientRect();
+  const B=box.getBoundingClientRect();
   const c=code=>{ const k=kEl(code); if(!k) return null; const r=k.getBoundingClientRect(); return {x:r.left-B.left+r.width/2,y:r.top-B.top+r.height/2,w:r.width,h:r.height}; };
   const a=c("KeyA"), sp=c("Space"); if(!a||!sp) return;
-  /* الكف قاعد على صف المسافة، والصوابع طالعة منه لصف الوسط */
-  const kw=a.w, kh=a.h, fw=kw*.44, baseY=sp.y+kh*.05, palmH=Math.max(30,B.bottom-B.top-baseY+kh*.4);
+  /* الكف قاعد تحت صف المسافة، والصوابع طالعة منه لحد صف الوسط */
+  const kw=a.w, kh=a.h, baseY=sp.y+kh*.1, bottom=B.height+kh*.6;
   const keyPos={}; document.querySelectorAll("#kb .k").forEach(k=>{ keyPos[k.dataset.code]=c(k.dataset.code); });
-  const hands={L:["L5","L4","L3","L2"],R:["R2","R3","R4","R5"]}, G={keyPos,fw,kh,fingers:{},palms:[]};
+  /* عرض كل صباع: الخنصر أرفع، والإبهام أتخن */
+  const W={5:kw*.38,4:kw*.43,3:kw*.46,2:kw*.46,1:kw*.52};
+  const G={keyPos,kh,fingers:{},palms:[]};
   for(const side of ["L","R"]){
-    const fs=hands[side], homes=fs.map(f=>keyPos[HOME[f]]), cx=(homes[0].x+homes[3].x)/2;
-    /* قاعدة الصوابع أقرب لبعض من أطرافها، زي الإيد الحقيقية */
-    const pinky=side==="L"?0:3;
-    fs.forEach((f,i)=>{ const h=homes[i]; G.fingers[f]={base:{x:cx+(h.x-cx)*.72,y:baseY+(i===pinky?kh*.35:i===0||i===3?kh*.12:0)},tip:{x:h.x,y:h.y},home:HOME[f]}; });
-    const xs=fs.map(f=>G.fingers[f].base.x), x0=Math.min(...xs)-fw*.7, x1=Math.max(...xs)+fw*.7;
-    G.palms.push({x:x0,y:baseY-fw*.15,w:x1-x0,h:palmH});
+    const s=side==="L"?1:-1; /* ١: الإبهام ناحية اليمين (إيد شمال)، -١ العكس */
+    const fs=side==="L"?["L5","L4","L3","L2"]:["R5","R4","R3","R2"], homes=fs.map(f=>keyPos[HOME[f]]);
+    const cx=(homes[0].x+homes[3].x)/2;
+    /* قاعدة الصوابع أقرب لبعض من أطرافها، والخنصر أوطى شوية، زي الإيد الحقيقية */
+    const drop=[kh*.42,kh*.12,0,kh*.08];
+    fs.forEach((f,i)=>{ const h=homes[i]; G.fingers[f]={base:{x:cx+(h.x-cx)*.7,y:baseY+drop[i]+kh*.35},tip:{x:h.x,y:h.y},home:HOME[f],w:W[f[1]]}; });
+    const P={x:G.fingers[fs[0]].base.x,y:G.fingers[fs[0]].base.y-kh*.35}, I={x:G.fingers[fs[3]].base.x,y:G.fingers[fs[3]].base.y-kh*.35};
+    const out=P.x-s*W[5]*.75, inn=I.x+s*W[2]*.7;
+    /* الكف: حافة فوق مدوّرة عند جذور الصوابع، وجنب فيه مكان الإبهام، وتحت بيختفي */
+    G.palms.push(`M${out},${P.y+kh*.15} C${out},${P.y-kh*.25} ${(out+inn)/2},${baseY-kh*.35} ${inn},${I.y-kh*.05} C${inn+s*kw*.15},${I.y+kh*.35} ${inn+s*kw*.25},${baseY+kh*.9} ${inn+s*kw*.05},${bottom} L${out+s*kw*.2},${bottom} C${out-s*kw*.05},${baseY+kh*1.2} ${out-s*kw*.08},${P.y+kh*.6} ${out},${P.y+kh*.15} Z`);
     /* الإبهام: من جنب الكف لحد زرار المسافة */
-    const tf=side==="L"?"L1":"R1", tipX=sp.x+(side==="L"?-1:1)*sp.w*.22;
-    G.fingers[tf]={base:{x:side==="L"?x1-fw*.3:x0+fw*.3,y:baseY+kh*.75},tip:{x:tipX,y:sp.y-kh*.1},home:"Space",thumb:true,side};
+    const tf=side==="L"?"L1":"R1";
+    G.fingers[tf]={base:{x:inn-s*kw*.1,y:baseY+kh*.95},tip:{x:sp.x-s*sp.w*.2,y:sp.y-kh*.05},home:"Space",thumb:true,w:W[1]};
   }
   for(const f in G.fingers){ const F=G.fingers[f]; F.cur={...F.tip}; F.to={...F.tip}; }
+  const ids=Object.keys(G.fingers);
+  const fingerEls=()=>ids.map(f=>`<g class="fg" data-f="${f}"><path class="sk"/><ellipse class="nail"/></g>`).join("");
   svg.setAttribute("viewBox",`0 0 ${B.width} ${B.height}`);
-  svg.innerHTML=`<defs><linearGradient id="hfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".55" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="hmask"><rect x="0" y="${baseY-kh}" width="${B.width}" height="${B.height}" fill="url(#hfade)"/><rect x="0" y="0" width="${B.width}" height="${baseY-kh}" fill="#fff"/></mask></defs>
-    <g mask="url(#hmask)"><g class="rest">${G.palms.map(p=>`<rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="${fw*1.3}"/>`).join("")}
-    ${Object.keys(G.fingers).map(f=>`<line class="fg" data-f="${f}" stroke-width="${G.fingers[f].thumb?fw*1.15:fw}"/>`).join("")}</g>
-    <g class="act">${Object.keys(G.fingers).map(f=>`<line class="fg" data-f="${f}" stroke-width="${G.fingers[f].thumb?fw*1.15:fw}"/>`).join("")}</g></g>`;
+  svg.innerHTML=`<defs><linearGradient id="hfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <mask id="hmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${B.width}" height="${B.height}"><rect x="0" y="0" width="${B.width}" height="${baseY}" fill="#fff"/><rect x="0" y="${baseY}" width="${B.width}" height="${B.height-baseY}" fill="url(#hfade)"/></mask>
+    <mask id="hact" maskUnits="userSpaceOnUse" x="0" y="0" width="${B.width}" height="${B.height}"><rect x="0" y="0" width="${B.width}" height="${B.height}" fill="#fff"/>${G.palms.map(d=>`<path d="${d}" fill="#000"/>`).join("")}</mask></defs>
+    <g mask="url(#hmask)"><g class="rest">${fingerEls()}${G.palms.map(d=>`<path class="sk palm" d="${d}"/>`).join("")}</g><g class="act" mask="url(#hact)">${fingerEls()}</g></g>`;
   HG=G; drawHands();
+}
+/* صباع = شكل بيضيق شوية ناحية الطرف، وطرفه مدوّر، وعليه ضفر صغير */
+function fingerPath(b,t,w){
+  let dx=t.x-b.x, dy=t.y-b.y; const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
+  const nx=-dy, ny=dx, wb=w*1.06/2, wt=w*.9/2, r=n=>Math.round(n*10)/10;
+  const tx=t.x-dx*wt, ty=t.y-dy*wt; /* مركز دايرة الطرف */
+  return `M${r(b.x+nx*wb)},${r(b.y+ny*wb)} L${r(tx+nx*wt)},${r(ty+ny*wt)} A${r(wt)},${r(wt)} 0 0 0 ${r(tx-nx*wt)},${r(ty-ny*wt)} L${r(b.x-nx*wb)},${r(b.y-ny*wb)} Z`;
 }
 function drawHands(){
   if(!HG) return;
-  $("hands").querySelectorAll(".fg").forEach(l=>{ const F=HG.fingers[l.dataset.f]; l.setAttribute("x1",F.base.x); l.setAttribute("y1",F.base.y); l.setAttribute("x2",F.cur.x); l.setAttribute("y2",F.cur.y); });
+  $("hands").querySelectorAll(".fg").forEach(g=>{
+    const F=HG.fingers[g.dataset.f], b=F.base, t=F.cur;
+    g.firstChild.setAttribute("d",fingerPath(b,t,F.w));
+    const ang=Math.atan2(t.y-b.y,t.x-b.x)*180/Math.PI+90, nl=F.w*.62;
+    const dx=t.x-b.x, dy=t.y-b.y, len=Math.hypot(dx,dy)||1, k=(F.w*.5+nl*.05)/len;
+    const e=g.lastChild; e.setAttribute("cx",t.x-dx*k); e.setAttribute("cy",t.y-dy*k); e.setAttribute("rx",F.w*.27); e.setAttribute("ry",nl*.5);
+    e.setAttribute("transform",`rotate(${ang} ${t.x-dx*k} ${t.y-dy*k})`);
+  });
 }
 /* الصباع اللي عليه الدور بيروح للزرار، والباقي بيرجع مكانه */
 function handsTo(codes){
@@ -951,14 +975,25 @@ function addHist(r){
 /* التاريخ مقسوم: كتابة العربي لوحدها والإنجليزي لوحده. والاختبارات القديمة بنعرف لغتها من القسم */
 const histLang=h=>h.lang||(h.src==="en"?"en":"ar");
 let hFilter="all", hLang=null, hSrc="all", hShown=30, hArmed=false;
-function openHistory(){
+function openHistory(view){
   if(T&&T.timer&&!T.done){clearInterval(T.timer);}
   setTyping(false);
   $("stage").hidden=true; $("results").hidden=true; $("history").hidden=false; $("kbwrap").hidden=true;
   document.body.classList.add("inhist");
   hLang=T&&T.dir==="ltr"?"en":"ar"; hSrc="all";
-  hShown=30; hArmed=false; renderHistory(); ti.blur(); window.scrollTo(0,0);
+  hShown=30; hArmed=false; renderHistory(); showHTab(view==="lb"?"lb":"hist"); ti.blur(); window.scrollTo(0,0);
 }
+/* «تاريخي» فيه تابين: تاريخك، والترتيب الأسبوعي (من assets/board.js لما الحسابات تشتغل) */
+let hTab="hist";
+function showHTab(v){
+  hTab=v; const lb=v==="lb";
+  document.querySelectorAll("#htabs button").forEach(b=>{ const on=b.dataset.v===v; b.classList.toggle("on",on); b.setAttribute("aria-selected",on); });
+  $("hbody").hidden=lb; $("lbbody").hidden=!lb; $("hnote").hidden=lb;
+  $("htitle").textContent=lb?L("الترتيب الأسبوعي","Weekly leaderboard"):L("تاريخك","Your history");
+  if(lb){ if(window.TQ_LB) window.TQ_LB.render($("lbbody")); else $("lbbody").innerHTML=`<div class="hempty">${L("بيحمّل الترتيب…","Loading the leaderboard…")}</div>`; }
+}
+$("htabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(b) showHTab(b.dataset.v); });
+window.addEventListener("tq:lb",()=>{ if(hTab==="lb"&&!$("history").hidden) window.TQ_LB.render($("lbbody")); });
 function closeHistory(){ $("history").hidden=true; $("kbwrap").hidden=!cfg.kb; go(0); }
 function fmtDate(t){
   try{return new Date(t).toLocaleString(EN?"en-US":"ar-EG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});}catch(e){return new Date(t).toISOString().slice(0,16);}
@@ -1146,8 +1181,8 @@ function drawHist(S){
   const avg=S.map((s,i)=>{const w=S.slice(Math.max(0,i-9),i+1);return w.reduce((a,b)=>a+b.wpm,0)/w.length;});
   ctx.strokeStyle=tok("--accent"); ctx.lineWidth=2.5; ctx.lineJoin="round"; ctx.beginPath(); avg.forEach((v,i)=>i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v))); ctx.stroke();
 }
-$("histbtn").onclick=openHistory;
-if($("goalbtn")) $("goalbtn").onclick=openHistory;
+$("histbtn").onclick=()=>openHistory();
+if($("goalbtn")) $("goalbtn").onclick=()=>openHistory();
 $("hclose").onclick=closeHistory;
 
 /* ============ خطوط النص ============ */
@@ -1643,7 +1678,7 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!
 playIntro();
 
 /* واجهة صغيرة لـ cloud.js (الحسابات والمزامنة) */
-window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden) renderHistory(); showPB(); paintGoal(); }};
+window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden){ renderHistory(); if(hTab==="lb"&&window.TQ_LB) window.TQ_LB.render($("lbbody")); } showPB(); paintGoal(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 
