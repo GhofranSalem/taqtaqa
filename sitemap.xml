@@ -38,4 +38,16 @@
     <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/credits"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/credits"/>
   </url>
+  <url>
+    <loc>https://taqtaqa.com/changelog</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/changelog"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/changelog"/>
+  </url>
+  <url>
+    <loc>https://taqtaqa.com/en/changelog</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://taqtaqa.com/changelog"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://taqtaqa.com/en/changelog"/>
+  </url>
 </urlset>

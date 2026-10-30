@@ -324,7 +324,9 @@ body.typing .hands .rest{opacity:.3}
 /* ============ الفوتر ============ */
 footer{color:var(--sub);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:8px}
 footer a{color:var(--sub)}
-footer .flinks{display:flex;gap:18px}
+footer .flinks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px}
+footer .ver{font-size:12px;text-decoration:none;border:1px solid color-mix(in srgb,var(--sub) 45%,transparent);border-radius:999px;padding:1px 10px}
+footer .ver:hover{color:var(--accent);border-color:var(--accent)}
 .supbtn{font:inherit;font-size:13.5px;background:none;color:var(--fg);border:1.5px solid var(--accent);border-radius:999px;padding:5px 16px;cursor:pointer;transition:background .15s,color .15s}
 .supbtn:hover{background:var(--accent);color:var(--bg)}
 /* اختصارات هتساعدك تبقى سريع */

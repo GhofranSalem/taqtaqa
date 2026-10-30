@@ -13,11 +13,12 @@ let html = read("index.html")
   .replace(/<link rel="preload" href="fonts\/[^"]+" as="font"[^>]*>\n?/g, "")
   .replace('<link rel="stylesheet" href="assets/app.css">', () => `<style>\n${css}</style>`)
   .replace('<script src="assets/boot.js"></script>', () => `<script>\n${read("assets/boot.js")}</script>`)
+  .replace('<script src="assets/changelog.js"></script>', () => `<script>\n${read("assets/changelog.js")}</script>`)
   .replace('<script src="assets/data.js"></script>', () => `<script>\n${read("assets/data.js")}</script>`)
   .replace('<script src="assets/app.js"></script>', () => `<script>\n${read("assets/app.js")}</script>`)
   // الحسابات بتشتغل على taqtaqa.com بس
   .replace('<script type="module" src="cloud.js"></script>\n', "");
-for (const ref of ["assets/app.css", "assets/data.js", "assets/app.js", "fonts/"]) {
+for (const ref of ["assets/app.css", "assets/changelog.js", "assets/data.js", "assets/app.js", "fonts/"]) {
   if (html.includes(ref)) throw new Error("لسه فيه رابط لـ " + ref);
 }
 fs.writeFileSync(out, html);
