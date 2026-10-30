@@ -8,3 +8,4 @@ firestore.rules
 tools
 .wrangler
 bot.js
+.github

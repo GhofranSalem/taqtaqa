@@ -1,0 +1,43 @@
+# طقطقة: نشر الموقع على Cloudflare مع كل push على main.
+# محتاج سرّين في إعدادات الريبو (Settings > Secrets and variables > Actions):
+#   CLOUDFLARE_API_TOKEN   مفتاح من Cloudflare بقالب «Edit Cloudflare Workers»
+#   CLOUDFLARE_ACCOUNT_ID  رقم حساب Cloudflare
+# وتقدر تعيد النشر من تاب Actions بزرار «Run workflow».
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: No token yet
+        if: env.HAS_TOKEN != 'true'
+        run: echo "::warning::CLOUDFLARE_API_TOKEN مش متحط، النشر اتعدّى"
+      - name: Deploy
+        if: env.HAS_TOKEN == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.156.0"
+          command: deploy
+      - name: Check the site
+        if: env.HAS_TOKEN == 'true'
+        run: |
+          for i in 1 2 3 4 5 6; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://taqtaqa.com/) && [ "$code" = 200 ] && { echo "taqtaqa.com: $code"; exit 0; }
+            sleep 5
+          done
+          echo "::error::taqtaqa.com مش بيرد"; exit 1
