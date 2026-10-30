@@ -20,6 +20,8 @@ export default {
       return fetch(new Request(target, request), { redirect: "manual" });
     }
     if (url.pathname === "/api/feedback") return feedback(request, env);
+    // بيقول بس هل المفتاح السري بتاع Turnstile متحط ولا لأ، من غير ما يبيّن قيمته
+    if (url.pathname === "/api/health") return json(200, { ok: true, turnstile: !!env.TURNSTILE_SECRET });
     return secure(await env.ASSETS.fetch(request));
   }
 };
