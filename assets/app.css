@@ -157,9 +157,8 @@ body.inhist .config{display:none}
 .hands{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .hands .rest{opacity:.42;transition:opacity .35s}
 .hands .sk{fill:color-mix(in srgb,var(--fg) 28%,var(--key));stroke:var(--fg);stroke-opacity:.6;stroke-width:1.3;stroke-linejoin:round}
-.hands .nail{display:none}
 .hands .act .fg{opacity:0;transition:opacity .15s}
-.hands .act .sk{fill:var(--accent);fill-opacity:.45;stroke:var(--accent);stroke-opacity:1}
+.hands .act .sk{fill:var(--accent);fill-opacity:.35;stroke:var(--accent);stroke-opacity:1}
 .hands .act .fg.on{opacity:1}
 body.typing .hands .rest{opacity:.3}
 .row{display:grid;gap:5px}

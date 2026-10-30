@@ -1,7 +1,9 @@
 /* طقطقة: كود الموقع.
-   الأجزاء بالترتيب: الإعدادات واللغة، مساعدات، النصوص والأقسام، حالة الاختبار، الإدخال والاختصارات،
-   العرض، النتيجة، المشاركة، الكيبورد، الثيمات، آخر مرة، المفضلة، التاريخ (والأيام وأحسن الأرقام
-   والحروف والهدف اليومي)، الخطوط، الإعدادات، ادعم طقطقة، الاختصارات، النقل، الجولة، اللوجو، البداية. */
+   الأجزاء بالترتيب: الإعدادات واللغة، مساعدات، النصوص والأقسام، حالة الاختبار، الكيبورد على اللغة الغلط،
+   الإدخال والاختصارات، العرض، النتيجة (وتنبيه الدخول)، المشاركة، الكيبورد والإيدين، الثيمات، آخر مرة،
+   المفضلة، التاريخ (والأيام وأحسن الأرقام والحروف والهدف اليومي وتاب الترتيب)، الخطوط، الإعدادات،
+   ادعم طقطقة (وTurnstile)، الاختصارات، النقل، الجولة، اللوجو، حجم الشاشة، البداية.
+   الترتيب الأسبوعي نفسه في assets/board.js، والحسابات في cloud.js. */
 (function(){
 "use strict";
 
@@ -736,7 +738,7 @@ function handsLayout(){
   }
   for(const f in G.fingers){ const F=G.fingers[f]; F.cur={...F.tip}; F.to={...F.tip}; }
   const ids=Object.keys(G.fingers);
-  const fingerEls=()=>ids.map(f=>`<g class="fg" data-f="${f}"><path class="sk"/><ellipse class="nail"/></g>`).join("");
+  const fingerEls=()=>ids.map(f=>`<path class="fg sk" data-f="${f}"/>`).join("");
   svg.setAttribute("viewBox",`0 0 ${B.width} ${B.height}`);
   svg.innerHTML=`<defs><linearGradient id="hfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
     <mask id="hmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${B.width}" height="${B.height}"><rect x="0" y="0" width="${B.width}" height="${baseY}" fill="#fff"/><rect x="0" y="${baseY}" width="${B.width}" height="${B.height-baseY}" fill="url(#hfade)"/></mask>
@@ -744,7 +746,7 @@ function handsLayout(){
     <g mask="url(#hmask)"><g class="rest">${fingerEls()}${G.palms.map(d=>`<path class="sk palm" d="${d}"/>`).join("")}</g><g class="act" mask="url(#hact)">${fingerEls()}</g></g>`;
   HG=G; drawHands();
 }
-/* صباع = شكل بيضيق شوية ناحية الطرف، وطرفه مدوّر، وعليه ضفر صغير */
+/* صباع = شكل بيضيق شوية ناحية الطرف، وطرفه مدوّر */
 function fingerPath(b,t,w){
   let dx=t.x-b.x, dy=t.y-b.y; const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
   const nx=-dy, ny=dx, wb=w*1.06/2, wt=w*.9/2, r=n=>Math.round(n*10)/10;
@@ -753,14 +755,7 @@ function fingerPath(b,t,w){
 }
 function drawHands(){
   if(!HG) return;
-  $("hands").querySelectorAll(".fg").forEach(g=>{
-    const F=HG.fingers[g.dataset.f], b=F.base, t=F.cur;
-    g.firstChild.setAttribute("d",fingerPath(b,t,F.w));
-    const ang=Math.atan2(t.y-b.y,t.x-b.x)*180/Math.PI+90, nl=F.w*.62;
-    const dx=t.x-b.x, dy=t.y-b.y, len=Math.hypot(dx,dy)||1, k=(F.w*.5+nl*.05)/len;
-    const e=g.lastChild; e.setAttribute("cx",t.x-dx*k); e.setAttribute("cy",t.y-dy*k); e.setAttribute("rx",F.w*.27); e.setAttribute("ry",nl*.5);
-    e.setAttribute("transform",`rotate(${ang} ${t.x-dx*k} ${t.y-dy*k})`);
-  });
+  $("hands").querySelectorAll(".fg").forEach(p=>{ const F=HG.fingers[p.dataset.f]; p.setAttribute("d",fingerPath(F.base,F.cur,F.w)); });
 }
 /* الصباع اللي عليه الدور بيروح للزرار، والباقي بيرجع مكانه */
 function handsTo(codes){
@@ -1087,6 +1082,8 @@ function renderHistory(){
   if($("hsecall")) $("hsecall").onclick=()=>{hSrc="all";hShown=30;renderHistory();};
   if($("hmore")) $("hmore").onclick=()=>{hShown+=30;renderHistory();};
   $("hclear").onclick=()=>{ if(!hArmed){hArmed=true;renderHistory();return;} setHist([]); try{localStorage.removeItem("tq-pb");}catch(e){} hArmed=false; renderHistory(); showPB(); try{window.dispatchEvent(new Event("tq:clear"));}catch(e){} };
+  /* خريطة الأيام بتفتح على الأسابيع الأخيرة لو الشاشة ضيقة */
+  const cw=B.querySelector(".calwrap"); if(cw) cw.scrollLeft=EN?cw.scrollWidth:-cw.scrollWidth;
   if($("hweak")) $("hweak").onclick=()=>practiceKeys(weakKeys(V.langs[hLang]).filter(([c])=>!isMark(c)).slice(0,5).map(([c])=>c),hLang);
   if(a.length) drawHist(a.slice(-100));
 }
