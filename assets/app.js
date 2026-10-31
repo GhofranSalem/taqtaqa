@@ -1220,7 +1220,7 @@ function paintGoal(){
   b.classList.toggle("done",p>=1);
   b.querySelector(".gp").style.strokeDasharray=`${(C*p).toFixed(2)} ${C.toFixed(2)}`;
   const t=EN?`Today's goal: ${Math.floor(m)} of ${cfg.goal} min`:`هدف النهارده: ${AR_NUM(Math.floor(m))} من ${AR_NUM(cfg.goal)} دقايق`;
-  b.title=t; b.setAttribute("aria-label",t);
+  b.title=t+L(" (اضغط عشان تغيّره)"," (click to change it)"); b.setAttribute("aria-label",t);
   b.querySelector(".gt").textContent=p>=1?"✓":AR_NUM(Math.floor(m));
 }
 /* اسم الاختبار في التاريخ بلغة الصفحة، حتى لو اتعمل من الصفحة التانية */
@@ -1242,7 +1242,9 @@ function drawHist(S){
   ctx.strokeStyle=tok("--accent"); ctx.lineWidth=2.5; ctx.lineJoin="round"; ctx.beginPath(); avg.forEach((v,i)=>i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v))); ctx.stroke();
 }
 $("histbtn").onclick=()=>openHistory();
-if($("goalbtn")) $("goalbtn").onclick=()=>openHistory();
+/* دايرة الهدف: بتفتح «إعدادات» على الهدف اليومي عشان تغيّره */
+if($("goalbtn")) $("goalbtn").onclick=()=>{ openSetMenu(); const g=$("setmenu").querySelector('[data-k="goal"]'); if(!g) return;
+  (g.querySelector("button.on")||g.querySelector("button")).focus({preventScroll:true}); g.scrollIntoView({block:"nearest"}); g.classList.remove("flash"); void g.offsetWidth; g.classList.add("flash"); };
 $("hclose").onclick=closeHistory;
 
 /* ============ خطوط النص ============ */

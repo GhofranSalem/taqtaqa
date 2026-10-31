@@ -22,6 +22,7 @@
       ["شلنا علامات التنصيص اللي مش موجودة على الكيبورد من النصوص", "Removed quotation marks that are not on the keyboard from the texts"],
       ["الموبايل: النص ما بقاش بيطلع لفوق ويستخبّى ورا شريط الساعة لما الكيبورد يفتح", "Mobile: the text no longer jumps up behind the status bar when the keyboard opens"],
       ["قسم الأفلام اتظبط: حوارات حقيقية مشهورة بدل قصص الأفلام، زي حوارات الكيف ومرافعة ضد الحكومة", "Films section reworked: real famous dialogues instead of film summaries, like El Keif dialogues and the Against the Government courtroom speech"],
+      ["الهدف اليومي: الضغط على دايرة الهدف فوق بيفتح الإعدادات عليه على طول، واختيارات أكتر لحد ساعة", "Daily goal: clicking the goal ring at the top opens its settings directly, with more options up to an hour"],
       ["صفحة الخصوصية اتحدثت: جروب تليجرام وعدّاد الزيارات", "Privacy page updated: the Telegram group and the visit counter"],
       ["تحديثات أمنية", "Security updates"],
       ["تحسينات في واجهة الموقع", "Interface improvements"]

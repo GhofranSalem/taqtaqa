@@ -47,6 +47,9 @@ canvas{display:block;width:100%;height:190px}
 .seg button{font:inherit;font-size:13.5px;background:none;border:0;color:var(--sub);padding:5px 9px;border-radius:6px;cursor:pointer;transition:color .15s}
 .seg button:hover{color:var(--fg)}
 .seg button.on{color:var(--accent);font-weight:600}
+.goalseg{flex-wrap:wrap}
+.goalseg.flash{animation:gflash 1.2s ease}
+@keyframes gflash{0%,60%{box-shadow:0 0 0 2px var(--accent)}100%{box-shadow:0 0 0 2px transparent}}
 .seg button:disabled{opacity:.35;cursor:not-allowed}
 .seg .tog::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;margin-inline-end:6px;vertical-align:1px}
 .seg .tog.on::before{background:currentColor}
