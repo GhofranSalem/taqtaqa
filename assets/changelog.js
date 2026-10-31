@@ -17,6 +17,7 @@
   var CHANGES = [
     { v: "0.3.1", d: "2026-10-31", items: [
       ["قسم «كلام مصري» اتجدد: نصايح ومعلومات مفيدة بالمصري، في الأمان على النت، والفلوس، والصحة، والمذاكرة، والكتابة على الكيبورد", "The Egyptian Arabic section is renewed: useful tips and facts on online safety, money, health, studying and typing"],
+      ["كل قسم بقى فيه نصوص قصيرة ومتوسطة وطويلة وطويلة جدًا: معاني الأمثال وحكاياتها، وقصص الأفلام، وحكايات كليلة ودمنة، وقصايد أطول، وآيات أطول، ونكت جحا القصيرة", "Every section now has short, medium, long and extra-long texts: proverb meanings and stories, film stories, Kalila and Dimna tales, longer poems and verses, and short Goha jokes"],
       ["صفحة الخصوصية اتحدثت: جروب تليجرام وعدّاد الزيارات", "Privacy page updated: the Telegram group and the visit counter"],
       ["تحديثات أمنية", "Security updates"],
       ["تحسينات في واجهة الموقع", "Interface improvements"]
