@@ -153,12 +153,13 @@ body.inhist .config{display:none}
 .kb{direction:ltr;display:flex;flex-direction:column;gap:5px;width:100%}
 /* الإيدين: شفافين فوق الزراير عشان الحروف تفضل باينة، والصباع اللي عليه الدور بلون الثيم */
 .hands{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
-.hands{--hline:color-mix(in srgb,var(--fg) 62%,var(--bg));--hfill:color-mix(in srgb,var(--fg) 9%,var(--bg))}
-.hands .hand{opacity:.62;transition:opacity .35s}
+.hands{--hline:color-mix(in srgb,var(--fg) 58%,var(--bg));--hfill:color-mix(in srgb,var(--fg) 10%,var(--bg))}
+.hands .hand{opacity:.7;transition:opacity .35s}
 .hands .ol path{fill:var(--hfill);stroke:var(--hline);stroke-width:var(--hsw,3px);stroke-linejoin:round;stroke-linecap:round}
 .hands .fl path{fill:var(--hfill);stroke:none}
-.hands .act .fg{opacity:0;fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:calc(var(--hsw,3px)/2);stroke-linejoin:round;transition:opacity .15s}
-.hands .act .fg.on{opacity:1}
+.hands .ol .fg{transition:stroke .15s}
+.hands .ol .fg.on{stroke:var(--accent)}
+.hands .fg.on{fill:color-mix(in srgb,var(--accent) 38%,var(--hfill))}
 body.typing .hands .hand{opacity:.45}
 .row{display:grid;gap:5px}
 .r0{grid-template-columns:repeat(13,1fr) 2fr}
