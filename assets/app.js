@@ -226,10 +226,23 @@ function appendWords(){
 function startTest(){ T.started=true; T.t0=performance.now(); T.timer=setInterval(tick,100); setTyping(true); runGhost(); fitStage(); }
 /* أول ما تبدأ تكتب: لو النص أو الكيبورد مش باينين كاملين، الصفحة بتتظبط عليهم (النص فوق والكيبورد تحته).
    من غيرها المتصفح كان بيطلع الصفحة لمكان عشوائي عشان يوري خانة الكتابة */
+/* المسافة اللي لازم تفضل فوق النص: شريط الساعة والبطارية في الموبايل (safe area) + هامش صغير */
+let safeTopPx=null;
+function topGap(){
+  if(safeTopPx===null){ const d=document.createElement("div"); d.style.cssText="position:fixed;top:0;height:env(safe-area-inset-top,0px);visibility:hidden"; document.body.appendChild(d); safeTopPx=d.offsetHeight||0; d.remove(); }
+  return safeTopPx+(matchMedia("(pointer:coarse)").matches?20:12);
+}
+/* مكان العنصر جوّه الجزء الظاهر من الشاشة (في الموبايل الكيبورد بيصغّره، والصفحة ممكن تتزق لفوق) */
+function inView(r){ const vv=window.visualViewport; return {top:r.top-(vv?vv.offsetTop:0),bottom:r.bottom-(vv?vv.offsetTop:0),h:vv?vv.height:window.innerHeight}; }
 function fitStage(){
-  const st=$("stage").getBoundingClientRect(), kw=$("kbwrap");
-  const bottom=cfg.kb&&!kw.hidden&&kw.offsetParent?kw.getBoundingClientRect().bottom:st.bottom;
-  if(st.top<0||bottom>window.innerHeight) window.scrollTo({top:Math.max(0,window.scrollY+st.top-12),behavior:"instant"});
+  const kw=$("kbwrap"), st=inView($("stage").getBoundingClientRect());
+  const bottom=cfg.kb&&!kw.hidden&&kw.offsetParent?inView(kw.getBoundingClientRect()).bottom:st.bottom;
+  if(st.top<topGap()-2||bottom>st.h) window.scrollBy({top:st.top-topGap(),behavior:"instant"});
+}
+/* الموبايل: النص يفضل ظاهر تحت شريط الساعة، ولو الكيبورد غطّاه يطلع فوقه. بنظبط بعد ما الكيبورد يخلص فتح */
+function stageToTop(){
+  const st=inView($("stage").getBoundingClientRect()), w=inView($("words").getBoundingClientRect());
+  if(st.top<topGap()-2||w.top+Math.min(w.bottom-w.top,120)>st.h) window.scrollBy({top:st.top-topGap(),behavior:"smooth"});
 }
 function pauseTest(){
   if(!T||!T.started||T.done||T.paused) return;
@@ -318,7 +331,10 @@ ti.addEventListener("keydown",e=>{
   }
 });
 ti.addEventListener("focus",()=>{slab.classList.remove("blur");fmsg.hidden=true;
-  if(matchMedia("(pointer:coarse)").matches) setTimeout(()=>{ try{$("stage").scrollIntoView({block:"start",behavior:"smooth"});}catch(e){} },250);
+  if(matchMedia("(pointer:coarse)").matches){
+    setTimeout(stageToTop,300);
+    const vv=window.visualViewport; if(vv){ let t; const on=()=>{ clearTimeout(t); t=setTimeout(stageToTop,120); }; vv.addEventListener("resize",on); setTimeout(()=>vv.removeEventListener("resize",on),1500); }
+  }
 });
 ti.addEventListener("blur",()=>{ if(!T.done){slab.classList.add("blur");fmsg.hidden=false;} });
 function focusInput(){ if(!$("tpanel").hidden||tourOpen()) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
