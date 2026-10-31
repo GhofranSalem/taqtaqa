@@ -134,6 +134,8 @@ function go(dir){
   /* dir: ١ اللي بعده، -١ اللي قبله، ٠ نفس النص */
   if(dir<0){ if(hpos>0) hpos--; else return flashNav(L("ده أول نص","This is the first text")); }
   else if(dir>0||hpos<0){
+    /* لو مفيش غير نص واحد بالطول ده، Tab ما يعيدوش ويعدّ إنه نص جديد */
+    const cur=hist[hpos]; if(dir>0&&cur&&cur.quote&&cur.count===1&&hpos===hist.length-1) return flashNav(L("ده النص الوحيد بالطول ده في القسم ده","This is the only text of this length here"));
     if(hpos<hist.length-1) hpos++;
     else { hist.push(buildWords()); if(hist.length>50) hist.shift(); hpos=hist.length-1; }
   }
@@ -143,7 +145,7 @@ function resetHistory(){ hist=[]; hpos=-1; go(1); }
 function flashNav(msg){ $("navhint").textContent=msg; clearTimeout(flashNav.t); flashNav.t=setTimeout(updateNav,1200); }
 function updateNav(){
   const b=hist[hpos]; let s="";
-  if(cfg.mode==="quote"&&b&&b.count) s=EN?`Text ${hpos+1} of ${b.count} in this section`:"نص رقم "+AR_NUM(hpos+1)+" وفي "+AR_NUM(b.count)+" نص في القسم ده";
+  if(cfg.mode==="quote"&&b&&b.count) s=EN?`Text ${hpos%b.count+1} of ${b.count} in this section`:"نص رقم "+AR_NUM(hpos%b.count+1)+" وفي "+AR_NUM(b.count)+" نص في القسم ده";
   $("navhint").textContent=s;
 }
 function start(b){
