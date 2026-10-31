@@ -21,6 +21,7 @@
       ["رسمة جديدة للإيدين على الكيبورد: صوابع وكف ورسغ بخط واحد زي الرسم بالقلم، والصباع اللي عليه الدور بيتلوّن ويميل ناحية الزرار", "New hands drawing on the keyboard: fingers, palm and wrist in one pen-like outline, and the finger whose turn it is lights up and leans toward the key"],
       ["شلنا علامات التنصيص اللي مش موجودة على الكيبورد من النصوص", "Removed quotation marks that are not on the keyboard from the texts"],
       ["الموبايل: النص ما بقاش بيطلع لفوق ويستخبّى ورا شريط الساعة لما الكيبورد يفتح", "Mobile: the text no longer jumps up behind the status bar when the keyboard opens"],
+      ["قسم الأفلام: حوار «الشخاليل والشواشي» من فيلم الكيف", "Films section: the famous jargon dialogue from El Keif"],
       ["صفحة الخصوصية اتحدثت: جروب تليجرام وعدّاد الزيارات", "Privacy page updated: the Telegram group and the visit counter"],
       ["تحديثات أمنية", "Security updates"],
       ["تحسينات في واجهة الموقع", "Interface improvements"]
