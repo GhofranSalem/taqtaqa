@@ -16,6 +16,7 @@
   var BETA = true;
   var CHANGES = [
     { v: "0.3.1", d: "2026-10-31", items: [
+      ["قسم «كلام مصري» اتجدد: نصايح ومعلومات مفيدة بالمصري، في الأمان على النت، والفلوس، والصحة، والمذاكرة، والكتابة على الكيبورد", "The Egyptian Arabic section is renewed: useful tips and facts on online safety, money, health, studying and typing"],
       ["صفحة الخصوصية اتحدثت: جروب تليجرام وعدّاد الزيارات", "Privacy page updated: the Telegram group and the visit counter"],
       ["تحديثات أمنية", "Security updates"],
       ["تحسينات في واجهة الموقع", "Interface improvements"]
