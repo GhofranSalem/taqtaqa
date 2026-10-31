@@ -14,3 +14,4 @@ package-lock.json
 .nojekyll
 README.md
 stats.js
+CLAUDE.md
