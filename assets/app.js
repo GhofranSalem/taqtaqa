@@ -34,6 +34,7 @@ function canonMarks(t){return t.replace(/[\u064B-\u0652]{2,}/g,r=>[...r].sort((a
 /* الحركات بتظهر لما اختيار التشكيل يكون شغال، وبتتشال لما يتقفل */
 function clean(t,tk){
   t=(cfg.tashkeel&&tk)?canonMarks(t.replace(/[\u0670\u0640]/g,"")):t.replace(TASHKEEL,"");
+  t=t.replace(/[«»“”]/g,""); /* علامات تنصيص مش موجودة على الكيبورد */
   t=t.replace(/\.{2,}/g,/[\u0600-\u06FF]/.test(t)?"،":".").replace(/[ﻻﻹﻷﻵ]/g,m=>({"ﻻ":"لا","ﻹ":"لإ","ﻷ":"لأ","ﻵ":"لآ"}[m]));
   if(!cfg.punct) t=t.replace(/[،؛؟!?;.:,"«»\-]/g," ");
   return t.replace(/\s+/g," ").trim();
@@ -712,7 +713,9 @@ const FINGER={};
  ["R1","Space AltRight"],["L1","AltLeft"]].forEach(([f,cs])=>cs.split(" ").forEach(c=>FINGER[c]=f));
 const HOME={L5:"KeyA",L4:"KeyS",L3:"KeyD",L2:"KeyF",L1:"Space",R1:"Space",R2:"KeyJ",R3:"KeyK",R4:"KeyL",R5:"Semicolon"};
 let HG=null, handAnim=0;
-/* بيحسب أماكن الصوابع من أماكن الزراير الحقيقية على الشاشة */
+/* بيحسب أماكن الصوابع من أماكن الزراير الحقيقية على الشاشة.
+   الرسمة: كل إيد خط واحد متصل حوالين الصوابع والكف (زي الرسم بالقلم)، والكف نازل تحت الكيبورد ويختفي.
+   الحيلة: بنرسم كل الأجزاء مرتين، مرّة بالخط ومرّة من غير خط فوقها، فالخطوط اللي جوّه الإيد بتتغطّى ويفضل الخط الخارجي بس */
 function handsLayout(){
   const svg=$("hands"), box=$("kbbox");
   const on=cfg.kb&&cfg.hands&&!$("kbwrap").hidden&&box.offsetParent;
@@ -720,48 +723,59 @@ function handsLayout(){
   if(!on){ cancelAnimationFrame(handAnim); svg.innerHTML=""; HG=null; return; }
   const B=box.getBoundingClientRect();
   const c=code=>{ const k=kEl(code); if(!k) return null; const r=k.getBoundingClientRect(); return {x:r.left-B.left+r.width/2,y:r.top-B.top+r.height/2,w:r.width,h:r.height}; };
-  const a=c("KeyA"), sp=c("Space"); if(!a||!sp) return;
-  /* الكف قاعد تحت صف المسافة، والصوابع طالعة منه لحد صف الوسط */
-  const kw=a.w, kh=a.h, baseY=sp.y+kh*.1, bottom=B.height+kh*.6;
+  const a=c("KeyA"), sp=c("Space"), z=c("KeyZ"); if(!a||!sp||!z) return;
+  const kw=a.w, kh=a.h, rowH=z.y-a.y, bottom=B.height+kh*1.4;
   const keyPos={}; document.querySelectorAll("#kb .k").forEach(k=>{ keyPos[k.dataset.code]=c(k.dataset.code); });
-  /* عرض كل صباع: الخنصر أرفع، والإبهام أتخن */
-  const W={5:kw*.38,4:kw*.43,3:kw*.46,2:kw*.46,1:kw*.52};
-  const G={keyPos,kh,fingers:{},palms:[]};
+  /* عرض كل صباع ومدى ميله: الخنصر أرفع وأقصر ومايل لبرّه، والسبابة أتخن */
+  const W={5:kw*.48,4:kw*.54,3:kw*.57,2:kw*.58,1:kw*.66};
+  const BEND={5:.1,4:.05,3:.02,2:-.03};
+  const G={keyPos,kh,kw,fingers:{},palms:[],sw:Math.max(1.4,kw*.034)};
   for(const side of ["L","R"]){
-    const s=side==="L"?1:-1; /* ١: الإبهام ناحية اليمين (إيد شمال)، -١ العكس */
+    const s=side==="L"?1:-1; /* ١: الإبهام ناحية اليمين (إيد شمال) */
     const fs=side==="L"?["L5","L4","L3","L2"]:["R5","R4","R3","R2"], homes=fs.map(f=>keyPos[HOME[f]]);
     const cx=(homes[0].x+homes[3].x)/2;
-    /* قاعدة الصوابع أقرب لبعض من أطرافها، والخنصر أوطى شوية، زي الإيد الحقيقية */
-    const drop=[kh*.42,kh*.12,0,kh*.08];
-    fs.forEach((f,i)=>{ const h=homes[i]; G.fingers[f]={base:{x:cx+(h.x-cx)*.7,y:baseY+drop[i]+kh*.35},tip:{x:h.x,y:h.y},home:HOME[f],w:W[f[1]]}; });
-    const P={x:G.fingers[fs[0]].base.x,y:G.fingers[fs[0]].base.y-kh*.35}, I={x:G.fingers[fs[3]].base.x,y:G.fingers[fs[3]].base.y-kh*.35};
-    const out=P.x-s*W[5]*.75, inn=I.x+s*W[2]*.7;
-    /* الكف: حافة فوق مدوّرة عند جذور الصوابع، وجنب فيه مكان الإبهام، وتحت بيختفي */
-    G.palms.push(`M${out},${P.y+kh*.15} C${out},${P.y-kh*.25} ${(out+inn)/2},${baseY-kh*.35} ${inn},${I.y-kh*.05} C${inn+s*kw*.15},${I.y+kh*.35} ${inn+s*kw*.25},${baseY+kh*.9} ${inn+s*kw*.05},${bottom} L${out+s*kw*.2},${bottom} C${out-s*kw*.05},${baseY+kh*1.2} ${out-s*kw*.08},${P.y+kh*.6} ${out},${P.y+kh*.15} Z`);
-    /* الإبهام: من جنب الكف لحد زرار المسافة */
+    /* جذور الصوابع: أقرب لبعض من أطرافها، والخنصر أوطى، والوسطى أعلى حاجة */
+    const rootY=[a.y+rowH*2.25,a.y+rowH*2.05,a.y+rowH*2,a.y+rowH*2.1];
+    fs.forEach((f,i)=>{ const h=homes[i]; G.fingers[f]={base:{x:cx+(h.x-cx)*.78,y:rootY[i]},tip:{x:h.x,y:h.y+kh*.08},home:HOME[f],w:W[f[1]],bend:BEND[f[1]]*s}; });
+    const P=G.fingers[fs[0]].base, I=G.fingers[fs[3]].base;
+    const out=P.x-s*W[5]*.55, inn=I.x+s*W[2]*.5, topY=Math.min(P.y,I.y);
+    /* الكف: الحافة البرّانية نازلة لتحت، والجوّانية فيها مكان الإبهام، وتحت بيختفي */
+    G.palms.push(`M${out},${P.y-kh*.1} C${out-s*kw*.08},${P.y+kh*.8} ${out-s*kw*.1},${P.y+kh*1.6} ${out-s*kw*.04},${bottom}
+      L${inn+s*kw*.25},${bottom} C${inn+s*kw*.3},${P.y+kh*1.4} ${inn+s*kw*.1},${I.y+kh*.6} ${inn},${I.y-kh*.1}
+      C${inn-s*kw*.4},${topY-kh*.35} ${out+s*kw*.4},${topY-kh*.35} ${out},${P.y-kh*.1} Z`);
+    /* الإبهام: طالع من جنب الكف ورايح لزرار المسافة */
     const tf=side==="L"?"L1":"R1";
-    G.fingers[tf]={base:{x:inn-s*kw*.1,y:baseY+kh*.95},tip:{x:sp.x-s*sp.w*.2,y:sp.y-kh*.05},home:"Space",thumb:true,w:W[1]};
+    G.fingers[tf]={base:{x:inn-s*kw*.15,y:I.y+kh*1.55},tip:{x:inn+s*kw*1.25,y:sp.y-kh*.05},home:"Space",thumb:true,w:W[1],bend:.1*s};
   }
   for(const f in G.fingers){ const F=G.fingers[f]; F.cur={...F.tip}; F.to={...F.tip}; }
-  const ids=Object.keys(G.fingers);
-  const fingerEls=()=>ids.map(f=>`<path class="fg sk" data-f="${f}"/>`).join("");
+  const ids=Object.keys(G.fingers), parts=()=>ids.map(f=>`<path class="fg" data-f="${f}"/>`).join("")+G.palms.map(d=>`<path d="${d}"/>`).join("");
   svg.setAttribute("viewBox",`0 0 ${B.width} ${B.height}`);
-  svg.innerHTML=`<defs><linearGradient id="hfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-    <mask id="hmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${B.width}" height="${B.height}"><rect x="0" y="0" width="${B.width}" height="${baseY}" fill="#fff"/><rect x="0" y="${baseY}" width="${B.width}" height="${B.height-baseY}" fill="url(#hfade)"/></mask>
-    <mask id="hact" maskUnits="userSpaceOnUse" x="0" y="0" width="${B.width}" height="${B.height}"><rect x="0" y="0" width="${B.width}" height="${B.height}" fill="#fff"/>${G.palms.map(d=>`<path d="${d}" fill="#000"/>`).join("")}</mask></defs>
-    <g mask="url(#hmask)"><g class="rest">${fingerEls()}${G.palms.map(d=>`<path class="sk palm" d="${d}"/>`).join("")}</g><g class="act" mask="url(#hact)">${fingerEls()}</g></g>`;
+  svg.style.setProperty("--hsw",G.sw*2+"px");
+  svg.innerHTML=`<defs><linearGradient id="hfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <mask id="hmask" maskUnits="userSpaceOnUse" x="0" y="-10" width="${B.width}" height="${bottom+10}"><rect x="0" y="-10" width="${B.width}" height="${sp.y+10}" fill="#fff"/><rect x="0" y="${sp.y}" width="${B.width}" height="${bottom-sp.y}" fill="url(#hfade)"/></mask>
+    <mask id="hact" maskUnits="userSpaceOnUse" x="0" y="-10" width="${B.width}" height="${bottom+10}"><rect x="0" y="-10" width="${B.width}" height="${bottom+10}" fill="#fff"/>${G.palms.map(d=>`<path d="${d}" fill="#000"/>`).join("")}</mask></defs>
+    <g mask="url(#hmask)"><g class="hand"><g class="ol">${parts()}</g><g class="fl">${parts()}</g></g>
+    <g class="act" mask="url(#hact)">${ids.map(f=>`<path class="fg" data-f="${f}"/>`).join("")}</g></g>`;
   HG=G; drawHands();
 }
-/* صباع = شكل بيضيق شوية ناحية الطرف، وطرفه مدوّر */
-function fingerPath(b,t,w){
-  let dx=t.x-b.x, dy=t.y-b.y; const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
-  const nx=-dy, ny=dx, wb=w*1.06/2, wt=w*.9/2, r=n=>Math.round(n*10)/10;
-  const tx=t.x-dx*wt, ty=t.y-dy*wt; /* مركز دايرة الطرف */
-  return `M${r(b.x+nx*wb)},${r(b.y+ny*wb)} L${r(tx+nx*wt)},${r(ty+ny*wt)} A${r(wt)},${r(wt)} 0 0 0 ${r(tx-nx*wt)},${r(ty-ny*wt)} L${r(b.x-nx*wb)},${r(b.y-ny*wb)} Z`;
+/* صباع: خط منحني شوية، بيضيق ناحية الطرف، وطرفه مدوّر */
+function fingerPath(b,t,w,bend){
+  const r=n=>Math.round(n*10)/10, dx=t.x-b.x, dy=t.y-b.y, len=Math.hypot(dx,dy)||1;
+  const cpx=(b.x+t.x)/2+(-dy/len)*len*bend, cpy=(b.y+t.y)/2+(dx/len)*len*bend;
+  const N=14, L=[], R=[];
+  for(let i=0;i<=N;i++){
+    const u=i/N, x=(1-u)*(1-u)*b.x+2*(1-u)*u*cpx+u*u*t.x, y=(1-u)*(1-u)*b.y+2*(1-u)*u*cpy+u*u*t.y;
+    let tx=2*(1-u)*(cpx-b.x)+2*u*(t.x-cpx), ty=2*(1-u)*(cpy-b.y)+2*u*(t.y-cpy); const tl=Math.hypot(tx,ty)||1; tx/=tl; ty/=tl;
+    const hw=w/2*(1.12-.26*u); /* أعرض عند الجذر */
+    L.push([x-ty*hw,y+tx*hw]); R.push([x+ty*hw,y-tx*hw]);
+  }
+  const hw=w/2*.86;
+  return "M"+L.map(p=>r(p[0])+","+r(p[1])).join(" L")+` A${r(hw)},${r(hw)} 0 0 0 `+R.slice().reverse().map(p=>r(p[0])+","+r(p[1])).join(" L")+" Z";
 }
 function drawHands(){
   if(!HG) return;
-  $("hands").querySelectorAll(".fg").forEach(p=>{ const F=HG.fingers[p.dataset.f]; p.setAttribute("d",fingerPath(F.base,F.cur,F.w)); });
+  const svg=$("hands");
+  svg.querySelectorAll(".fg").forEach(p=>{ const F=HG.fingers[p.dataset.f]; p.setAttribute("d",fingerPath(F.base,F.cur,F.w,F.bend)); });
 }
 /* الصباع اللي عليه الدور بيروح للزرار، والباقي بيرجع مكانه */
 function handsTo(codes){

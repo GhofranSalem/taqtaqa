@@ -149,16 +149,17 @@ body.inhist .config{display:none}
 .kbwrap{display:flex;flex-direction:column;gap:10px}
 .kbhead{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;color:var(--sub);font-size:13px}
 .kbbox{position:relative;max-width:860px;width:100%;margin:0 auto}
-.kbbox.withhands{padding-bottom:clamp(24px,4vw,40px)}
+.kbbox.withhands{padding-bottom:clamp(40px,7vw,80px)}
 .kb{direction:ltr;display:flex;flex-direction:column;gap:5px;width:100%}
 /* الإيدين: شفافين فوق الزراير عشان الحروف تفضل باينة، والصباع اللي عليه الدور بلون الثيم */
 .hands{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
-.hands .rest{opacity:.42;transition:opacity .35s}
-.hands .sk{fill:color-mix(in srgb,var(--fg) 28%,var(--key));stroke:var(--fg);stroke-opacity:.6;stroke-width:1.3;stroke-linejoin:round}
-.hands .act .fg{opacity:0;transition:opacity .15s}
-.hands .act .sk{fill:var(--accent);fill-opacity:.35;stroke:var(--accent);stroke-opacity:1}
+.hands{--hline:color-mix(in srgb,var(--fg) 62%,var(--bg));--hfill:color-mix(in srgb,var(--fg) 9%,var(--bg))}
+.hands .hand{opacity:.62;transition:opacity .35s}
+.hands .ol path{fill:var(--hfill);stroke:var(--hline);stroke-width:var(--hsw,3px);stroke-linejoin:round;stroke-linecap:round}
+.hands .fl path{fill:var(--hfill);stroke:none}
+.hands .act .fg{opacity:0;fill:var(--accent);fill-opacity:.22;stroke:var(--accent);stroke-width:calc(var(--hsw,3px)/2);stroke-linejoin:round;transition:opacity .15s}
 .hands .act .fg.on{opacity:1}
-body.typing .hands .rest{opacity:.3}
+body.typing .hands .hand{opacity:.45}
 .row{display:grid;gap:5px}
 .r0{grid-template-columns:repeat(13,1fr) 2fr}
 .r1{grid-template-columns:1.5fr repeat(12,1fr) 1.5fr}
