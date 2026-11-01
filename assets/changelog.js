@@ -15,6 +15,9 @@
   "use strict";
   var BETA = true;
   var CHANGES = [
+    { v: "0.4.0", d: "2026-11-01", big: true, items: [
+      ["«نصك»: اتمرن على أي نص من عندك. الصقه أو ارفع ملف .txt، وكل فقرة بتبقى نص لوحدها", "Your text: practice on any text you like. Paste it or upload a .txt file, and each paragraph becomes its own text"]
+    ]},
     { v: "0.3.1", d: "2026-10-31", items: [
       ["قسم «كلام مصري» اتجدد: نصايح ومعلومات مفيدة بالمصري، في الأمان على النت، والفلوس، والصحة، والمذاكرة، والكتابة على الكيبورد", "The Egyptian Arabic section is renewed: useful tips and facts on online safety, money, health, studying and typing"],
       ["كل قسم بقى فيه نصوص قصيرة ومتوسطة وطويلة وطويلة جدًا: معاني الأمثال وحكاياتها، وحكايات كليلة ودمنة، وقصايد أطول، وآيات أطول، ونكت جحا القصيرة", "Every section now has short, medium, long and extra-long texts: proverb meanings and stories, Kalila and Dimna tales, longer poems and verses, and short Goha jokes"],

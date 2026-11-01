@@ -32,7 +32,7 @@ const weekId = (t) => new Date(weekStart(t)).toISOString().slice(0, 10);
 const langOf = (h) => h.lang || (h.src === "en" ? "en" : "ar");
 
 /* اختبار بيتحسب في السرعة: مش تمرين، و١٥ ثانية على الأقل، ودقته ٩٠٪ أو أكتر، ورقمه منطقي */
-const counts = (h) => h.src !== "practice" && h.mode !== "practice" && (h.el || 0) >= 15 && h.acc >= 90 && h.wpm > 0 && h.wpm <= 200;
+const counts = (h) => h.src !== "practice" && h.src !== "custom" && h.mode !== "practice" && (h.el || 0) >= 15 && h.acc >= 90 && h.wpm > 0 && h.wpm <= 200;
 const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
 
 /* بيحسب أرقامك في أسبوع ولغة معيّنة من تاريخك */

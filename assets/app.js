@@ -65,6 +65,8 @@ const CATS={
   en:()=>EN_QUOTES.map(([t,s])=>({t,s,en:true})),
   /* القرآن: قسم لوحده، ومش داخل في «مكس» */
   quran:()=>QURAN.map(([t,n,a,b])=>({t,s:quranSrc(n,a,b),tk:true,quran:true})),
+  /* نص من عندك: محفوظ على المتصفح بس، وكل فقرة نص لوحدها. مش داخل في «مكس» ولا المفضلة */
+  custom:()=>customQuotes(),
   fav:()=>{ const cur=new Map(); AR_CATS.concat("en","quran").forEach(c=>CATS[c]().forEach(q=>cur.set(favKey(q.t),q))); return getFavs().map(f=>cur.get(favKey(f.t))||{t:f.t,s:f.s,tk:f.tk,en:f.en||!/[\u0600-\u06FF]/.test(f.t)}); }
 };
 /* «سورة البقرة، الآية ٢٥٥» أو «Quran, Al-Baqarah 2:255» */
@@ -82,6 +84,8 @@ function lenCat(t){const n=t.replace(TASHKEEL,"").length;return n<70?"s":n<180?"
 /* شنطة بتلف على كل النصوص قبل ما تكرر */
 const bags={};
 function draw(key,list){
+  /* نصك بيمشي بالترتيب: فقرة ورا فقرة، مش عشوائي */
+  if(/^(q|stream)-custom/.test(key)){ const i=(bags[key]||0)%list.length; bags[key]=i+1; return list[i]; }
   let b=bags[key]; if(!b||!b.length) b=bags[key]=shuffle(list);
   return b.pop();
 }
@@ -109,6 +113,7 @@ function fresh(words,quote){
 }
 function buildWords(){
   if(cfg.src==="fav"&&!getFavs().length){ cfg.src="mix"; saveCfg(); syncConfig(); toast(L("مفضلتك فاضية، فرجعناك لـ«مكس».","Your favorites are empty, so we switched you to Mix.")); }
+  if(cfg.src==="custom"&&!customQuotes().length){ cfg.src="mix"; saveCfg(); syncConfig(); }
   gen=makeGen();
   if(cfg.mode==="quote"){
     let qs=allQuotes(); if(cfg.qlen!=="all"){const f=qs.filter(q=>lenCat(q.t)===cfg.qlen); if(f.length) qs=f;}
@@ -339,7 +344,7 @@ ti.addEventListener("focus",()=>{slab.classList.remove("blur");fmsg.hidden=true;
   }
 });
 ti.addEventListener("blur",()=>{ if(!T.done){slab.classList.add("blur");fmsg.hidden=false;} });
-function focusInput(){ if(!$("tpanel").hidden||tourOpen()) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
+function focusInput(){ if(!$("tpanel").hidden||tourOpen()||!$("cmodal").hidden) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
 
 document.addEventListener("keydown",e=>{
   if(langPick){
@@ -458,7 +463,7 @@ function finish(){
     }
   }
   const key=pbKey(), pbs=getPBs(), prev=pbs[key];
-  const isPB=!T.practice&&wpm>0&&acc>=75&&(!prev||wpm>prev.wpm);
+  const isPB=!T.practice&&cfg.src!=="custom"&&wpm>0&&acc>=75&&(!prev||wpm>prev.wpm);
   if(isPB){pbs[key]={wpm:Math.round(wpm),acc:Math.round(acc)};setPBs(pbs);}
   const rr={wpm,raw,acc,c,b,x,m,el,isPB,prev,last:T.last}; if(total>0) addHist(rr);
   if(total>0&&wpm>0&&T.key) saveLastRun(T.key,{w:Math.round(wpm*10)/10,a:Math.round(acc),t:Date.now()});
@@ -466,8 +471,8 @@ function finish(){
   showResults(rr);
   ti.blur(); updateKb();
 }
-const SRC_NAME=EN?{masry:"Egyptian proverbs",saudi:"Saudi proverbs",kalam:"Egyptian Arabic",aflam:"Films",hawadit:"Folk tales",hekam:"Wisdom",sheer:"Poetry",tashkeel:"Diacritics",mix:"Mix",fav:"Favorites",words:"Words",en:"English quotes",quran:"Quran",practice:"Practice"}
-  :{masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",fav:"مفضلتي",words:"كلمات",en:"إنجليزي",quran:"قرآن",practice:"تمرين"};
+const SRC_NAME=EN?{masry:"Egyptian proverbs",saudi:"Saudi proverbs",kalam:"Egyptian Arabic",aflam:"Films",hawadit:"Folk tales",hekam:"Wisdom",sheer:"Poetry",tashkeel:"Diacritics",mix:"Mix",fav:"Favorites",words:"Words",en:"English quotes",quran:"Quran",practice:"Practice",custom:"Your text"}
+  :{masry:"أمثال مصرية",saudi:"أمثال سعودية",kalam:"كلام مصري",aflam:"أفلام",hawadit:"حواديت",hekam:"حكم وتراث",sheer:"شعر",tashkeel:"تشكيل",mix:"مكس",fav:"مفضلتي",words:"كلمات",en:"إنجليزي",quran:"قرآن",practice:"تمرين",custom:"نصك"};
 const PRACTICE_LBL=L("تمرين على الكلمات اللي غلطت فيها","Practice on the words you missed");
 /* اسم الاختبار، بيتحسب من نوعه عشان يظهر بلغة الصفحة */
 function labelFor(mode,n,src,tk){
@@ -483,7 +488,7 @@ function modeLabel(){
 }
 function pbKey(){return [cfg.mode,cfg.mode==="time"?cfg.time:cfg.mode==="words"?cfg.words:cfg.qlen,cfg.src].join("-")+(cfg.tashkeel?"-t":"");}
 function showPB(){
-  const p=getPBs()[pbKey()];
+  const p=cfg.src==="custom"?null:getPBs()[pbKey()];
   $("pb").innerHTML=p?(EN?`Your best here: <strong>${p.wpm}</strong> wpm, ${p.acc}% accuracy`:`أحسن رقم ليك هنا: <strong>${AR_NUM(p.wpm)}</strong> كلمة/دقيقة، دقة ${AR_NUM(p.acc)}٪`):"";
 }
 function showResults(r){
@@ -991,14 +996,16 @@ function curQuote(){
 function updateUnder(){
   const q=curQuote();
   $("src").textContent=T&&T.practice?"— "+PRACTICE_LBL:q?("— "+q.s):"";
+  $("cedit").hidden=!(q&&q.custom&&!(T&&T.practice));
   paintFav();
 }
 function paintFav(){
   const q=curQuote(), on=isFav(q);
   const fb=$("favbtn");
-  if(fb){ fb.hidden=!q; fb.classList.toggle("on",on); fb.textContent=on?L("★ محفوظ","★ Saved"):L("☆ احفظ","☆ Save"); fb.title=on?L("شيله من مفضلتي","Remove from favorites"):L("احفظ النص ده في مفضلتي","Save this text to favorites"); fb.setAttribute("aria-pressed",on); }
+  if(fb){ fb.hidden=!q||!!q.custom; fb.classList.toggle("on",on); fb.textContent=on?L("★ محفوظ","★ Saved"):L("☆ احفظ","☆ Save"); fb.title=on?L("شيله من مفضلتي","Remove from favorites"):L("احفظ النص ده في مفضلتي","Save this text to favorites"); fb.setAttribute("aria-pressed",on); }
   const rb=$("b-fav");
-  if(rb){ rb.classList.toggle("on",on); rb.textContent=on?L("★ في مفضلتك","★ In your favorites"):L("☆ احفظ في مفضلتي","☆ Save to favorites"); }
+  if(rb&&q&&q.custom) rb.remove();
+  if(rb&&rb.isConnected){ rb.classList.toggle("on",on); rb.textContent=on?L("★ في مفضلتك","★ In your favorites"):L("☆ احفظ في مفضلتي","☆ Save to favorites"); }
 }
 $("favbtn").addEventListener("mousedown",e=>e.preventDefault());
 $("favbtn").addEventListener("click",()=>toggleFav(curQuote()));
@@ -1014,6 +1021,97 @@ $("favhbtn").addEventListener("click",()=>{
   }
   saveCfg(); syncConfig(); resetHistory();
 });
+/* ============ نص من عندك ============ */
+/* المستخدم بيكتب أو بيلصق نص، أو بيرفع ملف .txt، ويتمرن عليه. النص محفوظ على المتصفح ده بس (tq-custom)،
+   ونتايجه بتتحفظ في التاريخ بس مش بتدخل الترتيب الأسبوعي ولا «أحسن رقم». */
+const CKEY="tq-custom", CMAX=10000;
+function getCustom(){ try{ return localStorage.getItem(CKEY)||""; }catch(e){ return ""; } }
+/* الحروف اللي مش على الكيبورد بتتحول لأقرب حاجة ليها، والحروف المخفية بتتشال */
+function normCustom(t){
+  t=String(t||"").normalize("NFKC")
+    .replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g,'"').replace(/[\u2018\u2019\u201A\u2032]/g,"'")
+    .replace(/[\u2010-\u2015\u2212]/g,"-").replace(/\u2026/g,"...")
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD]/g,"").replace(/[\u00A0\u2000-\u200A\u202F\u3000\t]/g," ")
+    .replace(/\r\n?/g,"\n");
+  return t.split("\n").map(l=>l.replace(/ +/g," ").trim()).join("\n").replace(/\n{3,}/g,"\n\n").trim();
+}
+/* كل فقرة (بينها سطر فاضي) نص لوحده، واتجاهها حسب أغلب الحروف فيها */
+const isLatin=t=>(t.match(/[A-Za-z]/g)||[]).length>(t.match(/[\u0600-\u06FF]/g)||[]).length;
+function customQuotes(){
+  const t=getCustom(); if(!t) return [];
+  return t.split(/\n\s*\n/).map(p=>p.replace(/\s+/g," ").trim()).filter(p=>p.length>1)
+    .map(p=>({t:p,s:L("نصك","Your text"),tk:true,en:isLatin(p),custom:true}));
+}
+(function(){
+  const M=document.createElement("div");
+  M.className="smodal"; M.id="cmodal"; M.hidden=true;
+  M.setAttribute("role","dialog"); M.setAttribute("aria-modal","true"); M.setAttribute("aria-labelledby","ctitle");
+  M.innerHTML=`<div class="sbox cbox" dir="${EN?"ltr":"rtl"}">
+    <button type="button" class="sx" id="cclose" aria-label="${L("قفل","Close")}">×</button>
+    <h3 id="ctitle">${L("اتمرن على نص من عندك","Practice on your own text")}</h3>
+    <p>${L("الصق أي نص بالعربي أو الإنجليزي، أو ارفع ملف .txt. لو فيه فقرات بينها سطر فاضي، كل فقرة بتبقى نص لوحدها وTab بيوديك للي بعدها.","Paste any Arabic or English text, or upload a .txt file. If it has paragraphs separated by a blank line, each one becomes its own text and Tab takes you to the next.")}</p>
+    <div class="sway">
+      <textarea id="ctext" rows="9" maxlength="${CMAX}" dir="${EN?"ltr":"rtl"}" spellcheck="false" placeholder="${L("الصق النص هنا…","Paste your text here…")}" aria-label="${L("النص","Your text")}"></textarea>
+      <div class="srow crow">
+        <label class="cfile" tabindex="0" role="button">${L("ارفع ملف .txt","Upload a .txt file")}<input type="file" id="cfile" accept=".txt,text/plain" hidden></label>
+        <button type="button" id="cclear">${L("امسح","Clear")}</button>
+        <span class="ccount" id="ccount" aria-live="polite"></span>
+      </div>
+    </div>
+    <div class="srow cgo"><button type="button" class="pri" id="cstart">${L("ابدأ","Start")}</button><span class="fbmsg" id="cmsg" role="status"></span></div>
+    <span class="cnote">${L("النص بيتحفظ على المتصفح ده بس، ومحدش غيرك بيشوفه. ونتايجه بتتحفظ في تاريخك، بس مش بتدخل الترتيب الأسبوعي.","Your text stays in this browser only, and nobody else sees it. Results are saved to your history but don't count on the weekly leaderboard.")}</span>
+  </div>`;
+  document.body.appendChild(M);
+  const ta=$("ctext"), cnt=$("ccount"), msg=$("cmsg");
+  const fixDir=()=>{ const v=ta.value.trim(); ta.dir=v?(isLatin(v)?"ltr":"rtl"):(EN?"ltr":"rtl"); };
+  const count=()=>{ fixDir(); const n=ta.value.length; cnt.textContent=EN?`${n.toLocaleString("en")} / ${CMAX.toLocaleString("en")}`:AR_NUM(n)+" / "+AR_NUM(CMAX); cnt.classList.toggle("full",n>=CMAX); };
+  ta.addEventListener("input",()=>{ msg.textContent=""; msg.className="fbmsg"; count(); });
+  window.openCustom=function(){
+    closeFontMenu(false); closeSetMenu(false);
+    if(T&&T.started&&!T.done) pauseTest();
+    setTyping(false); try{ti.blur();}catch(e){}
+    ta.value=getCustom(); msg.textContent=""; msg.className="fbmsg"; count();
+    M.hidden=false; ta.focus(); ta.setSelectionRange(0,0); ta.scrollTop=0;
+  };
+  function close(){ M.hidden=true; if(T&&T.started&&!T.done) go(0); else focusInput(); }
+  $("cclose").onclick=close;
+  M.addEventListener("mousedown",e=>{ if(e.target===M) close(); });
+  document.addEventListener("keydown",e=>{
+    if(M.hidden) return; e.stopImmediatePropagation();
+    if(e.key==="Escape"){ e.preventDefault(); close(); }
+    else if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); $("cstart").click(); }
+  },true);
+  $("cclear").onclick=()=>{ ta.value=""; count(); ta.focus(); };
+  const lbl=M.querySelector(".cfile");
+  lbl.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $("cfile").click(); } });
+  $("cfile").addEventListener("change",()=>{
+    const f=$("cfile").files[0]; $("cfile").value=""; if(!f) return;
+    if(f.size>2e6){ msg.className="fbmsg err"; msg.textContent=L("الملف كبير أوي. ارفع ملف أصغر من ٢ ميجا.","That file is too big. Upload one under 2 MB."); return; }
+    const r=new FileReader();
+    r.onload=()=>{
+      let t=String(r.result||"");
+      if(/�/.test(t.slice(0,2000))){ msg.className="fbmsg err"; msg.textContent=L("ما قدرناش نقرا الملف. احفظه بـ UTF-8 وجرّب تاني.","We couldn't read that file. Save it as UTF-8 and try again."); return; }
+      t=normCustom(t);
+      if(t.length>CMAX){ t=t.slice(0,CMAX); msg.className="fbmsg"; msg.textContent=L("الملف أطول من "+AR_NUM(CMAX)+" حرف، فخدنا أوله بس.","The file is longer than "+CMAX.toLocaleString("en")+" characters, so we kept the start."); }
+      ta.value=t; count(); ta.focus(); ta.setSelectionRange(0,0); ta.scrollTop=0;
+    };
+    r.onerror=()=>{ msg.className="fbmsg err"; msg.textContent=L("ما قدرناش نقرا الملف.","We couldn't read that file."); };
+    r.readAsText(f,"utf-8");
+  });
+  $("cstart").onclick=()=>{
+    const t=normCustom(ta.value).slice(0,CMAX);
+    if(t.replace(/\s/g,"").length<2){ msg.className="fbmsg err"; msg.textContent=L("اكتب أو الصق نص الأول.","Type or paste some text first."); ta.focus(); return; }
+    try{ localStorage.setItem(CKEY,t); }catch(e){ msg.className="fbmsg err"; msg.textContent=L("ما قدرناش نحفظ النص على المتصفح ده.","We couldn't save the text in this browser."); return; }
+    for(const k in bags) if(/-custom/.test(k)) delete bags[k];
+    M.hidden=true;
+    if(cfg.src!=="custom"&&cfg.src!=="fav") cfg.prevSrc=cfg.src;
+    cfg.src="custom"; if(cfg.mode==="quote") cfg.qlen="all";
+    saveCfg(); syncConfig(); resetHistory();
+  };
+  $("cedit").addEventListener("mousedown",e=>e.preventDefault());
+  $("cedit").onclick=window.openCustom;
+})();
+
 /* ============ التاريخ ============ */
 const HKEY="tq-history", HMAX=2000;
 function getHist(){try{const a=JSON.parse(localStorage.getItem(HKEY)||"[]");return Array.isArray(a)?a:[];}catch(e){return [];}}
@@ -1380,6 +1478,8 @@ function syncConfig(){
 function onConfigClick(e){
   const b=e.target.closest("button"); if(!b||b.disabled||b.id==="setbtn"||b.id==="fontbtn") return;
   const g=b.closest(".group[data-k]");
+  /* «نصك» بيفتح نافذة تكتب أو تلصق فيها النص، والقسم بيتغير لما تدوس «ابدأ» */
+  if(g&&g.dataset.k==="src"&&b.dataset.v==="custom"){ b.blur(); openCustom(); return; }
   if(g){ const k=g.dataset.k; cfg[k]=(k==="time"||k==="words"||k==="goal")?+b.dataset.v:b.dataset.v; }
   else if(b.dataset.t){ cfg[b.dataset.t]=!cfg[b.dataset.t]; }
   saveCfg(); syncConfig(); b.blur();

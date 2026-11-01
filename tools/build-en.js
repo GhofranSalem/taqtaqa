@@ -55,6 +55,8 @@ const T = [
   ['title="اقتباسات بالإنجليزي">إنجليزي<', 'title="Quotes in English">English<'],
   ['>مكس<', '>Mix<'],
   ['data-v="words">كلمات<', 'data-v="words">Words<'],
+  ['title="اكتب أو الصق نص من عندك">نصك<', 'title="Type or paste your own text">Your text<'],
+  ['id="cedit" hidden>عدّل النص<', 'id="cedit" hidden>Edit text<'],
   ['>وقت<', '>Time<'],
   ['>عدد كلمات<', '>Words<'],
   ['>اقتباس<', '>Quote<'],
