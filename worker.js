@@ -3,7 +3,7 @@
 import { EmailMessage } from "cloudflare:email";
 import { telegram, weekly } from "./bot.js";
 import { ping, stats, countFeedback } from "./stats.js";
-import { admin, saveMessage, report, announce } from "./adminapi.js";
+import { admin, saveMessage, report, announce, lbHidden } from "./adminapi.js";
 export { Stats } from "./stats.js";
 
 const FIREBASE_HOST = "taqtaqa-type.firebaseapp.com";
@@ -33,6 +33,7 @@ export default {
     if (url.pathname.startsWith("/api/admin/")) return admin(request, env);
     if (url.pathname === "/api/report") return report(request, env);
     if (url.pathname === "/api/announce") return announce(request, env, ctx);
+    if (url.pathname === "/api/lbhidden") return lbHidden(request, env, ctx);
     // صفحة الإحصائيات ما تظهرش في جوجل. الأرقام نفسها ما بتتجابش غير بتسجيل دخول صاحب الموقع
     if (url.pathname === "/admin" || url.pathname === "/admin.html") {
       const res = secure(await env.ASSETS.fetch(request));
@@ -41,7 +42,7 @@ export default {
       return res;
     }
     // بيقول بس هل المفتاح السري بتاع Turnstile متحط ولا لأ، من غير ما يبيّن قيمته
-    if (url.pathname === "/api/health") return json(200, { ok: true, turnstile: !!env.TURNSTILE_SECRET });
+    if (url.pathname === "/api/health") return json(200, { ok: true, turnstile: !!env.TURNSTILE_SECRET, github: !!env.GITHUB_TOKEN });
     return secure(await env.ASSETS.fetch(request));
   }
 };

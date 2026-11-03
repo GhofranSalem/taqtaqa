@@ -109,11 +109,18 @@ async function join(name) {
   profile = { uid: u.uid, name, hide: false };
   await publish();
 }
+/* اللي صاحب الموقع خفاهم من لوحة التحكم ما بيظهروش للناس (بيفضلوا شايفين نفسهم بس) */
+let hiddenP = null;
+function hiddenUids() {
+  if (!hiddenP) hiddenP = fetch("/api/lbhidden").then((r) => r.ok ? r.json() : { uids: [] }).then((j) => new Set(j.uids || [])).catch(() => new Set());
+  return hiddenP;
+}
 async function players(id) {
   const c = cache[id]; if (c && Date.now() - c.t < 60e3) return c.rows;
   const { collection, getDocs } = ctx.F;
-  const snap = await getDocs(collection(ctx.db, "leaderboard", id, "players"));
-  const rows = snap.docs.map((d) => ({ uid: d.id, ...d.data() })).filter((r) => typeof r.name === "string");
+  const [snap, hidden] = await Promise.all([getDocs(collection(ctx.db, "leaderboard", id, "players")), hiddenUids()]);
+  const me = ctx.getUser() && ctx.getUser().uid;
+  const rows = snap.docs.map((d) => ({ uid: d.id, ...d.data() })).filter((r) => typeof r.name === "string" && (!hidden.has(r.uid) || r.uid === me));
   cache[id] = { t: Date.now(), rows };
   return rows;
 }

@@ -104,7 +104,7 @@ function chart(days) {
 }
 
 /* ============ لوحة التحكم: التبويبات ============ */
-const TABS = ["stats", "texts", "inbox", "announce", "telegram"];
+const TABS = ["stats", "texts", "inbox", "announce", "board", "telegram"];
 let tab = "stats";
 function showTab(t) {
   if (!TABS.includes(t)) t = "stats";
@@ -116,6 +116,7 @@ function showTab(t) {
   if (t === "inbox") loadInbox();
   if (t === "announce") loadAnn();
   if (t === "telegram") loadTg();
+  if (t === "board") loadBoard();
 }
 $("tabs").onclick = (e) => { const b = e.target.closest("button[data-tab]"); if (b) showTab(b.dataset.tab); };
 function onLogin() { showTab(location.hash.slice(1)); if (tab !== "inbox") loadInbox(true); if (tab !== "announce") loadAnn(true); }
@@ -540,3 +541,46 @@ $("g-send").onclick = async () => {
   }
   b.disabled = false;
 };
+
+/* ============ الترتيب الأسبوعي ============ */
+const LG = { 1: "ريشة", 2: "قلم", 3: "كاتب", 4: "خطّاط", 5: "طقطاق" };
+const BD = { week: "this", lang: "ar", data: null };
+/* علامات ممكن تعني غش: سرعة عالية أوي، أو سرعة عالية من اختبارات قليلة */
+function suspect(r) {
+  if (r.speed >= 150) return "سرعة عالية أوي";
+  if (r.speed >= 100 && r.tests <= 3) return "سريع أوي من اختبارات قليلة";
+  if (r.speed >= 90 && r.minutes < 1) return "سريع أوي في أقل من دقيقة";
+  return "";
+}
+async function loadBoard() {
+  $("bbody").innerHTML = `<p class="empty">بيحمّل…</p>`;
+  try { BD.data = await api(`/api/admin/board?week=${BD.week}&lang=${BD.lang}`); renderBoard(); }
+  catch (e) { $("bbody").innerHTML = `<p class="err">ما قدرناش نجيب الترتيب (${esc(e.code || e.message)}).</p>`; }
+}
+function renderBoard() {
+  const d = BD.data, H = d.hidden || {};
+  document.querySelectorAll("#bweek button").forEach((b) => b.classList.toggle("on", b.dataset.v === BD.week));
+  document.querySelectorAll("#blang button").forEach((b) => b.classList.toggle("on", b.dataset.v === BD.lang));
+  const hid = Object.entries(H);
+  $("bhidden").innerHTML = hid.length ? `<div class="card"><h3 style="margin:0 0 8px;font-size:14px;color:var(--sub);font-weight:400">المخفيين (${NUMS(hid.length)})</h3><div style="display:flex;flex-wrap:wrap;gap:8px">${hid.map(([uid, x]) => `<span class="tag" style="display:inline-flex;gap:6px;align-items:center;padding:2px 4px 2px 10px">${esc(x.name || uid.slice(0, 6))}<button type="button" class="btn sm" data-unhide="${esc(uid)}">رجّعه</button></span>`).join("")}</div></div>` : "";
+  const total = d.leagues.reduce((s, l) => s + l.rows.length, 0);
+  if (!total) { $("bbody").innerHTML = `<p class="empty">مفيش حد في الترتيب ${BD.week === "this" ? "الأسبوع ده" : "الأسبوع اللي فات"} لسه (أسبوع ${esc(d.week)}).</p>`; return; }
+  $("bbody").innerHTML = d.leagues.filter((l) => l.rows.length).map((l) => {
+    const rows = l.rows.slice().sort((a, b) => b.speed - a.speed);
+    return `<div class="lbh"><h3>${LG[l.id]}</h3><span class="empty">${NUMS(rows.length)} لاعب</span></div>
+    <div class="card" style="overflow-x:auto;padding:4px 10px"><table class="lbt"><thead><tr><th>#</th><th>الاسم</th><th>السرعة</th><th>اختبارات</th><th>دقايق</th><th>التحسّن</th><th></th></tr></thead><tbody>
+    ${rows.map((r, i) => { const h = !!H[r.uid], s = suspect(r); return `<tr class="${h ? "hid" : ""}"><td>${NUMS(i + 1)}</td><td>${esc(r.name)}${s ? ` <span class="flag">⚠ ${s}</span>` : ""}</td><td>${NUMS(Math.round(r.speed))}</td><td>${NUMS(r.tests)}</td><td>${NUMS(Math.round(r.minutes))}</td><td>${r.improve == null ? "-" : NUMS(Math.round(r.improve)) + "٪"}</td><td>${h ? `<button type="button" class="btn sm" data-unhide="${esc(r.uid)}">رجّعه</button>` : `<button type="button" class="btn sm danger" data-hide="${esc(r.uid)}" data-name="${esc(r.name)}">اخفيه</button>`}</td></tr>`; }).join("")}
+    </tbody></table></div>`;
+  }).join("");
+}
+$("bweek").onclick = (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; BD.week = b.dataset.v; loadBoard(); };
+$("blang").onclick = (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; BD.lang = b.dataset.v; loadBoard(); };
+$("breload").onclick = loadBoard;
+$("tab-board").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-hide],[data-unhide]"); if (!b) return;
+  const hide = !!b.dataset.hide, uid = b.dataset.hide || b.dataset.unhide;
+  if (hide && !confirm(`تخفي «${b.dataset.name}» من الترتيب؟`)) return;
+  b.disabled = true;
+  try { const j = await api("/api/admin/board", { uid, hide, name: b.dataset.name || "" }); BD.data.hidden = j.hidden; renderBoard(); toast(hide ? "اتخفى ✓ هيختفي من الموقع خلال دقيقة." : "رجع ✓"); }
+  catch (err) { b.disabled = false; toast("ما اتحفظش (" + esc(err.code || err.message) + ")"); }
+});

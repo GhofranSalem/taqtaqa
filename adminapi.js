@@ -7,13 +7,15 @@
 // تعديل النصوص محتاج مفتاح GitHub في إعدادات الـ Worker باسم GITHUB_TOKEN
 // (Fine-grained token على ريبو taqtaqa بس، بصلاحية Contents: Read and write). المفتاح ما بيتكتبش في الكود أبدًا.
 // /api/admin/announce GET/POST: شريط الإعلان اللي فوق في الموقع
+// /api/admin/board GET ?week=this|last&lang=ar|en: الترتيب كله. POST {uid, name, hide}: إخفاء حد من الترتيب أو رجوعه
+//   الإخفاء مش بيمسح حاجة من Firebase: القايمة في KV (lb:hidden)، والموقع (/api/lbhidden) والبوت بيشيلوهم من العرض
 // /api/admin/telegram GET: الأقسام اللي البوت يعرفها. POST: {text, topic, button, pin} رسالة لجروب تليجرام باسم البوت
 // الرسايل محفوظة في نفس KV بتاع البوت (BOT) بمفاتيح بتبدأ بـ inbox:، والإعلان في site:announce
 //
 // ومن الموقع نفسه (من غير تسجيل): /api/report بلاغ عن غلطة في نص، و/api/announce بيرجّع الإعلان
 
 import { verifyIdToken } from "./stats.js";
-import { broadcast, broadcastInfo, BROADCAST_TOPICS } from "./bot.js";
+import { broadcast, broadcastInfo, BROADCAST_TOPICS, readPlayers, hiddenPlayers, BOT_LEAGUES, weekId } from "./bot.js";
 
 const ADMIN_EMAIL = "ghofran.salem@gmail.com";
 const ORIGIN = "https://taqtaqa.com";
@@ -157,6 +159,7 @@ export async function admin(request, env) {
     if (url.pathname === "/api/admin/inbox") return await inbox(request, env);
     if (url.pathname === "/api/admin/announce") return await announceAdmin(request, env);
     if (url.pathname === "/api/admin/telegram") return await telegramAdmin(request, env);
+    if (url.pathname === "/api/admin/board") return await boardAdmin(request, env, url);
     return json(404, { ok: false, error: "path" });
   } catch (e) {
     return json(e.status || 500, { ok: false, error: e.code || "server" });
@@ -287,4 +290,35 @@ async function telegramAdmin(request, env) {
   const topic = BROADCAST_TOPICS.includes(b.topic) ? b.topic : "general";
   const r = await broadcast(env, { text, topic, button: b.button === true, pin: b.pin === true });
   return json(r.ok ? 200 : 400, r);
+}
+
+/* ---------- الترتيب الأسبوعي ---------- */
+const HID = "lb:hidden";
+async function boardAdmin(request, env, url) {
+  if (!env.BOT) return json(500, { ok: false, error: "nokv" });
+  if (request.method === "GET") {
+    const week = weekId(url.searchParams.get("week") === "last" ? Date.now() - 7 * 864e5 : Date.now());
+    const lang = url.searchParams.get("lang") === "en" ? "en" : "ar";
+    const leagues = await Promise.all(BOT_LEAGUES.map(async ([id]) => {
+      try { return { id, rows: await readPlayers(week, lang, id) }; } catch { return { id, rows: [], error: true }; }
+    }));
+    return json(200, { ok: true, week, lang, leagues, hidden: await hiddenPlayers(env) });
+  }
+  const b = await request.json().catch(() => null);
+  if (!b || typeof b.uid !== "string" || !/^[A-Za-z0-9]{10,64}$/.test(b.uid)) return json(400, { ok: false, error: "uid" });
+  const h = await hiddenPlayers(env);
+  if (b.hide === true) h[b.uid] = { name: String(b.name || "").slice(0, 40), at: Date.now() };
+  else delete h[b.uid];
+  await env.BOT.put(HID, JSON.stringify(h));
+  await caches.default.delete(new Request("https://taqtaqa.com/api/lbhidden"));
+  return json(200, { ok: true, hidden: h });
+}
+/* للموقع: قايمة الـ uid المخفيين بس (من غير أسامي)، متكاشة دقيقة */
+export async function lbHidden(request, env, ctx) {
+  const ck = new Request("https://taqtaqa.com/api/lbhidden");
+  const hit = await caches.default.match(ck);
+  if (hit) return hit;
+  const res = new Response(JSON.stringify({ uids: Object.keys(await hiddenPlayers(env)) }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=60" } });
+  ctx.waitUntil(caches.default.put(ck, res.clone()));
+  return res;
 }

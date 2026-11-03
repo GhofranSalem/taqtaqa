@@ -116,6 +116,15 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
 .annprev a{color:var(--accent);font-weight:700;text-decoration:none}
 .annprev i{color:var(--sub);font-style:normal;font-size:18px}
 .msg .rq{background:var(--panel2);border-radius:8px;padding:8px 12px;font-size:15px;line-height:1.85;overflow-wrap:anywhere}
+.lbt{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.lbt th,.lbt td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:start}
+.lbt th{color:var(--sub);font-weight:400;font-size:12.5px}
+.lbt tr.hid td{opacity:.45}
+.lbt tr.hid td:last-child{opacity:1}
+.lbt .flag{color:#ffb86b;font-size:12px}
+.lbh{display:flex;gap:8px;align-items:center;margin:22px 0 8px}
+.lbh h3{margin:0;font-size:15px}
+.lbh .empty{margin:0}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -138,6 +147,7 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
     <button type="button" role="tab" data-tab="texts">النصوص</button>
     <button type="button" role="tab" data-tab="inbox">الرسايل والبلاغات <span class="cnt" id="inboxcnt" hidden></span></button>
     <button type="button" role="tab" data-tab="announce">الإعلان <span class="cnt" id="anncnt" hidden>شغال</span></button>
+    <button type="button" role="tab" data-tab="board">الترتيب</button>
     <button type="button" role="tab" data-tab="telegram">تليجرام</button>
   </nav>
 
@@ -181,6 +191,17 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
       <div><small>شكله في الموقع:</small><div class="annprev" id="a-prev"></div></div>
       <div class="acts"><button type="button" class="btn pri" id="a-save" style="padding:6px 18px;font-size:14px">احفظ</button><span class="empty" id="a-msg"></span></div>
     </div>
+  </section>
+
+  <section id="tab-board" hidden>
+    <div class="bar">
+      <div class="seg" id="bweek"><button type="button" data-v="this" class="on">الأسبوع ده</button><button type="button" data-v="last">الأسبوع اللي فات</button></div>
+      <div class="seg" id="blang"><button type="button" data-v="ar" class="on">عربي</button><button type="button" data-v="en">إنجليزي</button></div>
+      <button type="button" class="btn" id="breload">تحديث</button>
+    </div>
+    <p class="empty">اللي تخفيه بيختفي من الترتيب في الموقع ومن رسالة البوت كل سبت، في كل الأسابيع، لحد ما ترجّعه. هو نفسه بيفضل شايف اسمه عادي. مفيش حاجة بتتمسح من Firebase.</p>
+    <div id="bhidden"></div>
+    <div id="bbody"></div>
   </section>
 
   <section id="tab-telegram" hidden>

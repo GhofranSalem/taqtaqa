@@ -38,7 +38,7 @@ export async function telegram(request, env, ctx) {
 export async function weekly(env) {
   if (!env.TG_TOKEN) return;
   const week = weekId(Date.now() - 2 * DAY);
-  const ar = await readBoard(week, "ar", "ar"), en = await readBoard(week, "en", "ar");
+  const ar = await readBoard(week, "ar", "ar", env), en = await readBoard(week, "en", "ar", env);
   if (!ar && !en) return;
   const cfg = await getCfg(env);
   const text = `🏆 <b>أوائل الأسبوع اللي فات</b>\n<i>Last week's top typists</i>\n\n${ar ? "<b>عربي</b>\n" + ar + "\n" : ""}${en ? "<b>English</b>\n" + en + "\n" : ""}\nأسبوع جديد بدأ والترتيب اتصفّر، يلا 👇\nA new week has started.`;
@@ -139,7 +139,7 @@ async function answerCommand(cmd, text, m, env) {
   if (cmd === "lb") {
     const lang = /\ben\b|english|انجليزي|إنجليزي/i.test(text) ? "en" : "ar";
     const week = weekId(Date.now());
-    const body = await boardText(week, lang, ar ? "ar" : "en");
+    const body = await boardText(week, lang, ar ? "ar" : "en", env);
     const head = ar ? `🏆 <b>الترتيب الأسبوعي دلوقتي (${lang === "ar" ? "عربي" : "إنجليزي"})</b>` : `🏆 <b>This week's leaderboard (${lang === "ar" ? "Arabic" : "English"})</b>`;
     const empty = ar ? "لسه محدش دخل الترتيب الأسبوع ده. ادخل من «تاريخي» ثم «الترتيب الأسبوعي» في الموقع وكن أول واحد 💪" : "Nobody has joined this week yet. Open History, then Weekly leaderboard on the site, and be the first 💪";
     const tip = ar ? (lang === "ar" ? "\n\nللإنجليزي: /lb en" : "") : (lang === "ar" ? "\n\nFor English: /lb en" : "");
@@ -224,27 +224,36 @@ function weekId(t) {
   const d = new Date(t); d.setUTCHours(0, 0, 0, 0);
   return new Date(d.getTime() - ((d.getUTCDay() + 1) % 7) * DAY).toISOString().slice(0, 10);
 }
-async function boardText(week, lang, ui) {
+async function boardText(week, lang, ui, env) {
   // محفوظ ٥ دقايق، عشان /lb لو اتكتب كتير ما يقراش من Firestore كل مرة
   const key = `${SITE}/__bot/board/${week}_${lang}_${ui}`;
   const hit = await caches.default.match(key);
   if (hit) return hit.text();
-  const text = await readBoard(week, lang, ui);
+  const text = await readBoard(week, lang, ui, env);
   await caches.default.put(key, new Response(text, { headers: { "cache-control": "max-age=300" } }));
   return text;
 }
-async function readBoard(week, lang, ui) {
-  const lines = [];
+/* لاعيبة دوري واحد من Firestore (القراية مفتوحة للكل). بيتستخدم هنا وفي لوحة التحكم */
+export async function readPlayers(week, lang, league) {
+  const r = await fetch(`${FIRESTORE}${week}_${lang}_${league}/players?pageSize=300`);
+  const j = await r.json();
+  return (j.documents || []).map((d) => {
+    const f = d.fields || {};
+    const n = (k) => f[k] && (f[k].doubleValue ?? f[k].integerValue) != null ? Number(f[k].doubleValue ?? f[k].integerValue) : null;
+    return { uid: d.name.split("/").pop(), name: f.name && f.name.stringValue || "", speed: n("speed") || 0, tests: n("tests") || 0, minutes: n("minutes") || 0, improve: n("improve") };
+  }).filter((x) => x.name);
+}
+export { LEAGUES as BOT_LEAGUES, weekId };
+/* اللي صاحب الموقع خفاهم من لوحة التحكم (adminapi.js) */
+export async function hiddenPlayers(env) {
+  try { return (env && env.BOT && (await env.BOT.get("lb:hidden", "json"))) || {}; } catch { return {}; }
+}
+async function readBoard(week, lang, ui, env) {
+  const lines = [], hidden = await hiddenPlayers(env);
   for (const [id, ar, en] of LEAGUES) {
     let rows = [];
     try {
-      const r = await fetch(`${FIRESTORE}${week}_${lang}_${id}/players?pageSize=300`);
-      const j = await r.json();
-      rows = (j.documents || []).map((d) => {
-        const f = d.fields || {};
-        const n = (k) => Number((f[k] && (f[k].doubleValue ?? f[k].integerValue)) || 0);
-        return { name: f.name && f.name.stringValue || "", speed: n("speed") };
-      }).filter((x) => x.name && x.speed > 0).sort((a, b) => b.speed - a.speed).slice(0, 3);
+      rows = (await readPlayers(week, lang, id)).filter((x) => x.speed > 0 && !hidden[x.uid]).sort((a, b) => b.speed - a.speed).slice(0, 3);
     } catch {}
     if (!rows.length) continue;
     const medals = ["🥇", "🥈", "🥉"];
