@@ -3,6 +3,7 @@
 import { EmailMessage } from "cloudflare:email";
 import { telegram, weekly } from "./bot.js";
 import { ping, stats, countFeedback } from "./stats.js";
+import { admin, saveMessage } from "./adminapi.js";
 export { Stats } from "./stats.js";
 
 const FIREBASE_HOST = "taqtaqa-type.firebaseapp.com";
@@ -28,6 +29,8 @@ export default {
     if (url.pathname === "/api/tg" || url.pathname === "/api/tg/setup") return telegram(request, env, ctx);
     if (url.pathname === "/api/ping") return ping(request, env);
     if (url.pathname === "/api/stats") return stats(request, env);
+    // لوحة التحكم: النصوص والرسايل (adminapi.js)، لصاحب الموقع بس
+    if (url.pathname.startsWith("/api/admin/")) return admin(request, env);
     // صفحة الإحصائيات ما تظهرش في جوجل. الأرقام نفسها ما بتتجابش غير بتسجيل دخول صاحب الموقع
     if (url.pathname === "/admin" || url.pathname === "/admin.html") {
       const res = secure(await env.ASSETS.fetch(request));
@@ -164,6 +167,8 @@ async function feedback(request, env) {
     `اتبعتت من taqtaqa.com، ${new Date().toISOString()}`,
     `البلد: ${(request.cf && request.cf.country) || "؟"}`
   ].filter((l, i) => l !== "" || i > 2);
+  // الرسالة بتتحفظ كمان عشان تظهر في لوحة التحكم، حتى لو الإيميل ما وصلش
+  await saveMessage(env, { type, text, contact, page, ctry: (request.cf && request.cf.country) || "" });
   const replyTo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact) ? contact : null;
   const raw = mime({
     from: FROM, fromName: "طقطقة", to: TO,

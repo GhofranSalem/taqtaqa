@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>طقطقة: الإحصائيات</title>
+<title>طقطقة: لوحة التحكم</title>
 <link rel="icon" href="favicon.ico" sizes="any">
 <style>
 @font-face{font-family:"TQ Sans";src:url(fonts/sans-400.woff2) format("woff2");font-weight:400;font-display:swap}
@@ -50,13 +50,74 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
 .links a:hover{border-color:var(--accent)}
 .links a small{display:block;color:var(--sub);font-size:12px}
 .err{color:#ff8080;font-size:13px}
+/* التبويبات */
+.tabs{display:flex;gap:6px;margin:0 0 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tabs button{font:inherit;background:none;border:0;border-bottom:2px solid transparent;color:var(--sub);padding:8px 14px;cursor:pointer;margin-bottom:-1px;display:inline-flex;align-items:center;gap:8px}
+.tabs button:hover{color:var(--fg)}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--accent)}
+.tabs .cnt{background:var(--accent);color:var(--bg);border-radius:999px;font-size:12px;font-weight:700;padding:0 7px;line-height:1.6}
+/* النصوص */
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar input[type=search],.bar select,.f input,.f select,.f textarea{font:inherit;font-size:14px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.bar input[type=search]{flex:1;min-width:200px}
+.bar label{display:inline-flex;gap:6px;align-items:center;color:var(--sub);font-size:13.5px;cursor:pointer}
+.btn:hover{color:var(--fg);border-color:var(--sub)}
+.btn.sm{padding:3px 10px;font-size:13px}
+.btn.danger:hover{color:#ff8080;border-color:#ff8080}
+.btn.acc{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+.counts{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.counts th,.counts td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--line)}
+.counts th:first-child,.counts td:first-child{text-align:start}
+.counts th{color:var(--sub);font-weight:400}
+.counts td.zero{color:#ff8080;font-weight:700}
+.counts tr.pick{cursor:pointer}
+.counts tr.pick:hover td{background:var(--panel2)}
+.tlist{display:flex;flex-direction:column;gap:8px}
+.ti{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.ti.ch{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+.ti.del{opacity:.55}
+.ti.del .tx{text-decoration:line-through}
+.ti .tx{font-size:16px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}
+.ti .tx[dir=ltr]{text-align:left}
+.ti .ft{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--sub)}
+.ti .ft .sp{flex:1}
+.tag{border:1px solid var(--line);border-radius:999px;padding:0 8px;line-height:1.7;white-space:nowrap}
+.tag.warn{color:#ffb86b;border-color:color-mix(in srgb,#ffb86b 45%,var(--line))}
+.tag.new{color:var(--live);border-color:color-mix(in srgb,var(--live) 45%,var(--line))}
+.tag.chg{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.f{display:grid;gap:8px}
+.f textarea{width:100%;min-height:96px;line-height:1.8;resize:vertical}
+.f .row{display:flex;gap:8px;flex-wrap:wrap}
+.f .row > *{flex:1;min-width:140px}
+.f small{color:var(--sub);font-size:12px}
+.f .acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.warns{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#ffb86b}
+.more{align-self:center;margin-top:6px}
+.pending{position:sticky;bottom:12px;z-index:5;margin-top:16px;background:var(--panel2);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.pending .sp{flex:1}
+.note{background:var(--panel);border:1px solid #ffb86b55;border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--sub);margin-bottom:12px;line-height:1.8}
+.note b{color:var(--fg)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:14px;z-index:20;max-width:90vw}
+.toast a{color:var(--accent)}
+/* الرسايل */
+.msg{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.msg.st-new{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.msg .mt{font-size:15px;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg .mh{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--sub)}
+.msg .mh a{color:var(--accent)}
+.msg details{font-size:13px;color:var(--sub)}
+.msg details p{margin:6px 0 0;line-height:1.8}
+.msg .acts{display:flex;gap:6px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:13.5px;background:none;border:0;color:var(--sub);padding:5px 12px;cursor:pointer}
+.seg button.on{background:var(--panel2);color:var(--fg)}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <main>
   <header>
-    <h1>إحصائيات طقطقة<i>.</i></h1>
+    <h1>لوحة تحكم طقطقة<i>.</i></h1>
     <div class="meta"><span id="upd"></span><span id="who"></span><button type="button" id="out" hidden>خروج</button></div>
   </header>
 
@@ -67,6 +128,42 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
   </section>
 
   <div id="dash" hidden>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="stats" class="on">الإحصائيات</button>
+    <button type="button" role="tab" data-tab="texts">النصوص</button>
+    <button type="button" role="tab" data-tab="inbox">الرسايل <span class="cnt" id="inboxcnt" hidden></span></button>
+  </nav>
+
+  <section id="tab-texts" hidden>
+    <div class="note" id="tokennote" hidden></div>
+    <details class="card" id="countsbox" open><summary style="cursor:pointer;color:var(--sub)">عدد النصوص في كل قسم بكل طول</summary><div style="overflow-x:auto;margin-top:8px"><table class="counts" id="counts"></table></div></details>
+    <div class="bar" style="margin-top:14px">
+      <input type="search" id="q" placeholder="دوّر في النصوص والمصادر…" aria-label="دوّر">
+      <select id="fcat" aria-label="القسم"></select>
+      <select id="flen" aria-label="الطول"><option value="">كل الأطوال</option><option value="s">قصير</option><option value="m">متوسط</option><option value="l">طويل</option><option value="xl">طويل جدا</option></select>
+      <label><input type="checkbox" id="fwarn"> فيها ملاحظات بس</label>
+      <label><input type="checkbox" id="fchg"> التغييرات بس</label>
+      <button type="button" class="btn acc" id="addbtn">+ نص جديد</button>
+    </div>
+    <div class="empty" id="tinfo"></div>
+    <div class="tlist" id="tlist"></div>
+    <div class="pending" id="pending" hidden>
+      <span id="pendtxt"></span><span class="sp"></span>
+      <button type="button" class="btn" id="pendundo">الغي كل التغييرات</button>
+      <button type="button" class="btn pri" id="publish">انشر على الموقع</button>
+    </div>
+  </section>
+
+  <section id="tab-inbox" hidden>
+    <div class="bar">
+      <div class="seg" id="ifilter"><button type="button" data-v="new" class="on">الجديدة</button><button type="button" data-v="done">اتعملت</button><button type="button" data-v="ignored">اتجاهلت</button><button type="button" data-v="all">الكل</button></div>
+      <button type="button" class="btn" id="ireload">تحديث</button>
+    </div>
+    <p class="empty">الرسايل اللي بتتبعت من «ادعم طقطقة» من النهارده وبعد كده. اللي قبل كده موجودة في إيميلك بس.</p>
+    <div class="tlist" id="ilist"></div>
+  </section>
+
+  <section id="tab-stats">
     <div class="grid kpis">
       <div class="card kpi live"><div class="n"><span class="dot" aria-hidden="true"></span><span id="k-live">٠</span></div><div class="l">فاتحين الموقع دلوقتي</div></div>
       <div class="card kpi"><div class="n" id="k-visits">٠</div><div class="l">زيارة النهارده</div></div>
@@ -113,6 +210,7 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
       <a href="https://t.me/taqtaqaclub" target="_blank" rel="noopener">جروب تليجرام<small>t.me/taqtaqaclub</small></a>
       <a href="changelog.html">سجل التحديثات<small id="ver"></small></a>
     </div>
+  </section>
   </div>
 </main>
 <script src="assets/changelog.js"></script>
