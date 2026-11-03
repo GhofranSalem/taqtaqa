@@ -160,7 +160,6 @@ const INVISIBLE_G = new RegExp(INVISIBLE.source, "g");
 const lenCat = (t) => { const n = t.replace(TASHKEEL, "").length; return n < 70 ? "s" : n < 180 ? "m" : n < 320 ? "l" : "xl"; };
 const keyOf = (t) => t.replace(TASHKEEL, "").replace(/[^\p{L}\p{N}]+/gu, "").toLowerCase();
 const isAr = (t) => /[ء-ي]/.test(t);
-const NUMS = (n) => NUM(n);
 /* نفس قاعدة data.js: نصوص MT_PD بتاعة المتنبي والمقنع الكندي بتروح للشعر، والباقي للحكم */
 const mtpdCat = ([t, s]) => (/المتنبي|المقنع/.test(s) || t.startsWith("دع الأيام")) ? "sheer" : "hekam";
 
@@ -245,7 +244,7 @@ function renderCounts(list) {
     const cnt = { s: 0, m: 0, l: 0, xl: 0 };
     list.forEach((it) => { if (it.cat === c.k && !(TX.ch.get(it.id) || {}).del) cnt[lenCat(it.t)]++; });
     const tot = cnt.s + cnt.m + cnt.l + cnt.xl;
-    return `<tr class="pick" data-cat="${c.k}"><td>${c.n}</td>${["s", "m", "l", "xl"].map((l) => `<td class="${cnt[l] ? "" : "zero"}" data-len="${l}">${NUMS(cnt[l])}</td>`).join("")}<td><b>${NUMS(tot)}</b></td></tr>`;
+    return `<tr class="pick" data-cat="${c.k}"><td>${c.n}</td>${["s", "m", "l", "xl"].map((l) => `<td class="${cnt[l] ? "" : "zero"}" data-len="${l}">${NUM(cnt[l])}</td>`).join("")}<td><b>${NUM(tot)}</b></td></tr>`;
   }).join("");
   $("counts").innerHTML = `<thead><tr><th>القسم</th><th>قصير</th><th>متوسط</th><th>طويل</th><th>طويل جدا</th><th>الكل</th></tr></thead><tbody>${rows}</tbody>`;
 }
@@ -271,9 +270,9 @@ function renderTexts() {
   });
   // الجديد والمتعدل الأول
   res.sort((a, b) => (b.isNew ? 2 : TX.ch.has(b.id) ? 1 : 0) - (a.isNew ? 2 : TX.ch.has(a.id) ? 1 : 0));
-  $("tinfo").textContent = res.length ? NUMS(res.length) + " نص" : "مفيش نصوص بالبحث ده";
+  $("tinfo").textContent = res.length ? NUM(res.length) + " نص" : "مفيش نصوص بالبحث ده";
   const html = res.slice(0, TX.shown).map((it) => TX.editing === it.id ? formHTML(it) : itemHTML(it, dups)).join("");
-  $("tlist").innerHTML = html + (res.length > TX.shown ? `<button type="button" class="btn more" id="more">اعرض ${NUMS(Math.min(60, res.length - TX.shown))} كمان</button>` : "");
+  $("tlist").innerHTML = html + (res.length > TX.shown ? `<button type="button" class="btn more" id="more">اعرض ${NUM(Math.min(60, res.length - TX.shown))} كمان</button>` : "");
   if ($("more")) $("more").onclick = () => { TX.shown += 60; renderTexts(); };
   if (TX.editing && $("tform")) bindForm();
   renderPending();
@@ -292,7 +291,7 @@ function itemHTML(it, dups) {
     ...w.map((x) => `<span class="tag warn">${esc(x.m)}</span>`)
   ].join("");
   const quran = SHAPE[it.store] === "quran";
-  const btns = c.del || (it.isNew && false) ? `<button type="button" class="btn sm" data-a="undo">رجّعه</button>`
+  const btns = c.del ? `<button type="button" class="btn sm" data-a="undo">رجّعه</button>`
     : `${quran ? "" : `<button type="button" class="btn sm" data-a="edit">تعديل</button>`}${w.some((x) => x.fix) && !quran ? `<button type="button" class="btn sm acc" data-a="fix">صلّح الحروف</button>` : ""}${c.f || it.isNew ? `<button type="button" class="btn sm" data-a="undo">${it.isNew ? "شيله" : "رجّع الأصلي"}</button>` : ""}<button type="button" class="btn sm danger" data-a="del" ${it.isNew ? "hidden" : ""}>احذف</button>`;
   return `<div class="ti ${c.del ? "del" : c.f || it.isNew ? "ch" : ""}" data-id="${esc(it.id)}">
     <div class="tx" dir="${it.cat === "en" ? "ltr" : "rtl"}">${esc(it.t)}</div>
@@ -325,7 +324,7 @@ function bindForm() {
     const t = v.t.trim(), list = liveItems().filter((x) => x.id !== TX.editing), dup = list.some((x) => !(TX.ch.get(x.id) || {}).del && keyOf(x.t) === keyOf(t));
     const w = t ? lint({ ...v, t: v.t, store: CAT[v.cat].main }, dup ? 2 : 1) : [{ m: "اكتب النص" }];
     $("f-warns").innerHTML = w.map((x) => `<span>• ${esc(x.m)}</span>`).join("");
-    $("f-len").textContent = t ? LENS[lenCat(t)] + "، " + NUMS(t.replace(TASHKEEL, "").length) + " حرف" : "";
+    $("f-len").textContent = t ? LENS[lenCat(t)] + "، " + NUM(t.replace(TASHKEEL, "").length) + " حرف" : "";
   };
   ["f-t", "f-s", "f-film", "f-actor", "f-year", "f-cat"].forEach((id) => $(id).addEventListener("input", sync));
   $("f-fix").onclick = () => { const en = $("f-cat").value === "en"; ["f-t", "f-s", "f-film", "f-actor"].forEach((id) => { $(id).value = fixText($(id).value, en); }); sync(); };
@@ -346,7 +345,6 @@ function saveForm() {
   const id = TX.editing;
   const a = TX.added.find((x) => x.id === id);
   if (a) { a.f = f; a.cat = v.cat; a.draft = false; }
-  else if (id.startsWith("new")) TX.added.push({ id, f, cat: v.cat });
   else {
     const it = TX.items.find((x) => x.id === id);
     const changed = v.cat !== it.cat || ["t", "s", "film", "actor", "year"].some((k) => (f[k] || "") !== (it[k] || ""));
@@ -401,9 +399,9 @@ function renderPending() {
   $("pending").hidden = !n;
   if (!n) return;
   const parts = [];
-  if (e) parts.push(NUMS(e) + " متعدل");
-  if (d) parts.push(NUMS(d) + " هيتشال");
-  if (a) parts.push(NUMS(a) + " جديد");
+  if (e) parts.push(NUM(e) + " متعدل");
+  if (d) parts.push(NUM(d) + " هيتشال");
+  if (a) parts.push(NUM(a) + " جديد");
   $("pendtxt").textContent = "تغييرات لسه ما اتنشرتش: " + parts.join("، ");
   $("publish").disabled = !TX.canSave;
   $("publish").title = TX.canSave ? "" : "محتاج مفتاح GitHub الأول";
@@ -440,7 +438,7 @@ async function loadInbox(quiet) {
 }
 function renderInbox() {
   const all = IB.items || [], n = all.filter((m) => m.status === "new").length;
-  $("inboxcnt").hidden = !n; $("inboxcnt").textContent = NUMS(n);
+  $("inboxcnt").hidden = !n; $("inboxcnt").textContent = NUM(n);
   document.querySelectorAll("#ifilter button").forEach((b) => b.classList.toggle("on", b.dataset.v === IB.filter));
   document.querySelectorAll("#itype button").forEach((b) => b.classList.toggle("on", b.dataset.v === IB.type));
   const list = all.filter((m) => (IB.filter === "all" || m.status === IB.filter) && (IB.type === "all" || (IB.type === "report") === (m.type === "report")));
@@ -511,7 +509,7 @@ $("a-save").onclick = async () => {
     AN.dirty = false; annFill(j.a);
     $("a-msg").textContent = j.a.on ? "اتحفظ ✓ هيظهر في الموقع خلال دقيقة." : "اتحفظ ✓ الإعلان مقفول.";
   } catch (e) {
-    $("a-msg").textContent = ({ empty: "اكتب الإعلان بالعربي الأول.", link: "اللينك لازم يبدأ بـ https:// أو /" })[e.code] || "ما اتحفظش (" + (e.code || e.message) + ")";
+    $("a-msg").textContent = ({ empty: "اكتب الإعلان بالعربي الأول.", link: "اللينك لازم يبدأ بـ https:// أو بـ / لصفحة في الموقع" })[e.code] || "ما اتحفظش (" + (e.code || e.message) + ")";
   }
   b.disabled = false;
 };
@@ -562,14 +560,14 @@ function renderBoard() {
   document.querySelectorAll("#bweek button").forEach((b) => b.classList.toggle("on", b.dataset.v === BD.week));
   document.querySelectorAll("#blang button").forEach((b) => b.classList.toggle("on", b.dataset.v === BD.lang));
   const hid = Object.entries(H);
-  $("bhidden").innerHTML = hid.length ? `<div class="card"><h3 style="margin:0 0 8px;font-size:14px;color:var(--sub);font-weight:400">المخفيين (${NUMS(hid.length)})</h3><div style="display:flex;flex-wrap:wrap;gap:8px">${hid.map(([uid, x]) => `<span class="tag" style="display:inline-flex;gap:6px;align-items:center;padding:2px 4px 2px 10px">${esc(x.name || uid.slice(0, 6))}<button type="button" class="btn sm" data-unhide="${esc(uid)}">رجّعه</button></span>`).join("")}</div></div>` : "";
+  $("bhidden").innerHTML = hid.length ? `<div class="card"><h3 style="margin:0 0 8px;font-size:14px;color:var(--sub);font-weight:400">المخفيين (${NUM(hid.length)})</h3><div style="display:flex;flex-wrap:wrap;gap:8px">${hid.map(([uid, x]) => `<span class="tag" style="display:inline-flex;gap:6px;align-items:center;padding:2px 4px 2px 10px">${esc(x.name || uid.slice(0, 6))}<button type="button" class="btn sm" data-unhide="${esc(uid)}">رجّعه</button></span>`).join("")}</div></div>` : "";
   const total = d.leagues.reduce((s, l) => s + l.rows.length, 0);
   if (!total) { $("bbody").innerHTML = `<p class="empty">مفيش حد في الترتيب ${BD.week === "this" ? "الأسبوع ده" : "الأسبوع اللي فات"} لسه (أسبوع ${esc(d.week)}).</p>`; return; }
   $("bbody").innerHTML = d.leagues.filter((l) => l.rows.length).map((l) => {
     const rows = l.rows.slice().sort((a, b) => b.speed - a.speed);
-    return `<div class="lbh"><h3>${LG[l.id]}</h3><span class="empty">${NUMS(rows.length)} لاعب</span></div>
+    return `<div class="lbh"><h3>${LG[l.id]}</h3><span class="empty">${NUM(rows.length)} لاعب</span></div>
     <div class="card" style="overflow-x:auto;padding:4px 10px"><table class="lbt"><thead><tr><th>#</th><th>الاسم</th><th>السرعة</th><th>اختبارات</th><th>دقايق</th><th>التحسّن</th><th></th></tr></thead><tbody>
-    ${rows.map((r, i) => { const h = !!H[r.uid], s = suspect(r); return `<tr class="${h ? "hid" : ""}"><td>${NUMS(i + 1)}</td><td>${esc(r.name)}${s ? ` <span class="flag">⚠ ${s}</span>` : ""}</td><td>${NUMS(Math.round(r.speed))}</td><td>${NUMS(r.tests)}</td><td>${NUMS(Math.round(r.minutes))}</td><td>${r.improve == null ? "-" : NUMS(Math.round(r.improve)) + "٪"}</td><td>${h ? `<button type="button" class="btn sm" data-unhide="${esc(r.uid)}">رجّعه</button>` : `<button type="button" class="btn sm danger" data-hide="${esc(r.uid)}" data-name="${esc(r.name)}">اخفيه</button>`}</td></tr>`; }).join("")}
+    ${rows.map((r, i) => { const h = !!H[r.uid], s = suspect(r); return `<tr class="${h ? "hid" : ""}"><td>${NUM(i + 1)}</td><td>${esc(r.name)}${s ? ` <span class="flag">⚠ ${s}</span>` : ""}</td><td>${NUM(Math.round(r.speed))}</td><td>${NUM(r.tests)}</td><td>${NUM(Math.round(r.minutes))}</td><td>${r.improve == null ? "-" : NUM(Math.round(r.improve)) + "٪"}</td><td>${h ? `<button type="button" class="btn sm" data-unhide="${esc(r.uid)}">رجّعه</button>` : `<button type="button" class="btn sm danger" data-hide="${esc(r.uid)}" data-name="${esc(r.name)}">اخفيه</button>`}</td></tr>`; }).join("")}
     </tbody></table></div>`;
   }).join("");
 }

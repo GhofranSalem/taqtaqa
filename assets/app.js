@@ -1888,7 +1888,7 @@ playIntro();
     let seen=null; try{seen=localStorage.getItem("tq-ann");}catch(e){}
     if(seen===a.id) return;
     const bar=document.createElement("div"); bar.className="annbar"; bar.setAttribute("role","note");
-    const safeLink=/^(https:\/\/|\/)/.test(a.link||"")?a.link:"";
+    const safeLink=/^(https:\/\/|\/(?!\/))/.test(a.link||"")?a.link:"";
     bar.innerHTML=`<span class="annt">${esc(txt)}</span>${safeLink?`<a href="${esc(safeLink)}"${/^https:/.test(safeLink)?' target="_blank" rel="noopener"':""}>${L("اعرف أكتر","Learn more")}</a>`:""}<button type="button" class="annx" aria-label="${L("قفل الإعلان","Dismiss")}">×</button>`;
     bar.querySelector(".annx").onclick=()=>{ try{localStorage.setItem("tq-ann",a.id);}catch(e){} bar.remove(); if(T&&!T.done) focusInput(); };
     bar.querySelector(".annx").addEventListener("mousedown",e=>e.preventDefault());

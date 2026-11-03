@@ -138,8 +138,11 @@ const INBOX = "inbox:";
 export async function saveMessage(env, msg) {
   if (!env.BOT) return;
   const id = String(1e13 - Date.now()).padStart(13, "0") + "-" + crypto.randomUUID().slice(0, 6);
-  try { await env.BOT.put(INBOX + id, JSON.stringify({ ...msg, t: Date.now(), status: "new" })); } catch {}
+  try { await env.BOT.put(INBOX + id, JSON.stringify({ ...msg, t: Date.now(), status: "new" }), { expirationTtl: KEEP }); } catch {}
 }
+/* الرسايل والبلاغات بتتمسح لوحدها بعد سنة */
+const KEEP = 365 * 86400;
+const ttlLeft = (t) => Math.max(60, Math.round(KEEP - (Date.now() - (t || Date.now())) / 1000));
 const STATUSES = ["new", "done", "ignored"];
 
 /* ---------- الطلبات ---------- */
@@ -215,7 +218,7 @@ async function inbox(request, env) {
   const v = await env.BOT.get(key, "json");
   if (!v) return json(404, { ok: false, error: "missing" });
   v.status = b.status;
-  await env.BOT.put(key, JSON.stringify(v));
+  await env.BOT.put(key, JSON.stringify(v), { expirationTtl: ttlLeft(v.t) });
   return json(200, { ok: true });
 }
 
@@ -241,7 +244,7 @@ async function announceAdmin(request, env) {
   const b = await request.json().catch(() => null);
   if (!b) return json(400, { ok: false, error: "json" });
   const a = { on: b.on === true, ar: String(b.ar || "").trim().slice(0, 200), en: String(b.en || "").trim().slice(0, 200), link: String(b.link || "").trim().slice(0, 300) };
-  if (a.link && !/^(https:\/\/|\/)[^\s"<>]*$/.test(a.link)) return json(400, { ok: false, error: "link" });
+  if (a.link && !/^(https:\/\/|\/(?!\/))[^\s"<>]*$/.test(a.link)) return json(400, { ok: false, error: "link" });
   if (a.on && !a.ar) return json(400, { ok: false, error: "empty" });
   const old = (await env.BOT.get(ANN, "json")) || {};
   // id جديد لو الكلام اتغير، عشان اللي قفل الإعلان القديم يشوف الجديد
@@ -258,8 +261,7 @@ async function sha(s) {
   return [...new Uint8Array(d)].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 export async function report(request, env) {
-  const H2 = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
-  const out = (status, body) => new Response(JSON.stringify(body), { status, headers: H2 });
+  const out = json;
   if (request.method !== "POST") return out(405, { ok: false, error: "method" });
   if (!/^https:\/\/(taqtaqa\.com|taqtaqa\.[\w-]+\.workers\.dev)$/.test(request.headers.get("origin") || "")) return out(403, { ok: false, error: "origin" });
   if (Number(request.headers.get("content-length") || 0) > 8000) return out(413, { ok: false, error: "big" });
@@ -274,9 +276,15 @@ export async function report(request, env) {
   for (const rl of [env.FB_BURST, env.FB_MINUTE]) {
     if (rl) { try { const { success } = await rl.limit({ key: "r" + who }); if (!success) return out(429, { ok: false, error: "wait" }); } catch {} }
   }
-  const dk = new Request("https://taqtaqa.com/__rep/" + (await sha(who + text + new Date().toISOString().slice(0, 10))));
+  // وبحد أقصى ١٠ بلاغات في اليوم من نفس الشبكة، عشان محدش يملا التخزين
+  const today = new Date().toISOString().slice(0, 10);
+  const nk = new Request("https://taqtaqa.com/__rep/n-" + today + "-" + who);
+  const n = +(await (await caches.default.match(nk))?.text() || 0);
+  if (n >= 10) return out(429, { ok: false, error: "day" });
+  const dk = new Request("https://taqtaqa.com/__rep/" + (await sha(who + text + today)));
   if (await caches.default.match(dk)) return out(200, { ok: true, dup: true });
-  await caches.default.put(dk, new Response("1", { headers: { "cache-control": "max-age=86400" } }));
+  const day = { headers: { "cache-control": "max-age=86400" } };
+  await Promise.all([caches.default.put(dk, new Response("1", day)), caches.default.put(nk, new Response(String(n + 1), day))]);
   await saveMessage(env, { type: "report", kind, text: note || KINDS[kind], page: text, src, cat, ctry: (request.cf && request.cf.country) || "" });
   return out(200, { ok: true });
 }
