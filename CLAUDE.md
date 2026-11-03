@@ -20,8 +20,8 @@
 | `assets/changelog.js` | رقم الإصدار وسجل التحديثات (عربي وإنجليزي). الفوتر وصفحة `changelog.html` بياخدوا منه |
 | `assets/boot.js` | أول حاجة بتشتغل: الثيم، وافتتاحية اللوجو، وتحويل للإنجليزي لو `tq-lang=en` |
 | `assets/board.js` | الترتيب الأسبوعي (دوريات، والأسبوع بيبدأ السبت UTC) |
-| `assets/admin.js`، `admin.html` | لوحة التحكم `/admin` لصاحب الموقع بس: تبويب الإحصائيات، والنصوص (بحث وتعديل وحذف وإضافة ونقل بين الأقسام، وملاحظات تلقائية بقواعد النصوص)، والرسايل |
-| `adminapi.js` | API لوحة التحكم: `/api/admin/texts` بيقرا `data.js` من GitHub ويعمل commit بالتعديلات (بيدوّر على النص بقيمته مش برقمه)، و`/api/admin/inbox` لرسايل «ادعم طقطقة» المحفوظة في KV البوت بمفاتيح `inbox:` |
+| `assets/admin.js`، `admin.html` | لوحة التحكم `/admin` لصاحب الموقع بس: تبويب الإحصائيات، والنصوص (بحث وتعديل وحذف وإضافة ونقل بين الأقسام، وملاحظات تلقائية بقواعد النصوص)، والرسايل والبلاغات، والإعلان |
+| `adminapi.js` | API لوحة التحكم: `/api/admin/texts` بيقرا `data.js` من GitHub ويعمل commit بالتعديلات (بيدوّر على النص بقيمته مش برقمه)، و`/api/admin/inbox` لرسايل «ادعم طقطقة» وبلاغات «غلطة؟» (`type: "report"`) المحفوظة في KV البوت بمفاتيح `inbox:`، و`/api/admin/announce` للإعلان (`site:announce` في نفس KV). ومن الموقع من غير تسجيل: `/api/report` و`/api/announce` (متكاش دقيقة) |
 | `cloud.js` | Firebase: الحسابات والمزامنة (`window.TQ_AUTH`) |
 | `worker.js` | Cloudflare Worker: هيدرز الأمان (CSP)، وتحويل www، وتسجيل الدخول، و`/api/feedback` (Turnstile وحد للرسايل)، و`/api/health` |
 | `stats.js` | عدّاد الزيارات: `/api/ping` و`/api/stats` (بيتأكد من توكن Firebase وإيميل صاحب الموقع)، والأرقام في Durable Object |

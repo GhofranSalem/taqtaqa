@@ -344,7 +344,7 @@ ti.addEventListener("focus",()=>{slab.classList.remove("blur");fmsg.hidden=true;
   }
 });
 ti.addEventListener("blur",()=>{ if(!T.done){slab.classList.add("blur");fmsg.hidden=false;} });
-function focusInput(){ if(!$("tpanel").hidden||tourOpen()||!$("cmodal").hidden) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
+function focusInput(){ if(!$("tpanel").hidden||tourOpen()||!$("cmodal").hidden||(window.reportOpen&&window.reportOpen())) return; try{ti.focus({preventScroll:true});}catch(e){ti.focus();} }
 
 document.addEventListener("keydown",e=>{
   if(langPick){
@@ -997,6 +997,7 @@ function updateUnder(){
   const q=curQuote();
   $("src").textContent=T&&T.practice?"— "+PRACTICE_LBL:q?("— "+q.s):"";
   $("cedit").hidden=!(q&&q.custom&&!(T&&T.practice));
+  $("repbtn").hidden=!q||!!q.custom||!!(T&&T.practice);
   paintFav();
 }
 function paintFav(){
@@ -1110,6 +1111,55 @@ function customQuotes(){
   };
   $("cedit").addEventListener("mousedown",e=>e.preventDefault());
   $("cedit").onclick=window.openCustom;
+})();
+
+/* ============ بلاغ عن غلطة في نص ============ */
+/* زرار «غلطة؟» تحت النص بيفتح نافذة صغيرة. البلاغ بيوصل لوحة التحكم (/api/report) ومعاه النص نفسه */
+(function(){
+  const KINDS=EN?[["typo","Spelling mistake"],["chars","A character not on the keyboard"],["source","Wrong source or author"],["unfit","Inappropriate text"],["other","Something else"]]
+    :[["typo","غلطة إملائية"],["chars","حرف مش على الكيبورد"],["source","المصدر أو القائل غلط"],["unfit","النص مش مناسب"],["other","حاجة تانية"]];
+  const M=document.createElement("div");
+  M.className="smodal"; M.id="rmodal"; M.hidden=true;
+  M.setAttribute("role","dialog"); M.setAttribute("aria-modal","true"); M.setAttribute("aria-labelledby","rtitle");
+  M.innerHTML=`<div class="sbox rbox" dir="${EN?"ltr":"rtl"}">
+    <button type="button" class="sx" id="rclose" aria-label="${L("قفل","Close")}">×</button>
+    <h3 id="rtitle">${L("في غلطة في النص ده؟","Something wrong with this text?")}</h3>
+    <div class="rquote" id="rquote"></div>
+    <div class="sway">
+      <div class="srow rkinds" role="radiogroup" aria-label="${L("نوع الغلطة","Kind of problem")}">${KINDS.map(([k,n],i)=>`<button type="button" role="radio" data-k="${k}" class="${i?"":"on"}" aria-checked="${!i}">${n}</button>`).join("")}</div>
+      <textarea id="rnote" rows="3" maxlength="500" dir="auto" placeholder="${L("إيه الغلطة؟ وإزاي المفروض تبقى؟ (اختياري)","What's wrong, and how should it be? (optional)")}" aria-label="${L("تفاصيل","Details")}"></textarea>
+      <input type="text" id="rsite" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+      <div class="srow"><button type="button" class="pri" id="rsend">${L("ابعت","Send")}</button><span class="fbmsg" id="rmsg" role="status"></span></div>
+    </div>
+  </div>`;
+  document.body.appendChild(M);
+  let kind="typo", q=null;
+  M.querySelector(".rkinds").onclick=e=>{ const b=e.target.closest("[data-k]"); if(!b) return; kind=b.dataset.k; M.querySelectorAll(".rkinds button").forEach(x=>{ const on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-checked",on); }); };
+  function open(){
+    q=curQuote(); if(!q) return;
+    if(T&&T.started&&!T.done) pauseTest();
+    setTyping(false); try{ti.blur();}catch(e){}
+    $("rquote").textContent=clean(q.t,q.tk); $("rquote").dir=qDir(q);
+    $("rnote").value=""; $("rmsg").textContent=""; $("rmsg").className="fbmsg"; $("rsend").disabled=false;
+    M.hidden=false; $("rnote").focus();
+  }
+  function close(){ M.hidden=true; focusInput(); }
+  window.openReport=open; window.reportOpen=()=>!M.hidden;
+  $("rclose").onclick=close;
+  M.addEventListener("mousedown",e=>{ if(e.target===M) close(); });
+  document.addEventListener("keydown",e=>{ if(M.hidden) return; e.stopImmediatePropagation(); if(e.key==="Escape"){ e.preventDefault(); close(); } },true);
+  $("rsend").onclick=async()=>{
+    const msg=$("rmsg"), btn=$("rsend"); btn.disabled=true; msg.className="fbmsg"; msg.textContent=L("بيتبعت…","Sending…");
+    try{
+      const r=await fetch("/api/report",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text:q.t,src:q.s||"",cat:cfg.src,kind,note:$("rnote").value.trim(),website:$("rsite").value})});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok&&j.ok){ msg.className="fbmsg ok"; msg.textContent=L("وصل، شكرا ليك ✓ هنراجع النص.","Got it, thank you ✓ We'll check the text."); setTimeout(()=>{ if(!M.hidden) close(); },1600); return; }
+      msg.className="fbmsg err"; msg.textContent=r.status===429?L("استنى شوية قبل البلاغ اللي بعده.","Wait a bit before the next report."):L("ما وصلش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit.");
+    }catch(_){ msg.className="fbmsg err"; msg.textContent=L("مفيش نت. جرّب تاني.","No connection. Try again."); }
+    btn.disabled=false;
+  };
+  $("repbtn").addEventListener("mousedown",e=>e.preventDefault());
+  $("repbtn").onclick=open;
 })();
 
 /* ============ التاريخ ============ */
@@ -1826,6 +1876,25 @@ openOnPoem();
 })();
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(T&&!T.done) refresh(); });
 playIntro();
+
+/* ============ شريط الإعلان ============ */
+/* صاحب الموقع بيكتبه من لوحة التحكم. بيظهر فوق لحد ما تقفله، ولو الكلام اتغير بيظهر تاني */
+(function(){
+  const onSite=/(^|\.)taqtaqa\.com$/.test(location.hostname)||location.hostname==="localhost";
+  if(!onSite) return;
+  fetch("/api/announce").then(r=>r.ok?r.json():null).then(a=>{
+    if(!a||!a.on||!a.id) return;
+    const txt=EN?(a.en||""):(a.ar||""); if(!txt) return;
+    let seen=null; try{seen=localStorage.getItem("tq-ann");}catch(e){}
+    if(seen===a.id) return;
+    const bar=document.createElement("div"); bar.className="annbar"; bar.setAttribute("role","note");
+    const safeLink=/^(https:\/\/|\/)/.test(a.link||"")?a.link:"";
+    bar.innerHTML=`<span class="annt">${esc(txt)}</span>${safeLink?`<a href="${esc(safeLink)}"${/^https:/.test(safeLink)?' target="_blank" rel="noopener"':""}>${L("اعرف أكتر","Learn more")}</a>`:""}<button type="button" class="annx" aria-label="${L("قفل الإعلان","Dismiss")}">×</button>`;
+    bar.querySelector(".annx").onclick=()=>{ try{localStorage.setItem("tq-ann",a.id);}catch(e){} bar.remove(); if(T&&!T.done) focusInput(); };
+    bar.querySelector(".annx").addEventListener("mousedown",e=>e.preventDefault());
+    document.querySelector(".page").prepend(bar);
+  }).catch(()=>{});
+})();
 
 /* ============ عدّاد الزيارات ============ */
 /* لإحصائيات صاحب الموقع: نبضة كل دقيقة والصفحة قدامك، برقم عشوائي للجلسة بس. مفيش كوكيز ولا حاجة بتعرّفك */

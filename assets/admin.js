@@ -104,7 +104,7 @@ function chart(days) {
 }
 
 /* ============ لوحة التحكم: التبويبات ============ */
-const TABS = ["stats", "texts", "inbox"];
+const TABS = ["stats", "texts", "inbox", "announce"];
 let tab = "stats";
 function showTab(t) {
   if (!TABS.includes(t)) t = "stats";
@@ -114,9 +114,10 @@ function showTab(t) {
   if (location.hash.slice(1) !== t) history.replaceState(null, "", t === "stats" ? location.pathname : "#" + t);
   if (t === "texts" && !TX.data && !TX.loading) loadTexts();
   if (t === "inbox") loadInbox();
+  if (t === "announce") loadAnn();
 }
 $("tabs").onclick = (e) => { const b = e.target.closest("button[data-tab]"); if (b) showTab(b.dataset.tab); };
-function onLogin() { showTab(location.hash.slice(1)); if (tab !== "inbox") loadInbox(true); }
+function onLogin() { showTab(location.hash.slice(1)); if (tab !== "inbox") loadInbox(true); if (tab !== "announce") loadAnn(true); }
 
 async function api(path, body) {
   const u = auth.currentUser; if (!u) throw new Error("signin");
@@ -258,6 +259,7 @@ function renderTexts() {
   renderCounts(list);
   const q = keyOf($("q").value.trim()), fc = $("fcat").value, fl = $("flen").value, fw = $("fwarn").checked, fch = $("fchg").checked;
   let res = list.filter((it) => {
+    if (it.id === TX.editing) return true; // النص اللي مفتوح للتعديل بيفضل ظاهر
     if (fc && it.cat !== fc) return false;
     if (fl && lenCat(it.t) !== fl) return false;
     if (fch && !it.isNew && !TX.ch.has(it.id)) return false;
@@ -271,7 +273,7 @@ function renderTexts() {
   const html = res.slice(0, TX.shown).map((it) => TX.editing === it.id ? formHTML(it) : itemHTML(it, dups)).join("");
   $("tlist").innerHTML = html + (res.length > TX.shown ? `<button type="button" class="btn more" id="more">اعرض ${NUMS(Math.min(60, res.length - TX.shown))} كمان</button>` : "");
   if ($("more")) $("more").onclick = () => { TX.shown += 60; renderTexts(); };
-  if (TX.editing) bindForm();
+  if (TX.editing && $("tform")) bindForm();
   renderPending();
 }
 function srcLine(it) {
@@ -425,8 +427,9 @@ function tokenNote() {
 }
 
 /* ============ الرسايل ============ */
-const TYPE = { suggest: "اقتراح نص", bug: "غلطة", note: "رأي" };
-const IB = { items: null, filter: "new" };
+const TYPE = { suggest: "اقتراح نص", bug: "غلطة", note: "رأي", report: "بلاغ عن نص" };
+const KIND = { typo: "غلطة إملائية", chars: "حرف مش على الكيبورد", source: "المصدر أو القائل غلط", unfit: "النص مش مناسب", other: "حاجة تانية" };
+const IB = { items: null, filter: "new", type: "all" };
 async function loadInbox(quiet) {
   if (!quiet) $("ilist").innerHTML = `<p class="empty">بيحمّل…</p>`;
   try { const j = await api("/api/admin/inbox"); IB.items = j.items; }
@@ -437,18 +440,19 @@ function renderInbox() {
   const all = IB.items || [], n = all.filter((m) => m.status === "new").length;
   $("inboxcnt").hidden = !n; $("inboxcnt").textContent = NUMS(n);
   document.querySelectorAll("#ifilter button").forEach((b) => b.classList.toggle("on", b.dataset.v === IB.filter));
-  const list = IB.filter === "all" ? all : all.filter((m) => m.status === IB.filter);
+  document.querySelectorAll("#itype button").forEach((b) => b.classList.toggle("on", b.dataset.v === IB.type));
+  const list = all.filter((m) => (IB.filter === "all" || m.status === IB.filter) && (IB.type === "all" || (IB.type === "report") === (m.type === "report")));
   if (!list.length) { $("ilist").innerHTML = `<p class="empty">${IB.filter === "new" ? "مفيش رسايل جديدة." : "مفيش رسايل هنا."}</p>`; return; }
   $("ilist").innerHTML = list.map((m) => {
     const d = new Date(m.t), when = d.toLocaleDateString("ar-EG", { day: "numeric", month: "short" }) + "، " + d.toLocaleTimeString("ar-EG", { hour: "numeric", minute: "2-digit" });
     const mail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.contact || "");
     return `<div class="msg st-${esc(m.status)}" data-id="${esc(m.id)}">
       <div class="mh"><span class="tag ${m.type === "bug" ? "warn" : m.type === "suggest" ? "new" : ""}">${TYPE[m.type] || esc(m.type)}</span><span>${when}</span>${m.ctry ? `<span>${esc(country(m.ctry))}</span>` : ""}${m.contact ? (mail ? `<a href="mailto:${esc(m.contact)}" dir="ltr">${esc(m.contact)}</a>` : `<span dir="auto">${esc(m.contact)}</span>`) : ""}${m.status !== "new" ? `<span class="tag">${m.status === "done" ? "اتعملت" : "اتجاهلت"}</span>` : ""}</div>
-      <div class="mt" dir="auto">${esc(m.text)}</div>
-      ${m.page ? `<details><summary>النص اللي كان قدامه</summary><p dir="auto">${esc(m.page)}</p></details>` : ""}
+      ${m.type === "report" ? `<div class="rq" dir="auto">${esc(m.page)}</div><div class="mh"><span>— ${esc(m.src || "")}</span><span class="tag warn">${KIND[m.kind] || esc(m.kind || "")}</span></div>${m.text && m.text !== KIND[m.kind] ? `<div class="mt" dir="auto">${esc(m.text)}</div>` : ""}` : `<div class="mt" dir="auto">${esc(m.text)}</div>`}
+      ${m.page && m.type !== "report" ? `<details><summary>النص اللي كان قدامه</summary><p dir="auto">${esc(m.page)}</p></details>` : ""}
       <div class="acts">
         ${m.type === "suggest" ? `<button type="button" class="btn sm acc" data-a="addtext">ضيفه كنص</button>` : ""}
-        ${m.page ? `<button type="button" class="btn sm" data-a="find">دوّر على النص</button>` : ""}
+        ${m.page ? `<button type="button" class="btn sm ${m.type === "report" ? "acc" : ""}" data-a="find">${m.type === "report" ? "افتح النص وصلّحه" : "دوّر على النص"}</button>` : ""}
         ${m.status !== "done" ? `<button type="button" class="btn sm" data-a="done">اتعملت</button>` : ""}
         ${m.status !== "ignored" ? `<button type="button" class="btn sm" data-a="ignored">اتجاهلت</button>` : ""}
         ${m.status !== "new" ? `<button type="button" class="btn sm" data-a="new">رجّعها جديدة</button>` : ""}
@@ -456,6 +460,7 @@ function renderInbox() {
       </div></div>`;
   }).join("");
 }
+$("itype").onclick = (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; IB.type = b.dataset.v; renderInbox(); };
 $("ifilter").onclick = (e) => { const b = e.target.closest("button[data-v]"); if (!b) return; IB.filter = b.dataset.v; renderInbox(); };
 $("ireload").onclick = () => loadInbox();
 $("ilist").addEventListener("click", async (e) => {
@@ -469,7 +474,7 @@ $("ilist").addEventListener("click", async (e) => {
   }
   if (a === "find") {
     showTab("texts");
-    $("q").value = m.page.split(" ").slice(0, 4).join(" "); $("fcat").value = ""; $("flen").value = ""; $("fwarn").checked = false; $("fchg").checked = false; TX.shown = 60;
+    $("q").value = m.page.split(" ").slice(0, 6).join(" "); $("fcat").value = ""; $("flen").value = ""; $("fwarn").checked = false; $("fchg").checked = false; TX.shown = 60;
     if (TX.data) renderTexts();
     return;
   }
@@ -480,3 +485,31 @@ $("ilist").addEventListener("click", async (e) => {
     renderInbox();
   } catch (err) { b.disabled = false; toast("ما اتحفظش (" + esc(err.code || err.message) + ")"); }
 });
+
+/* ============ شريط الإعلان ============ */
+const AN = { a: null };
+function annPreview() {
+  const ar = $("a-ar").value.trim(), link = $("a-link").value.trim();
+  $("a-prev").innerHTML = `<span>${esc(ar || "اكتب الإعلان فوق")}</span>${link ? `<a>اعرف أكتر</a>` : ""}<i>×</i>`;
+  $("a-prev").style.opacity = $("a-on").checked ? 1 : 0.5;
+}
+function annFill(a) {
+  AN.a = a; $("a-ar").value = a.ar; $("a-en").value = a.en; $("a-link").value = a.link; $("a-on").checked = a.on;
+  $("anncnt").hidden = !a.on; annPreview();
+}
+async function loadAnn(quiet) {
+  try { const j = await api("/api/admin/announce"); if (!AN.dirty) annFill(j.a); }
+  catch (e) { if (!quiet) $("a-msg").textContent = "ما قدرناش نجيب الإعلان (" + (e.code || e.message) + ")"; }
+}
+["a-ar", "a-en", "a-link", "a-on"].forEach((id) => $(id).addEventListener("input", () => { AN.dirty = true; $("a-msg").textContent = ""; annPreview(); }));
+$("a-save").onclick = async () => {
+  const b = $("a-save"); b.disabled = true; $("a-msg").textContent = "بيحفظ…";
+  try {
+    const j = await api("/api/admin/announce", { ar: $("a-ar").value, en: $("a-en").value, link: $("a-link").value, on: $("a-on").checked });
+    AN.dirty = false; annFill(j.a);
+    $("a-msg").textContent = j.a.on ? "اتحفظ ✓ هيظهر في الموقع خلال دقيقة." : "اتحفظ ✓ الإعلان مقفول.";
+  } catch (e) {
+    $("a-msg").textContent = ({ empty: "اكتب الإعلان بالعربي الأول.", link: "اللينك لازم يبدأ بـ https:// أو /" })[e.code] || "ما اتحفظش (" + (e.code || e.message) + ")";
+  }
+  b.disabled = false;
+};

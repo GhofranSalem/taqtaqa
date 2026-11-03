@@ -111,6 +111,11 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{font:inherit;font-size:13.5px;background:none;border:0;color:var(--sub);padding:5px 12px;cursor:pointer}
 .seg button.on{background:var(--panel2);color:var(--fg)}
+.annprev{margin-top:6px;display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:12px;padding:8px 14px;font-size:14px}
+.annprev span{flex:1}
+.annprev a{color:var(--accent);font-weight:700;text-decoration:none}
+.annprev i{color:var(--sub);font-style:normal;font-size:18px}
+.msg .rq{background:var(--panel2);border-radius:8px;padding:8px 12px;font-size:15px;line-height:1.85;overflow-wrap:anywhere}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -131,7 +136,8 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
   <nav class="tabs" id="tabs" role="tablist">
     <button type="button" role="tab" data-tab="stats" class="on">الإحصائيات</button>
     <button type="button" role="tab" data-tab="texts">النصوص</button>
-    <button type="button" role="tab" data-tab="inbox">الرسايل <span class="cnt" id="inboxcnt" hidden></span></button>
+    <button type="button" role="tab" data-tab="inbox">الرسايل والبلاغات <span class="cnt" id="inboxcnt" hidden></span></button>
+    <button type="button" role="tab" data-tab="announce">الإعلان <span class="cnt" id="anncnt" hidden>شغال</span></button>
   </nav>
 
   <section id="tab-texts" hidden>
@@ -156,11 +162,24 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
 
   <section id="tab-inbox" hidden>
     <div class="bar">
+      <div class="seg" id="itype"><button type="button" data-v="all" class="on">الكل</button><button type="button" data-v="report">بلاغات النصوص</button><button type="button" data-v="msg">رسايل</button></div>
       <div class="seg" id="ifilter"><button type="button" data-v="new" class="on">الجديدة</button><button type="button" data-v="done">اتعملت</button><button type="button" data-v="ignored">اتجاهلت</button><button type="button" data-v="all">الكل</button></div>
       <button type="button" class="btn" id="ireload">تحديث</button>
     </div>
-    <p class="empty">الرسايل اللي بتتبعت من «ادعم طقطقة» من النهارده وبعد كده. اللي قبل كده موجودة في إيميلك بس.</p>
+    <p class="empty">رسايل «ادعم طقطقة» وبلاغات زرار «غلطة؟» اللي تحت النصوص. الرسايل اللي قبل ٣ نوفمبر موجودة في إيميلك بس.</p>
     <div class="tlist" id="ilist"></div>
+  </section>
+
+  <section id="tab-announce" hidden>
+    <div class="card f" style="max-width:640px">
+      <p class="empty" style="margin:0">جملة قصيرة بتظهر فوق في الموقع لكل الناس، لحد ما الواحد يقفلها. لو غيّرت الكلام، هتظهر تاني حتى للي قفلها قبل كده.</p>
+      <label style="display:grid;gap:4px"><small>بالعربي (في الموقع العربي)</small><input id="a-ar" maxlength="200" placeholder="جديد: اتمرن على أي نص من عندك من زرار «نصك»"></label>
+      <label style="display:grid;gap:4px"><small>بالإنجليزي (في الموقع الإنجليزي، اختياري)</small><input id="a-en" maxlength="200" dir="ltr" placeholder="New: practice on your own text with the Your text button"></label>
+      <label style="display:grid;gap:4px"><small>لينك «اعرف أكتر» (اختياري)، زي /changelog أو https://t.me/taqtaqaclub</small><input id="a-link" maxlength="300" dir="ltr"></label>
+      <label style="display:inline-flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="a-on"> الإعلان شغال في الموقع</label>
+      <div><small>شكله في الموقع:</small><div class="annprev" id="a-prev"></div></div>
+      <div class="acts"><button type="button" class="btn pri" id="a-save" style="padding:6px 18px;font-size:14px">احفظ</button><span class="empty" id="a-msg"></span></div>
+    </div>
   </section>
 
   <section id="tab-stats">

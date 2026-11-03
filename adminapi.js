@@ -6,7 +6,10 @@
 //
 // تعديل النصوص محتاج مفتاح GitHub في إعدادات الـ Worker باسم GITHUB_TOKEN
 // (Fine-grained token على ريبو taqtaqa بس، بصلاحية Contents: Read and write). المفتاح ما بيتكتبش في الكود أبدًا.
-// الرسايل محفوظة في نفس KV بتاع البوت (BOT) بمفاتيح بتبدأ بـ inbox:
+// /api/admin/announce GET/POST: شريط الإعلان اللي فوق في الموقع
+// الرسايل محفوظة في نفس KV بتاع البوت (BOT) بمفاتيح بتبدأ بـ inbox:، والإعلان في site:announce
+//
+// ومن الموقع نفسه (من غير تسجيل): /api/report بلاغ عن غلطة في نص، و/api/announce بيرجّع الإعلان
 
 import { verifyIdToken } from "./stats.js";
 
@@ -150,6 +153,7 @@ export async function admin(request, env) {
   try {
     if (url.pathname === "/api/admin/texts") return await texts(request, env);
     if (url.pathname === "/api/admin/inbox") return await inbox(request, env);
+    if (url.pathname === "/api/admin/announce") return await announceAdmin(request, env);
     return json(404, { ok: false, error: "path" });
   } catch (e) {
     return json(e.status || 500, { ok: false, error: e.code || "server" });
@@ -207,4 +211,66 @@ async function inbox(request, env) {
   v.status = b.status;
   await env.BOT.put(key, JSON.stringify(v));
   return json(200, { ok: true });
+}
+
+/* ---------- شريط الإعلان ---------- */
+const ANN = "site:announce";
+const cleanAnn = (a) => ({ on: !!a.on, id: String(a.id || ""), ar: String(a.ar || ""), en: String(a.en || ""), link: String(a.link || "") });
+/* الموقع بيسأل عليه مرة مع كل فتحة. بيتحفظ في كاش Cloudflare دقيقة، عشان كل زيارة ما تقراش من KV */
+export async function announce(request, env, ctx) {
+  const h = { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=60" };
+  const ck = new Request("https://taqtaqa.com/api/announce");
+  const hit = await caches.default.match(ck);
+  if (hit) return hit;
+  let a = null;
+  try { a = env.BOT ? await env.BOT.get(ANN, "json") : null; } catch {}
+  const body = a && a.on ? cleanAnn(a) : { on: false };
+  const res = new Response(JSON.stringify(body), { headers: h });
+  ctx.waitUntil(caches.default.put(ck, res.clone()));
+  return res;
+}
+async function announceAdmin(request, env) {
+  if (!env.BOT) return json(500, { ok: false, error: "nokv" });
+  if (request.method === "GET") return json(200, { ok: true, a: cleanAnn((await env.BOT.get(ANN, "json")) || {}) });
+  const b = await request.json().catch(() => null);
+  if (!b) return json(400, { ok: false, error: "json" });
+  const a = { on: b.on === true, ar: String(b.ar || "").trim().slice(0, 200), en: String(b.en || "").trim().slice(0, 200), link: String(b.link || "").trim().slice(0, 300) };
+  if (a.link && !/^(https:\/\/|\/)[^\s"<>]*$/.test(a.link)) return json(400, { ok: false, error: "link" });
+  if (a.on && !a.ar) return json(400, { ok: false, error: "empty" });
+  const old = (await env.BOT.get(ANN, "json")) || {};
+  // id جديد لو الكلام اتغير، عشان اللي قفل الإعلان القديم يشوف الجديد
+  a.id = old.id && old.ar === a.ar && old.en === a.en && old.link === a.link ? old.id : Date.now().toString(36);
+  await env.BOT.put(ANN, JSON.stringify(a));
+  await caches.default.delete(new Request("https://taqtaqa.com/api/announce"));
+  return json(200, { ok: true, a: cleanAnn(a) });
+}
+
+/* ---------- بلاغ عن نص ---------- */
+const KINDS = { typo: "غلطة إملائية", chars: "حرف مش على الكيبورد", source: "المصدر أو القائل غلط", unfit: "النص مش مناسب", other: "حاجة تانية" };
+async function sha(s) {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(d)].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+export async function report(request, env) {
+  const H2 = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
+  const out = (status, body) => new Response(JSON.stringify(body), { status, headers: H2 });
+  if (request.method !== "POST") return out(405, { ok: false, error: "method" });
+  if (!/^https:\/\/(taqtaqa\.com|taqtaqa\.[\w-]+\.workers\.dev)$/.test(request.headers.get("origin") || "")) return out(403, { ok: false, error: "origin" });
+  if (Number(request.headers.get("content-length") || 0) > 8000) return out(413, { ok: false, error: "big" });
+  const b = await request.json().catch(() => null);
+  if (!b || b.website) return out(200, { ok: true });
+  const text = String(b.text || "").trim(), src = String(b.src || "").trim().slice(0, 200), note = String(b.note || "").trim().slice(0, 500);
+  const kind = KINDS[b.kind] ? b.kind : "other", cat = /^[a-z_]{1,12}$/.test(b.cat || "") ? b.cat : "";
+  if (text.length < 2 || text.length > 3000) return out(400, { ok: false, error: "length" });
+  // نفس حدود رسايل «ادعم طقطقة»: رسالة كل ١٠ ثواني و٣ في الدقيقة من كل شبكة، وكل نص مرة واحدة في اليوم من نفس الشبكة
+  const ip = request.headers.get("cf-connecting-ip") || "0";
+  const who = await sha(ip.includes(":") ? ip.split(":").slice(0, 4).join(":") : ip.split(".").slice(0, 3).join("."));
+  for (const rl of [env.FB_BURST, env.FB_MINUTE]) {
+    if (rl) { try { const { success } = await rl.limit({ key: "r" + who }); if (!success) return out(429, { ok: false, error: "wait" }); } catch {} }
+  }
+  const dk = new Request("https://taqtaqa.com/__rep/" + (await sha(who + text + new Date().toISOString().slice(0, 10))));
+  if (await caches.default.match(dk)) return out(200, { ok: true, dup: true });
+  await caches.default.put(dk, new Response("1", { headers: { "cache-control": "max-age=86400" } }));
+  await saveMessage(env, { type: "report", kind, text: note || KINDS[kind], page: text, src, cat, ctry: (request.cf && request.cf.country) || "" });
+  return out(200, { ok: true });
 }

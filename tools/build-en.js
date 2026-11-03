@@ -57,6 +57,7 @@ const T = [
   ['data-v="words">كلمات<', 'data-v="words">Words<'],
   ['title="اكتب أو الصق نص من عندك">نصك<', 'title="Type or paste your own text">Your text<'],
   ['id="cedit" hidden>عدّل النص<', 'id="cedit" hidden>Edit text<'],
+  ['title="بلّغ عن غلطة في النص ده">غلطة؟<', 'title="Report a problem with this text">Report<'],
   ['>وقت<', '>Time<'],
   ['>عدد كلمات<', '>Words<'],
   ['>اقتباس<', '>Quote<'],

@@ -3,7 +3,7 @@
 import { EmailMessage } from "cloudflare:email";
 import { telegram, weekly } from "./bot.js";
 import { ping, stats, countFeedback } from "./stats.js";
-import { admin, saveMessage } from "./adminapi.js";
+import { admin, saveMessage, report, announce } from "./adminapi.js";
 export { Stats } from "./stats.js";
 
 const FIREBASE_HOST = "taqtaqa-type.firebaseapp.com";
@@ -31,6 +31,8 @@ export default {
     if (url.pathname === "/api/stats") return stats(request, env);
     // لوحة التحكم: النصوص والرسايل (adminapi.js)، لصاحب الموقع بس
     if (url.pathname.startsWith("/api/admin/")) return admin(request, env);
+    if (url.pathname === "/api/report") return report(request, env);
+    if (url.pathname === "/api/announce") return announce(request, env, ctx);
     // صفحة الإحصائيات ما تظهرش في جوجل. الأرقام نفسها ما بتتجابش غير بتسجيل دخول صاحب الموقع
     if (url.pathname === "/admin" || url.pathname === "/admin.html") {
       const res = secure(await env.ASSETS.fetch(request));

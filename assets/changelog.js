@@ -15,6 +15,10 @@
   "use strict";
   var BETA = true;
   var CHANGES = [
+    { v: "0.5.0", d: "2026-11-03", big: true, items: [
+      ["زرار «غلطة؟» تحت أي نص: لو لقيت غلطة إملائية أو مصدر غلط، بلّغنا في ثانية والنص بيوصلنا معاه", "A Report button under every text: spot a typo or a wrong source and tell us in a second, with the text attached"],
+      ["شريط صغير فوق بالأخبار والتحديثات المهمة، وتقدر تقفله", "A small bar at the top for news and important updates, which you can dismiss"]
+    ]},
     { v: "0.4.0", d: "2026-11-01", big: true, items: [
       ["«نصك»: اتمرن على أي نص من عندك. الصقه أو ارفع ملف .txt، وكل فقرة بتبقى نص لوحدها", "Your text: practice on any text you like. Paste it or upload a .txt file, and each paragraph becomes its own text"]
     ]},

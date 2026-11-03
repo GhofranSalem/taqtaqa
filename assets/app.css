@@ -464,7 +464,7 @@ html[dir=ltr] .sway #fbcontact:placeholder-shown{direction:ltr}
 /* ============ وضع التركيز ============ */
 /* الإطار بيهدى وانت بتكتب، والزرار الجاي في الكيبورد بس اللي بيفضل واضح */
 header,.config,footer,.kbhead,.under,.live{transition:opacity .35s ease}
-body.typing header,body.typing .config,body.typing footer,body.typing .about,body.typing .kbhead{opacity:0;pointer-events:none}
+body.typing .annbar,body.typing header,body.typing .config,body.typing footer,body.typing .about,body.typing .kbhead{opacity:0;pointer-events:none}
 body.typing .under,body.typing .live{opacity:.55}
 body.typing .kb .k:not(.next){opacity:.45}
 
@@ -525,3 +525,15 @@ body.typing .kb .k:not(.next){opacity:.45}
 .cbox .cgo .fbmsg{font-size:13.5px;color:var(--sub)}
 .cbox .cgo .fbmsg.err{color:var(--err,#e06c75)}
 .cbox .cnote{font-size:12.5px;color:var(--sub);line-height:1.7}
+/* بلاغ عن نص */
+.favbtn.repbtn{opacity:.75}
+.favbtn.repbtn:hover,.favbtn.repbtn:focus-visible{opacity:1}
+.rbox .rquote{background:var(--panel);border-radius:10px;padding:10px 14px;font-size:15px;line-height:1.9;max-height:30vh;overflow:auto;color:var(--fg)}
+.rbox .rkinds button.on{border-color:var(--accent);color:var(--accent)}
+/* شريط الإعلان */
+.annbar{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;background:var(--panel);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:12px;padding:8px 14px;font-size:14px;line-height:1.7;transition:opacity .35s ease}
+.annbar .annt{flex:1;min-width:0}
+.annbar a{color:var(--accent);text-decoration:none;font-weight:600;white-space:nowrap}
+.annbar a:hover{text-decoration:underline}
+.annbar .annx{background:none;border:0;color:var(--sub);font-size:20px;line-height:1;padding:0 4px;cursor:pointer;margin-inline-start:auto}
+.annbar .annx:hover{color:var(--fg)}
