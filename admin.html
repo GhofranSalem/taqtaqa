@@ -138,6 +138,7 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
     <button type="button" role="tab" data-tab="texts">النصوص</button>
     <button type="button" role="tab" data-tab="inbox">الرسايل والبلاغات <span class="cnt" id="inboxcnt" hidden></span></button>
     <button type="button" role="tab" data-tab="announce">الإعلان <span class="cnt" id="anncnt" hidden>شغال</span></button>
+    <button type="button" role="tab" data-tab="telegram">تليجرام</button>
   </nav>
 
   <section id="tab-texts" hidden>
@@ -179,6 +180,18 @@ h2{font-size:15px;margin:26px 0 10px;color:var(--sub);font-weight:400}
       <label style="display:inline-flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="a-on"> الإعلان شغال في الموقع</label>
       <div><small>شكله في الموقع:</small><div class="annprev" id="a-prev"></div></div>
       <div class="acts"><button type="button" class="btn pri" id="a-save" style="padding:6px 18px;font-size:14px">احفظ</button><span class="empty" id="a-msg"></span></div>
+    </div>
+  </section>
+
+  <section id="tab-telegram" hidden>
+    <div class="card f" style="max-width:640px">
+      <p class="empty" style="margin:0">رسالة لجروب طقطقة على تليجرام باسم البوت، زي خبر تحديث جديد أو مسابقة.</p>
+      <p class="err" id="g-off" hidden>البوت مش شغال (TG_TOKEN مش متحط في Cloudflare).</p>
+      <label style="display:grid;gap:4px"><small>الرسالة</small><textarea id="g-text" maxlength="3500" dir="auto" placeholder="جديد في طقطقة: تقدر دلوقتي تتمرن على أي نص من عندك من زرار «نصك» 🎉"></textarea></label>
+      <label style="display:grid;gap:4px;max-width:260px"><small>القسم</small><select id="g-topic"></select></label>
+      <label style="display:inline-flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="g-btn" checked> زرار «افتح طقطقة» تحت الرسالة</label>
+      <label style="display:inline-flex;gap:8px;align-items:center;cursor:pointer"><input type="checkbox" id="g-pin"> ثبّت الرسالة في الجروب</label>
+      <div class="acts"><button type="button" class="btn pri" id="g-send" style="padding:6px 18px;font-size:14px">ابعت للجروب</button><span class="empty" id="g-msg"></span></div>
     </div>
   </section>
 

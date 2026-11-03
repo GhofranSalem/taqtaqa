@@ -7,11 +7,13 @@
 // تعديل النصوص محتاج مفتاح GitHub في إعدادات الـ Worker باسم GITHUB_TOKEN
 // (Fine-grained token على ريبو taqtaqa بس، بصلاحية Contents: Read and write). المفتاح ما بيتكتبش في الكود أبدًا.
 // /api/admin/announce GET/POST: شريط الإعلان اللي فوق في الموقع
+// /api/admin/telegram GET: الأقسام اللي البوت يعرفها. POST: {text, topic, button, pin} رسالة لجروب تليجرام باسم البوت
 // الرسايل محفوظة في نفس KV بتاع البوت (BOT) بمفاتيح بتبدأ بـ inbox:، والإعلان في site:announce
 //
 // ومن الموقع نفسه (من غير تسجيل): /api/report بلاغ عن غلطة في نص، و/api/announce بيرجّع الإعلان
 
 import { verifyIdToken } from "./stats.js";
+import { broadcast, broadcastInfo, BROADCAST_TOPICS } from "./bot.js";
 
 const ADMIN_EMAIL = "ghofran.salem@gmail.com";
 const ORIGIN = "https://taqtaqa.com";
@@ -154,6 +156,7 @@ export async function admin(request, env) {
     if (url.pathname === "/api/admin/texts") return await texts(request, env);
     if (url.pathname === "/api/admin/inbox") return await inbox(request, env);
     if (url.pathname === "/api/admin/announce") return await announceAdmin(request, env);
+    if (url.pathname === "/api/admin/telegram") return await telegramAdmin(request, env);
     return json(404, { ok: false, error: "path" });
   } catch (e) {
     return json(e.status || 500, { ok: false, error: e.code || "server" });
@@ -273,4 +276,15 @@ export async function report(request, env) {
   await caches.default.put(dk, new Response("1", { headers: { "cache-control": "max-age=86400" } }));
   await saveMessage(env, { type: "report", kind, text: note || KINDS[kind], page: text, src, cat, ctry: (request.cf && request.cf.country) || "" });
   return out(200, { ok: true });
+}
+
+/* ---------- رسالة لجروب تليجرام ---------- */
+async function telegramAdmin(request, env) {
+  if (request.method === "GET") return json(200, { ok: true, ...(await broadcastInfo(env)) });
+  const b = await request.json().catch(() => null);
+  const text = String((b && b.text) || "").trim();
+  if (text.length < 2 || text.length > 3500) return json(400, { ok: false, error: "length" });
+  const topic = BROADCAST_TOPICS.includes(b.topic) ? b.topic : "general";
+  const r = await broadcast(env, { text, topic, button: b.button === true, pin: b.pin === true });
+  return json(r.ok ? 200 : 400, r);
 }

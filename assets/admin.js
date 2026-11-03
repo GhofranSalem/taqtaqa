@@ -104,7 +104,7 @@ function chart(days) {
 }
 
 /* ============ لوحة التحكم: التبويبات ============ */
-const TABS = ["stats", "texts", "inbox", "announce"];
+const TABS = ["stats", "texts", "inbox", "announce", "telegram"];
 let tab = "stats";
 function showTab(t) {
   if (!TABS.includes(t)) t = "stats";
@@ -115,6 +115,7 @@ function showTab(t) {
   if (t === "texts" && !TX.data && !TX.loading) loadTexts();
   if (t === "inbox") loadInbox();
   if (t === "announce") loadAnn();
+  if (t === "telegram") loadTg();
 }
 $("tabs").onclick = (e) => { const b = e.target.closest("button[data-tab]"); if (b) showTab(b.dataset.tab); };
 function onLogin() { showTab(location.hash.slice(1)); if (tab !== "inbox") loadInbox(true); if (tab !== "announce") loadAnn(true); }
@@ -510,6 +511,32 @@ $("a-save").onclick = async () => {
     $("a-msg").textContent = j.a.on ? "اتحفظ ✓ هيظهر في الموقع خلال دقيقة." : "اتحفظ ✓ الإعلان مقفول.";
   } catch (e) {
     $("a-msg").textContent = ({ empty: "اكتب الإعلان بالعربي الأول.", link: "اللينك لازم يبدأ بـ https:// أو /" })[e.code] || "ما اتحفظش (" + (e.code || e.message) + ")";
+  }
+  b.disabled = false;
+};
+
+/* ============ رسالة لجروب تليجرام ============ */
+const TG_TOPICS = { general: "العام (من غير قسم)", welcome: "👋 أهلًا وقواعد", results: "🏆 نتايجكم", ideas: "💡 اقتراحات", chat: "💬 دردشة", en: "🌍 English" };
+let tgLoaded = false;
+async function loadTg() {
+  if (tgLoaded) return;
+  try {
+    const j = await api("/api/admin/telegram"); tgLoaded = true;
+    $("g-off").hidden = j.on; $("g-send").disabled = !j.on;
+    $("g-topic").innerHTML = j.topics.map((k) => `<option value="${k}">${TG_TOPICS[k] || k}</option>`).join("");
+  } catch (e) { $("g-msg").textContent = "ما قدرناش نجيب أقسام الجروب (" + (e.code || e.message) + ")"; }
+}
+$("g-send").onclick = async () => {
+  const text = $("g-text").value.trim();
+  if (text.length < 2) { $("g-msg").textContent = "اكتب الرسالة الأول."; return; }
+  if (!confirm("تبعت الرسالة دي لكل اللي في الجروب؟")) return;
+  const b = $("g-send"); b.disabled = true; $("g-msg").textContent = "بيتبعت…";
+  try {
+    const j = await api("/api/admin/telegram", { text, topic: $("g-topic").value, button: $("g-btn").checked, pin: $("g-pin").checked });
+    $("g-msg").innerHTML = `اتبعتت ✓ <a href="${esc(j.link)}" target="_blank" rel="noopener" style="color:var(--accent)">افتحها في الجروب</a>`;
+    $("g-text").value = "";
+  } catch (e) {
+    $("g-msg").textContent = ({ notoken: "البوت مش شغال.", notopic: "البوت لسه ما يعرفش القسم ده.", telegram: "تليجرام رفض الرسالة. اتأكد إن البوت أدمن في الجروب." })[e.code] || "ما اتبعتتش (" + (e.code || e.message) + ")";
   }
   b.disabled = false;
 };

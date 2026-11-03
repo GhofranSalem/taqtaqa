@@ -424,3 +424,24 @@ async function getCfg(env) {
   return { group: c.group || null, topics: c.topics || {} };
 }
 const putCfg = (env, c) => put(env, "cfg", c);
+
+/* ---------- رسالة للجروب من لوحة التحكم (adminapi.js) ---------- */
+export const BROADCAST_TOPICS = ["general", "welcome", "results", "ideas", "chat", "en"];
+export async function broadcast(env, { text, topic, button, pin }) {
+  if (!env.TG_TOKEN) return { ok: false, error: "notoken" };
+  const cfg = await getCfg(env);
+  const thread = topic && topic !== "general" ? cfg.topics[topic] : undefined;
+  if (topic && topic !== "general" && !thread) return { ok: false, error: "notopic" };
+  const r = await api(env, "sendMessage", {
+    chat_id: cfg.group || "@" + GROUP, message_thread_id: thread || undefined,
+    text, link_preview_options: { is_disabled: true },
+    reply_markup: button ? { inline_keyboard: [[{ text: "افتح طقطقة", url: SITE }, { text: "English", url: SITE + "/en/" }]] } : undefined
+  });
+  if (!r.ok) return { ok: false, error: "telegram", detail: String(r.description || "").slice(0, 200) };
+  if (pin) await api(env, "pinChatMessage", { chat_id: r.result.chat.id, message_id: r.result.message_id, disable_notification: true });
+  return { ok: true, link: "https://t.me/" + GROUP + "/" + (thread ? thread + "/" : "") + r.result.message_id };
+}
+export async function broadcastInfo(env) {
+  const cfg = await getCfg(env);
+  return { on: !!env.TG_TOKEN, topics: BROADCAST_TOPICS.filter((k) => k === "general" || cfg.topics[k]) };
+}
