@@ -273,9 +273,26 @@ whenReady(async () => {
       TQ.setLastRuns(all);
       await setDoc(userDoc(u.uid), { ql: TQ.getLastRuns(), updatedAt: serverTimestamp() }, { merge: true });
     } catch (ex) { console.warn("taqtaqa last", ex); }
+    // الإعدادات: الأحدث بيكسب (الجهاز ولا الحساب)
+    try { await syncCfg(u, ud.exists() ? ud.data().cfg : null, mine); } catch (ex) { console.warn("taqtaqa cfg", ex); }
     TQ.refreshHistory();
     return { up: up.length, total: all.length };
   }
+  async function syncCfg(u, c, mine) {
+    if (!TQ.getCfgSync) return;
+    const local = TQ.getCfgSync();
+    const cloudT = c && typeof c.t === "number" ? c.t : 0;
+    if (c && c.v && cloudT > (mine ? local.t : 0)) TQ.applyCfg(c.v, cloudT);
+    else if (mine && (local.t > cloudT || !c)) await setDoc(userDoc(u.uid), { cfg: { v: local.cfg, t: local.t || 1 }, updatedAt: serverTimestamp() }, { merge: true });
+  }
+  // لما ترجع للتاب، بنشوف لو الإعدادات اتغيرت من جهاز تاني (مرة كل ٣٠ ثانية بالكتير)
+  let cfgCheckAt = 0;
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState !== "visible" || !user || Date.now() - cfgCheckAt < 30e3) return;
+    cfgCheckAt = Date.now();
+    try { const d = await getDoc(userDoc(user.uid)); const c = d.exists() ? d.data().cfg : null; if (c && c.v && c.t > TQ.getCfgSync().t) TQ.applyCfg(c.v, c.t); }
+    catch (ex) { console.warn("taqtaqa cfg", ex); }
+  });
   async function deleteAccount() {
     const u = auth.currentUser; if (!u) return;
     const snap = await getDocs(resultsCol(u.uid));
@@ -326,6 +343,11 @@ whenReady(async () => {
     if (!user || !e.detail) return;
     try { await setDoc(userDoc(user.uid), { ql: { [e.detail.k]: e.detail.rec }, updatedAt: serverTimestamp() }, { merge: true }); }
     catch (ex) { console.warn("taqtaqa last", ex); }
+  });
+  window.addEventListener("tq:cfg", async (e) => {
+    if (!user || !e.detail) return;
+    try { await setDoc(userDoc(user.uid), { cfg: { v: e.detail.cfg, t: e.detail.t }, updatedAt: serverTimestamp() }, { merge: true }); cfgCheckAt = Date.now(); }
+    catch (ex) { console.warn("taqtaqa cfg", ex); }
   });
   window.addEventListener("tq:clear", async () => {
     if (!user) return;

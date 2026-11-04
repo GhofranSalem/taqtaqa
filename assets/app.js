@@ -13,7 +13,23 @@ let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
 if(cfg.src==="tashkeel") cfg.src="mix";
 if(!cfg.theme) cfg.theme="vesper";
-function saveCfg(){try{localStorage.setItem("tq-cfg",JSON.stringify(cfg));}catch(e){}}
+function saveCfg(){try{localStorage.setItem("tq-cfg",JSON.stringify(cfg));}catch(e){} cfgChanged();}
+/* الإعدادات اللي بتتزامن مع الحساب (cloud.js). ترتيب الكيبورد (ويندوز/ماك) بيفضل لكل جهاز لوحده.
+   كل تغيير بيتسجل وقته (tq-cfg-t)، والأحدث هو اللي بيكسب بين الأجهزة */
+var SYNC_KEYS=["theme","tfilter","tfont","tsize","tashkeel","lenient","punct","pace","kb","hands","goal"];
+function pickSync(){ const o={}; SYNC_KEYS.forEach(k=>{ o[k]=cfg[k]; }); return o; }
+var lastSync=null, syncTimer=0, applyingRemote=false;
+function cfgChanged(){
+  const now=JSON.stringify(pickSync());
+  if(lastSync===null){ lastSync=now; return; }
+  if(now===lastSync||applyingRemote) return;
+  lastSync=now;
+  const t=Date.now(); try{localStorage.setItem("tq-cfg-t",String(t));}catch(e){}
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>{ try{window.dispatchEvent(new CustomEvent("tq:cfg",{detail:{cfg:pickSync(),t}}));}catch(e){} },1200);
+}
+function cfgTime(){ try{return +localStorage.getItem("tq-cfg-t")||0;}catch(e){return 0;} }
+lastSync=JSON.stringify(pickSync());
 function getPBs(){try{return JSON.parse(localStorage.getItem("tq-pb")||"{}");}catch(e){return {};}}
 function setPBs(o){try{localStorage.setItem("tq-pb",JSON.stringify(o));}catch(e){}}
 
@@ -1450,9 +1466,10 @@ function fontStack(id){
 }
 function applyFont(){
   if(!fontAvail) fontAvail=detectFonts();
-  if(!fontAvail.has(cfg.tfont)) cfg.tfont="sans";
-  document.documentElement.style.setProperty("--f-text",fontStack(cfg.tfont));
-  const f=FONTS.find(x=>x[0]===cfg.tfont);
+  /* لو الخط اللي اخترته مش موجود على الجهاز ده، بنعرض ثمانية من غير ما نغيّر اختيارك (عشان الأجهزة التانية) */
+  const id=fontAvail.has(cfg.tfont)?cfg.tfont:"sans";
+  document.documentElement.style.setProperty("--f-text",fontStack(id));
+  const f=FONTS.find(x=>x[0]===id);
   $("fontbtn").textContent=f?fontName(f):L("ثمانية","Thmanyah");
 }
 function renderFontMenu(){
@@ -1921,7 +1938,30 @@ playIntro();
 })();
 
 /* واجهة صغيرة لـ cloud.js (الحسابات والمزامنة) */
-window.TQ={getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden){ renderHistory(); if(hTab==="lb"&&window.TQ_LB) window.TQ_LB.render($("lbbody")); } showPB(); paintGoal(); }};
+/* إعدادات جاية من الحساب: بنتأكد من كل قيمة قبل ما نطبّقها */
+function applyRemoteCfg(o,t){
+  if(!o||typeof o!=="object") return;
+  const before=JSON.stringify(pickSync());
+  applyingRemote=true;
+  SYNC_KEYS.forEach(k=>{
+    const v=o[k];
+    if(typeof v!==typeof DEF[k]) return;
+    if(k==="theme"&&v!=="taqtaqa"&&!THEMES.some(x=>x[0]===v)) return;
+    if(k==="goal"&&![0,5,10,15,20,30,45,60].includes(v)) return;
+    if(k==="tsize"&&!["s","m","l"].includes(v)) return;
+    if(k==="tfilter"&&!["dark","light","all"].includes(v)) return;
+    if(typeof v==="string"&&v.length>40) return;
+    cfg[k]=v;
+  });
+  saveCfg(); lastSync=JSON.stringify(pickSync());
+  try{localStorage.setItem("tq-cfg-t",String(t||Date.now()));}catch(e){}
+  applyingRemote=false;
+  if(lastSync===before) return;
+  applyTheme(cfg.theme); applyFont(); syncConfig(); paintGoal(); buildKb();
+  requestAnimationFrame(()=>{ handsLayout(); updateKb(); });
+  if(T&&!T.started&&!T.done) go(0);
+}
+window.TQ={getCfgSync:()=>({cfg:pickSync(),t:cfgTime()}),applyCfg:applyRemoteCfg,getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden){ renderHistory(); if(hTab==="lb"&&window.TQ_LB) window.TQ_LB.render($("lbbody")); } showPB(); paintGoal(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 

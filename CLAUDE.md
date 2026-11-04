@@ -22,7 +22,7 @@
 | `assets/board.js` | الترتيب الأسبوعي (دوريات، والأسبوع بيبدأ السبت UTC) |
 | `assets/admin.js`، `admin.html` | لوحة التحكم `/admin` لصاحب الموقع بس: تبويب الإحصائيات، والنصوص (بحث وتعديل وحذف وإضافة ونقل بين الأقسام، وملاحظات تلقائية بقواعد النصوص)، والرسايل والبلاغات، والإعلان، والترتيب (إخفاء لاعيبة)، ورسالة لجروب تليجرام |
 | `adminapi.js` | API لوحة التحكم: `/api/admin/texts` بيقرا `data.js` من GitHub ويعمل commit بالتعديلات (بيدوّر على النص بقيمته مش برقمه)، و`/api/admin/inbox` لرسايل «ادعم طقطقة» وبلاغات «غلطة؟» (`type: "report"`) المحفوظة في KV البوت بمفاتيح `inbox:`، و`/api/admin/board` (الإخفاء في KV `lb:hidden`، والموقع بياخد القايمة من `/api/lbhidden`، والبوت من `hiddenPlayers`؛ مفيش مسح من Firebase)، و`/api/admin/telegram` (بيستخدم `broadcast` من bot.js)، و`/api/admin/announce` للإعلان (`site:announce` في نفس KV). ومن الموقع من غير تسجيل: `/api/report` و`/api/announce` (متكاش دقيقة) |
-| `cloud.js` | Firebase: الحسابات والمزامنة (`window.TQ_AUTH`) |
+| `cloud.js` | Firebase: الحسابات والمزامنة (`window.TQ_AUTH`): التاريخ، والأرقام، والمفضلة، وآخر مرة، والإعدادات (`cfg: {v, t}` في users/{uid}، والأحدث بيكسب؛ المفاتيح في `SYNC_KEYS` في app.js، وترتيب الكيبورد مش منهم) |
 | `worker.js` | Cloudflare Worker: هيدرز الأمان (CSP)، وتحويل www، وتسجيل الدخول، و`/api/feedback` (Turnstile وحد للرسايل)، و`/api/health` |
 | `stats.js` | عدّاد الزيارات: `/api/ping` و`/api/stats` (بيتأكد من توكن Firebase وإيميل صاحب الموقع)، والأرقام في Durable Object |
 | `bot.js` | بوت تليجرام @taqtaqaclubbot لجروب @taqtaqaclub: ترحيب، سبام، المشاكل للأدمن، أسئلة، وأوائل الأسبوع كل سبت (cron) |
