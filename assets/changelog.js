@@ -16,7 +16,8 @@
   var BETA = true;
   var CHANGES = [
     { v: "0.6.0", d: "2026-11-04", big: true, items: [
-      ["إعداداتك بتتحفظ في حسابك: الثيم والخط وحجم النص والتشكيل ومؤشر آخر مرة والكيبورد والإيدين والهدف اليومي بيبقوا زي ما هما على أي جهاز تدخل منه", "Your settings now follow your account: theme, font, text size, diacritics, the pace caret, keyboard, hands and daily goal stay the same on any device you sign in from"]
+      ["إعداداتك بتتحفظ في حسابك: الثيم والخط وحجم النص والتشكيل ومؤشر آخر مرة والكيبورد والإيدين والهدف اليومي بيبقوا زي ما هما على أي جهاز تدخل منه", "Your settings now follow your account: theme, font, text size, diacritics, the pace caret, keyboard, hands and daily goal stay the same on any device you sign in from"],
+      ["الاختصارات اللي تحت بقت بتتقفل وتتفتح بدوسة، والصفحة بتفتكر اختيارك", "The shortcuts at the bottom now collapse and expand with a click, and the page remembers your choice"]
     ]},
     { v: "0.5.0", d: "2026-11-03", big: true, items: [
       ["زرار «غلطة؟» تحت أي نص: لو لقيت غلطة إملائية أو مصدر غلط، بلّغنا في ثانية والنص بيوصلنا معاه", "A Report button under every text: spot a typo or a wrong source and tell us in a second, with the text attached"],

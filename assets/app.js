@@ -8,7 +8,7 @@
 "use strict";
 
 /* ============ الإعدادات واللغة ============ */
-const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true,goal:10,hands:true};
+const DEF = {src:"masry",mode:"time",time:30,words:25,qlen:"all",lenient:true,punct:true,kb:true,layout:"pc",theme:"vesper",tfilter:"dark",tfont:"sans",tsize:"m",tashkeel:false,pace:true,goal:10,hands:true,scOpen:false};
 let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
 if(cfg.src==="tashkeel") cfg.src="mix";
@@ -16,7 +16,7 @@ if(!cfg.theme) cfg.theme="vesper";
 function saveCfg(){try{localStorage.setItem("tq-cfg",JSON.stringify(cfg));}catch(e){} cfgChanged();}
 /* الإعدادات اللي بتتزامن مع الحساب (cloud.js). ترتيب الكيبورد (ويندوز/ماك) بيفضل لكل جهاز لوحده.
    كل تغيير بيتسجل وقته (tq-cfg-t)، والأحدث هو اللي بيكسب بين الأجهزة */
-var SYNC_KEYS=["theme","tfilter","tfont","tsize","tashkeel","lenient","punct","pace","kb","hands","goal"];
+var SYNC_KEYS=["theme","tfilter","tfont","tsize","tashkeel","lenient","punct","pace","kb","hands","goal","scOpen"];
 function pickSync(){ const o={}; SYNC_KEYS.forEach(k=>{ o[k]=cfg[k]; }); return o; }
 var lastSync=null, syncTimer=0, applyingRemote=false;
 function cfgChanged(){
@@ -1674,7 +1674,16 @@ function renderShortcuts(){
   const os=curOS();
   $("sclist").innerHTML=SHORTCUTS.map(([g,rows])=>`<div><h3>${g}</h3>${rows.map(([t,n,w,m,nw,nm])=>{ const note=n||(os==="mac"?nm:nw)||""; return `<div class="scrow"><span>${t}${note?`<small>${note}</small>`:""}</span><span class="ks">${(os==="mac"?m:w).map(k=>`<kbd>${esc(k)}</kbd>`).join("+")}</span></div>`; }).join("")}</div>`).join("");
   document.querySelectorAll("#g-os button").forEach(b=>{ const on=b.dataset.v===os; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
+  paintShortcutsOpen();
 }
+/* الاختصارات مقفولة في الأول عشان الصفحة تبقى هادية، واختيارك بيتحفظ (وبيتزامن مع حسابك) */
+function paintShortcutsOpen(){
+  const open=!!cfg.scOpen;
+  $("shortcuts").classList.toggle("open",open);
+  $("sctog").setAttribute("aria-expanded",open);
+  $("sclist").hidden=!open; $("g-os").hidden=!open;
+}
+$("sctog").addEventListener("click",()=>{ cfg.scOpen=!cfg.scOpen; saveCfg(); paintShortcutsOpen(); if(cfg.scOpen) $("shortcuts").scrollIntoView({behavior:"smooth",block:"nearest"}); });
 /* الاختصارات بتتعرض على حسب نظام الجهاز اللي فاتح منه، إلا لو اخترت بنفسك */
 function detectOS(){
   const p=(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||navigator.userAgent||"";
@@ -1957,7 +1966,7 @@ function applyRemoteCfg(o,t){
   try{localStorage.setItem("tq-cfg-t",String(t||Date.now()));}catch(e){}
   applyingRemote=false;
   if(lastSync===before) return;
-  applyTheme(cfg.theme); applyFont(); syncConfig(); paintGoal(); buildKb();
+  applyTheme(cfg.theme); applyFont(); syncConfig(); paintGoal(); buildKb(); paintShortcutsOpen();
   requestAnimationFrame(()=>{ handsLayout(); updateKb(); });
   if(T&&!T.started&&!T.done) go(0);
 }

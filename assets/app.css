@@ -336,6 +336,15 @@ footer .ver:hover{color:var(--accent);border-color:var(--accent)}
 .shortcuts{width:min(760px,100%);display:flex;flex-direction:column;gap:12px;margin-bottom:6px}
 .schead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .schead h2{margin:0;font-size:15px;font-weight:500;color:var(--fg)}
+.sctog{font:inherit;color:inherit;background:none;border:0;padding:2px 6px;margin:0 -6px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.sctog::after{content:"";width:6px;height:6px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.sctog:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.shortcuts.open .sctog::after{transform:rotate(-135deg) translateY(-1px)}
+/* وهي مقفولة: سطر صغير هادي في النص، زي «عن طقطقة» */
+.shortcuts:not(.open){margin-bottom:0}
+.shortcuts:not(.open) .schead{justify-content:center}
+.shortcuts:not(.open) .schead h2{font-size:13px;font-weight:400;color:var(--sub)}
+.shortcuts:not(.open) .sctog:hover{color:var(--fg)}
 .sccols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:4px 36px}
 .sccols h3{margin:6px 0 2px;font-size:12.5px;font-weight:400;color:var(--sub)}
 .scrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line)}
