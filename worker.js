@@ -31,7 +31,7 @@ export default {
     if (url.pathname === "/api/stats") return stats(request, env);
     // لوحة التحكم: النصوص والرسايل (adminapi.js)، لصاحب الموقع بس
     if (url.pathname.startsWith("/api/admin/")) return admin(request, env);
-    if (url.pathname === "/api/report") return report(request, env);
+    if (url.pathname === "/api/report") return report(request, env, (t) => human(t, request, env, "report"));
     if (url.pathname === "/api/announce") return announce(request, env, ctx);
     if (url.pathname === "/api/lbhidden") return lbHidden(request, env, ctx);
     // صفحة الإحصائيات ما تظهرش في جوجل. الأرقام نفسها ما بتتجابش غير بتسجيل دخول صاحب الموقع
@@ -84,7 +84,7 @@ function secure(res) {
 /* Turnstile: لو المفتاح السري متحط في إعدادات الـ Worker (TURNSTILE_SECRET)، كل رسالة لازم يكون معاها
    إثبات من المتصفح إن اللي بعتها مش بوت. الإثبات بيتستخدم مرة واحدة بس */
 const TURNSTILE_HOSTNAMES = ["taqtaqa.com"];
-async function human(token, request, env) {
+async function human(token, request, env, action = "feedback") {
   if (!env.TURNSTILE_SECRET) return true;
   if (typeof token !== "string" || !token || token.length > 2048 || !TURNSTILE_HOSTNAMES.length) return false;
   const body = new FormData();
@@ -94,7 +94,7 @@ async function human(token, request, env) {
   try {
     const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body, signal: AbortSignal.timeout(8000) });
     const j = await r.json();
-    return j.success === true && j.action === "feedback" && TURNSTILE_HOSTNAMES.includes(j.hostname);
+    return j.success === true && j.action === action && TURNSTILE_HOSTNAMES.includes(j.hostname);
   } catch { return false; }
 }
 

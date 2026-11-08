@@ -260,7 +260,9 @@ async function sha(s) {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(d)].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-export async function report(request, env) {
+/* الكلمات اللي الشخص غلط فيها أو وقف عندها: كلمات قصيرة من النص نفسه بس */
+const words = (a) => (Array.isArray(a) ? a : []).map((w) => String(w || "").trim().slice(0, 40)).filter(Boolean).slice(0, 10);
+export async function report(request, env, verify) {
   const out = json;
   if (request.method !== "POST") return out(405, { ok: false, error: "method" });
   if (!/^https:\/\/(taqtaqa\.com|taqtaqa\.[\w-]+\.workers\.dev)$/.test(request.headers.get("origin") || "")) return out(403, { ok: false, error: "origin" });
@@ -270,6 +272,11 @@ export async function report(request, env) {
   const text = String(b.text || "").trim(), src = String(b.src || "").trim().slice(0, 200), note = String(b.note || "").trim().slice(0, 500);
   const kind = KINDS[b.kind] ? b.kind : "other", cat = /^[a-z_]{1,12}$/.test(b.cat || "") ? b.cat : "";
   if (text.length < 2 || text.length > 3000) return out(400, { ok: false, error: "length" });
+  // «حاجة تانية» من غير شرح ما بتفيدش، فلازم سطر يقول المشكلة
+  if (kind === "other" && note.length < 5) return out(400, { ok: false, error: "note" });
+  // الكلمة اللي وقف عندها لازم تكون من النص نفسه، وكذلك الكلمات اللي غلط فيها
+  const has = (w) => text.includes(w);
+  const at = String(b.at || "").trim().slice(0, 40), miss = words(b.miss).filter(has);
   // نفس حدود رسايل «ادعم طقطقة»: رسالة كل ١٠ ثواني و٣ في الدقيقة من كل شبكة، وكل نص مرة واحدة في اليوم من نفس الشبكة
   const ip = request.headers.get("cf-connecting-ip") || "0";
   const who = await sha(ip.includes(":") ? ip.split(":").slice(0, 4).join(":") : ip.split(".").slice(0, 3).join("."));
@@ -283,9 +290,11 @@ export async function report(request, env) {
   if (n >= 10) return out(429, { ok: false, error: "day" });
   const dk = new Request("https://taqtaqa.com/__rep/" + (await sha(who + text + today)));
   if (await caches.default.match(dk)) return out(200, { ok: true, dup: true });
+  // Cloudflare Turnstile: بيتأكد إن اللي بيبلّغ مش بوت
+  if (verify && !(await verify(b.ts))) return out(403, { ok: false, error: "captcha" });
   const day = { headers: { "cache-control": "max-age=86400" } };
   await Promise.all([caches.default.put(dk, new Response("1", day)), caches.default.put(nk, new Response(String(n + 1), day))]);
-  await saveMessage(env, { type: "report", kind, text: note || KINDS[kind], page: text, src, cat, ctry: (request.cf && request.cf.country) || "" });
+  await saveMessage(env, { type: "report", kind, text: note || KINDS[kind], page: text, src, cat, at: at && has(at) ? at : "", miss, ctry: (request.cf && request.cf.country) || "" });
   return out(200, { ok: true });
 }
 

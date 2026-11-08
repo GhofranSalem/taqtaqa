@@ -443,12 +443,36 @@ function renderInbox() {
   document.querySelectorAll("#itype button").forEach((b) => b.classList.toggle("on", b.dataset.v === IB.type));
   const list = all.filter((m) => (IB.filter === "all" || m.status === IB.filter) && (IB.type === "all" || (IB.type === "report") === (m.type === "report")));
   if (!list.length) { $("ilist").innerHTML = `<p class="empty">${IB.filter === "new" ? "مفيش رسايل جديدة." : "مفيش رسايل هنا."}</p>`; return; }
-  $("ilist").innerHTML = list.map((m) => {
+  // البلاغات عن نفس النص بتتجمع في كارت واحد، عشان لو حد بعت بلاغات كتير ما تغرّقش القايمة.
+  // والكروت اللي جالها أكتر من بلاغ أو فيها شرح بتطلع الأول
+  const groups = [], byPage = new Map();
+  for (const m of list) {
+    if (m.type !== "report") { groups.push([m]); continue; }
+    const g = byPage.get(m.page);
+    if (g) g.push(m); else { const n = [m]; byPage.set(m.page, n); groups.push(n); }
+  }
+  const noted = (m) => m.text && m.text !== KIND[m.kind];
+  const weight = (g) => (g[0].type === "report" && (g.length > 1 || g.some(noted)) ? 1 : 0);
+  groups.sort((x, y) => weight(y) - weight(x));
+  const uniq = (a) => [...new Set(a.filter(Boolean))];
+  $("ilist").innerHTML = groups.map((g) => {
+    const m = g[0], ids = g.map((x) => x.id).join(",");
     const d = new Date(m.t), when = d.toLocaleDateString("ar-EG", { day: "numeric", month: "short" }) + "، " + d.toLocaleTimeString("ar-EG", { hour: "numeric", minute: "2-digit" });
     const mail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.contact || "");
-    return `<div class="msg st-${esc(m.status)}" data-id="${esc(m.id)}">
-      <div class="mh"><span class="tag ${m.type === "bug" ? "warn" : m.type === "suggest" ? "new" : ""}">${TYPE[m.type] || esc(m.type)}</span><span>${when}</span>${m.ctry ? `<span>${esc(country(m.ctry))}</span>` : ""}${m.contact ? (mail ? `<a href="mailto:${esc(m.contact)}" dir="ltr">${esc(m.contact)}</a>` : `<span dir="auto">${esc(m.contact)}</span>`) : ""}${m.status !== "new" ? `<span class="tag">${m.status === "done" ? "اتعملت" : "اتجاهلت"}</span>` : ""}</div>
-      ${m.type === "report" ? `<div class="rq" dir="auto">${esc(m.page)}</div><div class="mh"><span>— ${esc(m.src || "")}</span><span class="tag warn">${KIND[m.kind] || esc(m.kind || "")}</span></div>${m.text && m.text !== KIND[m.kind] ? `<div class="mt" dir="auto">${esc(m.text)}</div>` : ""}` : `<div class="mt" dir="auto">${esc(m.text)}</div>`}
+    let body;
+    if (m.type === "report") {
+      const kinds = uniq(g.map((x) => x.kind)), notes = uniq(g.filter(noted).map((x) => x.text));
+      const at = uniq(g.map((x) => x.at)), miss = uniq(g.flatMap((x) => x.miss || []));
+      body = `<div class="rq" dir="auto">${esc(m.page)}</div>
+        <div class="mh"><span>— ${esc(m.src || "")}</span>${kinds.map((k) => `<span class="tag warn">${KIND[k] || esc(k)}</span>`).join("")}</div>
+        ${notes.map((t) => `<div class="mt" dir="auto">${esc(t)}</div>`).join("")}
+        ${at.length ? `<div class="mh"><span>وقف عند:</span>${at.map((w) => `<span class="tag" dir="auto">${esc(w)}</span>`).join("")}</div>` : ""}
+        ${miss.length ? `<div class="mh"><span>غلط في:</span>${miss.map((w) => `<span class="tag" dir="auto">${esc(w)}</span>`).join("")}</div>` : ""}`;
+    } else body = `<div class="mt" dir="auto">${esc(m.text)}</div>`;
+    const ctry = uniq(g.map((x) => x.ctry)).map((c) => esc(country(c))).join("، ");
+    return `<div class="msg st-${esc(m.status)}" data-id="${esc(ids)}">
+      <div class="mh"><span class="tag ${m.type === "bug" ? "warn" : m.type === "suggest" ? "new" : ""}">${TYPE[m.type] || esc(m.type)}</span>${g.length > 1 ? `<span class="tag new">${NUM(g.length)} بلاغات</span>` : ""}<span>${when}</span>${ctry ? `<span>${ctry}</span>` : ""}${m.contact ? (mail ? `<a href="mailto:${esc(m.contact)}" dir="ltr">${esc(m.contact)}</a>` : `<span dir="auto">${esc(m.contact)}</span>`) : ""}${m.status !== "new" ? `<span class="tag">${m.status === "done" ? "اتعملت" : "اتجاهلت"}</span>` : ""}</div>
+      ${body}
       ${m.page && m.type !== "report" ? `<details><summary>النص اللي كان قدامه</summary><p dir="auto">${esc(m.page)}</p></details>` : ""}
       <div class="acts">
         ${m.type === "suggest" ? `<button type="button" class="btn sm acc" data-a="addtext">ضيفه كنص</button>` : ""}
@@ -465,7 +489,7 @@ $("ifilter").onclick = (e) => { const b = e.target.closest("button[data-v]"); if
 $("ireload").onclick = () => loadInbox();
 $("ilist").addEventListener("click", async (e) => {
   const b = e.target.closest("button[data-a]"); if (!b) return;
-  const id = b.closest("[data-id]").dataset.id, a = b.dataset.a, m = IB.items.find((x) => x.id === id);
+  const ids = b.closest("[data-id]").dataset.id.split(","), a = b.dataset.a, m = IB.items.find((x) => x.id === ids[0]);
   if (a === "addtext") {
     showTab("texts"); $("fwarn").checked = false; $("fchg").checked = false;
     const go = () => { $("addbtn").click(); $("f-t").value = m.text.replace(/\s+/g, " ").trim(); $("f-t").dispatchEvent(new Event("input")); };
@@ -480,8 +504,9 @@ $("ilist").addEventListener("click", async (e) => {
   }
   b.disabled = true;
   try {
-    if (a === "delmsg") { if (!confirm("تحذف الرسالة دي؟")) { b.disabled = false; return; } await api("/api/admin/inbox", { id, del: true }); IB.items = IB.items.filter((x) => x.id !== id); }
-    else { await api("/api/admin/inbox", { id, status: a }); m.status = a; }
+    // في كارت البلاغات المتجمعة، الزرار بيتطبق على كل البلاغات اللي فيه
+    if (a === "delmsg") { if (!confirm(ids.length > 1 ? `تحذف الـ ${NUM(ids.length)} بلاغات دول؟` : "تحذف الرسالة دي؟")) { b.disabled = false; return; } await Promise.all(ids.map((id) => api("/api/admin/inbox", { id, del: true }))); IB.items = IB.items.filter((x) => !ids.includes(x.id)); }
+    else { await Promise.all(ids.map((id) => api("/api/admin/inbox", { id, status: a }))); IB.items.forEach((x) => { if (ids.includes(x.id)) x.status = a; }); }
     renderInbox();
   } catch (err) { b.disabled = false; toast("ما اتحفظش (" + esc(err.code || err.message) + ")"); }
 });

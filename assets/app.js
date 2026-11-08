@@ -1013,7 +1013,7 @@ function updateUnder(){
   const q=curQuote();
   $("src").textContent=T&&T.practice?"— "+PRACTICE_LBL:q?("— "+q.s):"";
   $("cedit").hidden=!(q&&q.custom&&!(T&&T.practice));
-  $("repbtn").hidden=!q||!!q.custom||!!(T&&T.practice);
+  $("repbtn").hidden=!q||!!q.custom||!!(T&&T.practice)||!typedEnough();
   paintFav();
 }
 function paintFav(){
@@ -1130,7 +1130,32 @@ function customQuotes(){
 })();
 
 /* ============ بلاغ عن غلطة في نص ============ */
-/* زرار «غلطة؟» تحت النص بيفتح نافذة صغيرة. البلاغ بيوصل لوحة التحكم (/api/report) ومعاه النص نفسه */
+/* زرار «غلطة؟» تحت النص بيفتح نافذة صغيرة. البلاغ بيوصل لوحة التحكم (/api/report) ومعاه النص نفسه.
+   الحماية من السبام: الزرار ما بيظهرش غير بعد ما تكتب ٣ كلمات، و«حاجة تانية» لازم معاها شرح، وTurnstile،
+   والبلاغ بيبعت الكلمة اللي وقفت عندها والكلمات اللي غلطت فيها عشان نعرف المشكلة فين */
+function typedEnough(){ return !!(T&&T.words&&(T.done||T.idx>=Math.min(3,T.words.length-1))); }
+/* Cloudflare Turnstile: بيتأكد إن اللي بيبعت مش بوت، من غير ما تدوس على حاجة في الغالب.
+   السكريبت بيتحمّل مرة واحدة لما نافذة تحتاجه تتفتح. المفتاح ده عام ومش سري */
+const TS_KEY="0x4AAAAAAFr4BYmazyg61nrc", TS_ON=/(^|\.)taqtaqa\.com$/.test(location.hostname);
+const tsQueue=[];
+function tsScript(cb){
+  if(window.turnstile){ cb(); return; }
+  tsQueue.push(cb); if(tsQueue.length>1) return;
+  window.__tsReady=()=>{ tsQueue.splice(0).forEach(f=>{ try{f();}catch(e){} }); };
+  const s=document.createElement("script"); s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__tsReady"; s.async=true; s.defer=true; document.head.appendChild(s);
+}
+function tsWidget(box,action){
+  let id=null, tok=null, wait=null, asked=false;
+  const done=()=>{ if(wait){ wait(); wait=null; } };
+  return {
+    load(){ if(!TS_ON||asked) return; asked=true;
+      tsScript(()=>{ id=turnstile.render(box,{sitekey:TS_KEY,action,appearance:"interaction-only",language:EN?"en":"ar",
+        callback:t=>{ tok=t; done(); },"expired-callback":()=>{ tok=null; },"error-callback":()=>{ tok=null; done(); }}); }); },
+    ready(){ return !TS_ON||tok?Promise.resolve():new Promise(res=>{ wait=res; setTimeout(done,8000); }); },
+    token(){ return tok||""; },
+    reset(){ tok=null; if(id!==null) try{ turnstile.reset(id); }catch(_){} }
+  };
+}
 (function(){
   const KINDS=EN?[["typo","Spelling mistake"],["chars","A character not on the keyboard"],["source","Wrong source or author"],["unfit","Inappropriate text"],["other","Something else"]]
     :[["typo","غلطة إملائية"],["chars","حرف مش على الكيبورد"],["source","المصدر أو القائل غلط"],["unfit","النص مش مناسب"],["other","حاجة تانية"]];
@@ -1143,21 +1168,33 @@ function customQuotes(){
     <div class="rquote" id="rquote"></div>
     <div class="sway">
       <div class="srow rkinds" role="radiogroup" aria-label="${L("نوع الغلطة","Kind of problem")}">${KINDS.map(([k,n],i)=>`<button type="button" role="radio" data-k="${k}" class="${i?"":"on"}" aria-checked="${!i}">${n}</button>`).join("")}</div>
-      <textarea id="rnote" rows="3" maxlength="500" dir="auto" placeholder="${L("إيه الغلطة؟ وإزاي المفروض تبقى؟ (اختياري)","What's wrong, and how should it be? (optional)")}" aria-label="${L("تفاصيل","Details")}"></textarea>
+      <textarea id="rnote" rows="3" maxlength="500" dir="auto" aria-label="${L("تفاصيل","Details")}"></textarea>
       <input type="text" id="rsite" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+      <div id="rtsbox"></div>
       <div class="srow"><button type="button" class="pri" id="rsend">${L("ابعت","Send")}</button><span class="fbmsg" id="rmsg" role="status"></span></div>
     </div>
   </div>`;
   document.body.appendChild(M);
-  let kind="typo", q=null;
-  M.querySelector(".rkinds").onclick=e=>{ const b=e.target.closest("[data-k]"); if(!b) return; kind=b.dataset.k; M.querySelectorAll(".rkinds button").forEach(x=>{ const on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-checked",on); }); };
+  let kind="typo", q=null, seg=null;
+  const ts=tsWidget("#rtsbox","report");
+  const needNote=()=>kind==="other";
+  function hint(){ $("rnote").placeholder=needNote()?L("اكتب إيه المشكلة (لازم مع «حاجة تانية»)","Describe the problem (required for “Something else”)"):L("إيه الغلطة؟ وإزاي المفروض تبقى؟ (اختياري)","What's wrong, and how should it be? (optional)"); }
+  M.querySelector(".rkinds").onclick=e=>{ const b=e.target.closest("[data-k]"); if(!b) return; kind=b.dataset.k; M.querySelectorAll(".rkinds button").forEach(x=>{ const on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-checked",on); }); hint(); };
+  /* الكلمة اللي وقفت عندها، والكلمات اللي غلطت فيها، من النص ده بس */
+  function where(){
+    if(!T||!T.segs) return {at:"",miss:[]};
+    const i=T.segs.findIndex(sg=>sg.q===q), from=i<0?0:T.segs[i].from, to=i<0||i===T.segs.length-1?T.words.length:T.segs[i+1].from;
+    const miss=[...(T.missed||[])].filter(n=>n>=from&&n<to).sort((a,b)=>a-b).map(n=>T.words[n]).slice(0,10);
+    const at=!T.done&&T.idx>=from&&T.idx<to?T.words[T.idx]:"";
+    return {at,miss};
+  }
   function open(){
-    q=curQuote(); if(!q) return;
+    q=curQuote(); if(!q||!typedEnough()) return; seg=where();
     if(T&&T.started&&!T.done) pauseTest();
     setTyping(false); try{ti.blur();}catch(e){}
     $("rquote").textContent=clean(q.t,q.tk); $("rquote").dir=qDir(q);
-    $("rnote").value=""; $("rmsg").textContent=""; $("rmsg").className="fbmsg"; $("rsend").disabled=false;
-    M.hidden=false; $("rnote").focus();
+    $("rnote").value=""; $("rmsg").textContent=""; $("rmsg").className="fbmsg"; $("rsend").disabled=false; hint();
+    M.hidden=false; $("rnote").focus(); ts.load();
   }
   function close(){ M.hidden=true; focusInput(); }
   window.openReport=open; window.reportOpen=()=>!M.hidden;
@@ -1165,12 +1202,19 @@ function customQuotes(){
   M.addEventListener("mousedown",e=>{ if(e.target===M) close(); });
   document.addEventListener("keydown",e=>{ if(M.hidden) return; e.stopImmediatePropagation(); if(e.key==="Escape"){ e.preventDefault(); close(); } },true);
   $("rsend").onclick=async()=>{
-    const msg=$("rmsg"), btn=$("rsend"); btn.disabled=true; msg.className="fbmsg"; msg.textContent=L("بيتبعت…","Sending…");
+    const msg=$("rmsg"), btn=$("rsend"), note=$("rnote").value.trim();
+    if(needNote()&&note.length<5){ msg.className="fbmsg err"; msg.textContent=L("اكتب في سطر إيه المشكلة.","Write a line about the problem."); $("rnote").focus(); return; }
+    btn.disabled=true; msg.className="fbmsg"; msg.textContent=L("بيتبعت…","Sending…");
+    ts.load(); await ts.ready();
     try{
-      const r=await fetch("/api/report",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text:q.t,src:q.s||"",cat:cfg.src,kind,note:$("rnote").value.trim(),website:$("rsite").value})});
+      const r=await fetch("/api/report",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text:q.t,src:q.s||"",cat:cfg.src,kind,note,at:seg.at,miss:seg.miss,website:$("rsite").value,ts:ts.token()})});
+      ts.reset();
       const j=await r.json().catch(()=>({}));
       if(r.ok&&j.ok){ msg.className="fbmsg ok"; msg.textContent=L("وصل، شكرا ليك ✓ هنراجع النص.","Got it, thank you ✓ We'll check the text."); setTimeout(()=>{ if(!M.hidden) close(); },1600); return; }
-      msg.className="fbmsg err"; msg.textContent=r.status===429?L("استنى شوية قبل البلاغ اللي بعده.","Wait a bit before the next report."):L("ما وصلش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit.");
+      msg.className="fbmsg err"; msg.textContent=r.status===429?L("استنى شوية قبل البلاغ اللي بعده.","Wait a bit before the next report.")
+        :r.status===403&&j.error==="captcha"?L("ما قدرناش نتأكد إنك مش روبوت. جرّب تاني.","We couldn't confirm you're not a bot. Try again.")
+        :j.error==="note"?L("اكتب في سطر إيه المشكلة.","Write a line about the problem.")
+        :L("ما وصلش. جرّب تاني بعد شوية.","It didn't go through. Try again in a bit.");
     }catch(_){ msg.className="fbmsg err"; msg.textContent=L("مفيش نت. جرّب تاني.","No connection. Try again."); }
     btn.disabled=false;
   };
@@ -1587,29 +1631,19 @@ slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focu
   $("fbtext").placeholder=L("المثل أو الجملة، ومصدرها لو تعرفه…","The proverb or line, and its source if you know it…");
   $("mailcopy").onclick=async()=>{ const b=$("mailcopy"); try{ await navigator.clipboard.writeText("hello@taqtaqa.com"); b.textContent=L("اتنسخ ✓","Copied ✓"); }catch(e){ b.textContent="hello@taqtaqa.com"; } setTimeout(()=>b.textContent=L("انسخ","Copy"),2000); };
   if(!onSite){ $("fbsend").disabled=true; $("fbmsg").textContent=L("الفورم شغال على taqtaqa.com","The form works on taqtaqa.com"); }
-  /* Cloudflare Turnstile: بيتأكد إن اللي بيبعت مش بوت، من غير ما تدوس على حاجة في الغالب.
-     بيتحمّل لما نافذة «ادعم طقطقة» تتفتح بس، والمفتاح ده عام ومش سري */
-  const TS_KEY="0x4AAAAAAFr4BYmazyg61nrc", tsOn=/(^|\.)taqtaqa\.com$/.test(location.hostname);
-  let tsId=null, tsToken=null, tsWait=null;
-  function loadTurnstile(){
-    if(!tsOn||tsId!==null||window.__tsLoading) return;
-    window.__tsLoading=true;
-    window.__tsReady=()=>{ tsId=turnstile.render("#tsbox",{sitekey:TS_KEY,action:"feedback",appearance:"interaction-only",language:EN?"en":"ar",
-      callback:t=>{ tsToken=t; if(tsWait){ tsWait(); tsWait=null; } },"expired-callback":()=>{ tsToken=null; },"error-callback":()=>{ tsToken=null; }}); };
-    const s=document.createElement("script"); s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=__tsReady"; s.async=true; s.defer=true; document.head.appendChild(s);
-  }
-  const tokenReady=()=>!tsOn||tsToken?Promise.resolve():new Promise(res=>{ tsWait=res; setTimeout(res,8000); });
+  /* Turnstile: الكود المشترك في قسم «بلاغ عن غلطة في نص» (tsWidget) */
+  const ts=tsWidget("#tsbox","feedback");
   $("fbform").addEventListener("submit",async e=>{
     e.preventDefault();
     const msg=$("fbmsg"), btn=$("fbsend"), text=$("fbtext").value.trim();
     msg.className="fbmsg";
     if(text.length<3){ msg.className="fbmsg err"; msg.textContent=L("اكتب رسالتك الأول.","Write your message first."); $("fbtext").focus(); return; }
     btn.disabled=true; msg.textContent=L("بيتبعت…","Sending…");
-    loadTurnstile(); await tokenReady();
+    ts.load(); await ts.ready();
     const page=(T&&T.words)?T.words.slice(0,40).join(" "):"";
     try{
-      const r=await fetch("/api/feedback",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:ftype,text,contact:$("fbcontact").value.trim(),page,website:$("fbsite").value,ts:tsToken||""})});
-      tsToken=null; if(tsId!==null) try{ turnstile.reset(tsId); }catch(_){}
+      const r=await fetch("/api/feedback",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:ftype,text,contact:$("fbcontact").value.trim(),page,website:$("fbsite").value,ts:ts.token()})});
+      ts.reset();
       const j=await r.json().catch(()=>({}));
       if(r.ok&&j.ok){ msg.className="fbmsg ok"; msg.textContent=L("وصلت، شكرا ليك ✓","Sent, thank you ✓"); $("fbtext").value=""; }
       else if(r.status===403&&j.error==="captcha"){ msg.className="fbmsg err"; msg.textContent=L("ما قدرناش نتأكد إنك مش روبوت. جرّب تاني.","We couldn't confirm you're not a bot. Try again."); }
@@ -1622,7 +1656,7 @@ slab.addEventListener("mousedown",e=>{ if(e.target!==ti){e.preventDefault();focu
     btn.disabled=false;
   });
   const M=$("smodal");
-  window.openSupport=function(){ closeFontMenu(false); closeSetMenu(false); setTyping(false); try{ti.blur();}catch(e){} M.hidden=false; $("sshare").focus(); loadTurnstile(); };
+  window.openSupport=function(){ closeFontMenu(false); closeSetMenu(false); setTyping(false); try{ti.blur();}catch(e){} M.hidden=false; $("sshare").focus(); ts.load(); };
   function close(){ M.hidden=true; focusInput(); }
   $("sclose").onclick=close;
   M.addEventListener("mousedown",e=>{ if(e.target===M) close(); });
