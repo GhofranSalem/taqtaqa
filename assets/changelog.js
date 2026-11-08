@@ -16,7 +16,7 @@
   var BETA = true;
   var CHANGES = [
     { v: "0.6.1", d: "2026-11-08", items: [
-      ["طقطقة بقت رسميًا من Switch & Cap، واللوجو بتاعها تحت في آخر الصفحة", "Taqtaqa is now officially by Switch & Cap, with its logo at the bottom of the page"]
+      ["طقطقة بقت رسميًا من Switch & Cap، واللوجو بتاعها فوق تحت اسم الموقع وتحت في آخر الصفحة", "Taqtaqa is now officially by Switch & Cap, with its logo under the site name and at the bottom of the page"]
     ]},
     { v: "0.6.0", d: "2026-11-04", big: true, items: [
       ["إعداداتك بتتحفظ في حسابك: الثيم والخط وحجم النص والتشكيل ومؤشر آخر مرة والكيبورد والإيدين والهدف اليومي بيبقوا زي ما هما على أي جهاز تدخل منه", "Your settings now follow your account: theme, font, text size, diacritics, the pace caret, keyboard, hands and daily goal stay the same on any device you sign in from"],

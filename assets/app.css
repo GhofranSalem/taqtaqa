@@ -64,6 +64,13 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px 16
 a.logo{text-decoration:none;cursor:pointer;border-radius:6px}
 a.logo:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .tag{margin:0;color:var(--sub);font-size:14px;line-height:1.3;min-height:1.3em}
+.tag{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px}
+.scbadge{display:inline-flex;align-items:center;gap:6px;color:var(--sub);font-size:12px;text-decoration:none;opacity:.85;transition:opacity .35s,color .15s}
+.scbadge img{display:block;width:16px;height:16px;border-radius:4px;transition:transform .12s}
+.scbadge:hover{opacity:1;color:#FF6A2B}
+.scbadge:hover img{transform:translateY(-1px) rotate(-4deg)}
+.tsep{display:block;width:1px;height:14px;background:color-mix(in srgb,var(--sub) 40%,transparent);transition:opacity .35s}
+.intro .scbadge,.intro .tsep{opacity:0}
 .hright{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .hpair{display:inline-flex;gap:8px;flex:none}
 .pb{color:var(--sub);font-size:13px;font-variant-numeric:tabular-nums}
