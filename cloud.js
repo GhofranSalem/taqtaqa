@@ -11,6 +11,7 @@ const firebaseConfig = {
 };
 
 const OWNER_KEY = "tq-owner";
+const HIST_MAX = 2000; // نفس HMAX في app.js
 // الصفحة الإنجليزي (en/) بنفس الملف، والفرق في الكلام بس
 const EN = document.documentElement.lang === "en";
 const L = (ar, en) => (EN ? en : ar);
@@ -28,7 +29,7 @@ whenReady(async () => {
   ]);
   const { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
     createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, deleteUser, reauthenticateWithPopup, updateProfile } = A;
-  const { getFirestore, doc, getDoc, setDoc, collection, getDocs, writeBatch, serverTimestamp } = F;
+  const { getFirestore, doc, getDoc, setDoc, collection, getDocs, writeBatch, serverTimestamp, query, orderBy, limit } = F;
   const TQ = window.TQ;
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -233,15 +234,19 @@ whenReady(async () => {
   async function syncDown(u) {
     let owner = null; try { owner = localStorage.getItem(OWNER_KEY); } catch (e) {}
     const mine = !owner || owner === u.uid; // التاريخ اللي على الجهاز ده بتاعك ولا بتاع حساب تاني
+    // الإعدادات الأول، عشان لو حصلت مشكلة في مزامنة التاريخ ما توقفهاش
+    const ud = await getDoc(userDoc(u.uid));
+    try { await syncCfg(u, ud.exists() ? ud.data().cfg : null, mine); } catch (ex) { console.warn("taqtaqa cfg", ex); }
     const local = mine ? TQ.getHist() : [];
-    const snap = await getDocs(resultsCol(u.uid));
+    // بنجيب آخر ٢٠٠٠ نتيجة بس (نفس اللي بيتحفظ على الجهاز)، مش التاريخ كله في كل مرة
+    const snap = await getDocs(query(resultsCol(u.uid), orderBy("t", "desc"), limit(HIST_MAX)));
     const cloud = snap.docs.map((d) => d.data()).filter((h) => typeof h.t === "number");
     const have = new Set(cloud.map((h) => h.t));
-    const up = local.filter((h) => typeof h.t === "number" && !have.has(h.t));
+    const oldest = cloud.length >= HIST_MAX ? cloud[cloud.length - 1].t : 0;
+    const up = local.filter((h) => typeof h.t === "number" && h.t > oldest && !have.has(h.t));
     if (up.length) await writeMany(u.uid, up);
     const all = cloud.concat(up).sort((a, b) => a.t - b.t);
     TQ.setHist(all);
-    const ud = await getDoc(userDoc(u.uid));
     const pb = mergePB(ud.exists() ? ud.data().pb : {}, mine ? TQ.getPBs() : {});
     TQ.setPBs(pb);
     await setDoc(userDoc(u.uid), {
@@ -273,24 +278,32 @@ whenReady(async () => {
       TQ.setLastRuns(all);
       await setDoc(userDoc(u.uid), { ql: TQ.getLastRuns(), updatedAt: serverTimestamp() }, { merge: true });
     } catch (ex) { console.warn("taqtaqa last", ex); }
-    // الإعدادات: الأحدث بيكسب (الجهاز ولا الحساب)
-    try { await syncCfg(u, ud.exists() ? ud.data().cfg : null, mine); } catch (ex) { console.warn("taqtaqa cfg", ex); }
     TQ.refreshHistory();
     return { up: up.length, total: all.length };
+  }
+  /* الإعدادات: مش بنقارن ساعات الأجهزة. لو فيه تغيير على الجهاز ده لسه ما اتبعتش بيتبعت،
+     وإلا لو نسخة الحساب غير آخر نسخة الجهاز عرفها بتتطبق */
+  async function pushCfg(uid, v, t, localT) {
+    await setDoc(userDoc(uid), { cfg: { v, t }, updatedAt: serverTimestamp() }, { merge: true });
+    TQ.cfgPushed(t, localT || t); cfgCheckAt = Date.now();
   }
   async function syncCfg(u, c, mine) {
     if (!TQ.getCfgSync) return;
     const local = TQ.getCfgSync();
-    const cloudT = c && typeof c.t === "number" ? c.t : 0;
-    if (c && c.v && cloudT > (mine ? local.t : 0)) TQ.applyCfg(c.v, cloudT);
-    else if (mine && (local.t > cloudT || !c)) await setDoc(userDoc(u.uid), { cfg: { v: local.cfg, t: local.t || 1 }, updatedAt: serverTimestamp() }, { merge: true });
+    const cloudT = c && c.v && typeof c.t === "number" ? c.t : 0;
+    // أول مرة بعد التحديث (لسه مفيش seen): زي الأول، الأحدث بيكسب
+    const dirty = local.dirty || (!local.seen && local.t > cloudT);
+    if (mine && (dirty || !cloudT)) await pushCfg(u.uid, local.cfg, Math.max(local.t, cloudT + 1, 1), local.t);
+    else if (cloudT && cloudT !== local.seen) TQ.applyCfg(c.v, cloudT);
   }
-  // لما ترجع للتاب، بنشوف لو الإعدادات اتغيرت من جهاز تاني (مرة كل ٣٠ ثانية بالكتير)
+  // لما ترجع للتاب: لو فيه تغيير ما اتبعتش بنبعته، ولو الإعدادات اتغيرت من جهاز تاني بنجيبها (مرة كل ١٥ ثانية بالكتير)
   let cfgCheckAt = 0;
   document.addEventListener("visibilitychange", async () => {
-    if (document.visibilityState !== "visible" || !user || Date.now() - cfgCheckAt < 30e3) return;
+    if (document.visibilityState !== "visible" || !user) return;
+    const local = TQ.getCfgSync();
+    if (!local.dirty && Date.now() - cfgCheckAt < 15e3) return;
     cfgCheckAt = Date.now();
-    try { const d = await getDoc(userDoc(user.uid)); const c = d.exists() ? d.data().cfg : null; if (c && c.v && c.t > TQ.getCfgSync().t) TQ.applyCfg(c.v, c.t); }
+    try { const d = await getDoc(userDoc(user.uid)); await syncCfg(user, d.exists() ? d.data().cfg : null, true); }
     catch (ex) { console.warn("taqtaqa cfg", ex); }
   });
   async function deleteAccount() {
@@ -346,8 +359,8 @@ whenReady(async () => {
   });
   window.addEventListener("tq:cfg", async (e) => {
     if (!user || !e.detail) return;
-    try { await setDoc(userDoc(user.uid), { cfg: { v: e.detail.cfg, t: e.detail.t }, updatedAt: serverTimestamp() }, { merge: true }); cfgCheckAt = Date.now(); }
-    catch (ex) { console.warn("taqtaqa cfg", ex); }
+    try { await pushCfg(user.uid, e.detail.cfg, e.detail.t || Date.now()); }
+    catch (ex) { console.warn("taqtaqa cfg", ex); } // التغيير بيفضل مستني وبيتبعت أول ما ترجع للتاب أو تفتح الموقع
   });
   window.addEventListener("tq:clear", async () => {
     if (!user) return;

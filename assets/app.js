@@ -13,22 +13,35 @@ let cfg = Object.assign({},DEF);
 try{const s=JSON.parse(localStorage.getItem("tq-cfg")||"null"); if(s) cfg=Object.assign(cfg,s);}catch(e){}
 if(cfg.src==="tashkeel") cfg.src="mix";
 if(!cfg.theme) cfg.theme="vesper";
-function saveCfg(){try{localStorage.setItem("tq-cfg",JSON.stringify(cfg));}catch(e){} cfgChanged();}
-/* الإعدادات اللي بتتزامن مع الحساب (cloud.js). ترتيب الكيبورد (ويندوز/ماك) بيفضل لكل جهاز لوحده.
-   كل تغيير بيتسجل وقته (tq-cfg-t)، والأحدث هو اللي بيكسب بين الأجهزة */
-var SYNC_KEYS=["theme","tfilter","tfont","tsize","tashkeel","lenient","punct","pace","kb","hands","goal","scOpen"];
+/* silent: تغيير عملناه احنا لوحدنا (مش المستخدم)، فما يتبعتش للحساب */
+function saveCfg(silent){try{localStorage.setItem("tq-cfg",JSON.stringify(cfg));}catch(e){} if(silent) lastSync=JSON.stringify(pickSync()); else cfgChanged();}
+/* الإعدادات اللي بتتزامن مع الحساب (cloud.js). ترتيب الكيبورد (ويندوز/ماك) بيفضل لكل جهاز لوحده،
+   والنوع والقسم مش منهم لأن الموقع بيفتح دايما على «اقتباس» (openOnPoem).
+   مش بنقارن ساعات الأجهزة ببعض (ساعة جهاز ممكن تبقى غلط):
+   tq-cfg-dirty = فيه تغيير على الجهاز ده لسه ما اتبعتش، وtq-cfg-seen = آخر نسخة من الحساب الجهاز ده عرفها.
+   لو فيه تغيير ما اتبعتش بيتبعت، ولو الحساب فيه نسخة غير اللي نعرفها بتتطبق */
+var SYNC_KEYS=["theme","tfilter","tfont","tsize","tashkeel","lenient","punct","pace","kb","hands","goal","scOpen","time","words"];
 function pickSync(){ const o={}; SYNC_KEYS.forEach(k=>{ o[k]=cfg[k]; }); return o; }
+function lsGet(k){ try{return localStorage.getItem(k);}catch(e){return null;} }
+function lsSet(k,v){ try{localStorage.setItem(k,String(v));}catch(e){} }
 var lastSync=null, syncTimer=0, applyingRemote=false;
 function cfgChanged(){
   const now=JSON.stringify(pickSync());
   if(lastSync===null){ lastSync=now; return; }
   if(now===lastSync||applyingRemote) return;
   lastSync=now;
-  const t=Date.now(); try{localStorage.setItem("tq-cfg-t",String(t));}catch(e){}
+  lsSet("tq-cfg-t",Date.now()); lsSet("tq-cfg-dirty","1");
   clearTimeout(syncTimer);
-  syncTimer=setTimeout(()=>{ try{window.dispatchEvent(new CustomEvent("tq:cfg",{detail:{cfg:pickSync(),t}}));}catch(e){} },1200);
+  syncTimer=setTimeout(pushCfg,1200);
 }
-function cfgTime(){ try{return +localStorage.getItem("tq-cfg-t")||0;}catch(e){return 0;} }
+function pushCfg(){ clearTimeout(syncTimer); syncTimer=0; try{window.dispatchEvent(new CustomEvent("tq:cfg",{detail:{cfg:pickSync(),t:cfgTime()}}));}catch(e){} }
+/* لو قفلت التاب أو سبتها قبل ما التغيير يتبعت، بيتبعت على طول */
+function flushCfg(){ if(syncTimer) pushCfg(); }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushCfg(); });
+window.addEventListener("pagehide",flushCfg);
+function cfgTime(){ return +lsGet("tq-cfg-t")||0; }
+/* cloud.js بينادي دي بعد ما الحفظ في الحساب ينجح */
+function cfgPushed(t,sent){ lsSet("tq-cfg-seen",t); if(cfgTime()===sent&&!syncTimer){ lsSet("tq-cfg-t",t); lsSet("tq-cfg-dirty","0"); } }
 lastSync=JSON.stringify(pickSync());
 function getPBs(){try{return JSON.parse(localStorage.getItem("tq-pb")||"{}");}catch(e){return {};}}
 function setPBs(o){try{localStorage.setItem("tq-pb",JSON.stringify(o));}catch(e){}}
@@ -1984,27 +1997,27 @@ playIntro();
 /* إعدادات جاية من الحساب: بنتأكد من كل قيمة قبل ما نطبّقها */
 function applyRemoteCfg(o,t){
   if(!o||typeof o!=="object") return;
-  const before=JSON.stringify(pickSync());
+  const before=JSON.stringify(pickSync()), shape=cfg.time+"/"+cfg.words;
+  const OK={goal:[0,5,10,15,20,30,45,60],tsize:["s","m","l"],tfilter:["dark","light","all"],time:[15,30,60,120],words:[10,25,50,100]};
   applyingRemote=true;
   SYNC_KEYS.forEach(k=>{
     const v=o[k];
     if(typeof v!==typeof DEF[k]) return;
     if(k==="theme"&&v!=="taqtaqa"&&!THEMES.some(x=>x[0]===v)) return;
-    if(k==="goal"&&![0,5,10,15,20,30,45,60].includes(v)) return;
-    if(k==="tsize"&&!["s","m","l"].includes(v)) return;
-    if(k==="tfilter"&&!["dark","light","all"].includes(v)) return;
+    if(OK[k]&&!OK[k].includes(v)) return;
     if(typeof v==="string"&&v.length>40) return;
     cfg[k]=v;
   });
-  saveCfg(); lastSync=JSON.stringify(pickSync());
-  try{localStorage.setItem("tq-cfg-t",String(t||Date.now()));}catch(e){}
+  saveCfg(true);
+  lsSet("tq-cfg-t",t||Date.now()); lsSet("tq-cfg-seen",t||0); lsSet("tq-cfg-dirty","0");
   applyingRemote=false;
   if(lastSync===before) return;
   applyTheme(cfg.theme); applyFont(); syncConfig(); paintGoal(); buildKb(); paintShortcutsOpen();
   requestAnimationFrame(()=>{ handsLayout(); updateKb(); });
-  if(T&&!T.started&&!T.done) go(0);
+  if(shape!==cfg.time+"/"+cfg.words){ if(T&&T.done){ hist=[]; hpos=-1; } else resetHistory(); }
+  else if(T&&!T.started&&!T.done) go(0);
 }
-window.TQ={getCfgSync:()=>({cfg:pickSync(),t:cfgTime()}),applyCfg:applyRemoteCfg,getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden){ renderHistory(); if(hTab==="lb"&&window.TQ_LB) window.TQ_LB.render($("lbbody")); } showPB(); paintGoal(); }};
+window.TQ={getCfgSync:()=>({cfg:pickSync(),t:cfgTime(),dirty:lsGet("tq-cfg-dirty")==="1",seen:+lsGet("tq-cfg-seen")||0}),applyCfg:applyRemoteCfg,cfgPushed,getHist,setHist,getPBs,setPBs,getFavs,setFavs(a){ setFavs(a,true); },getLastRuns,setLastRuns,toast,refreshHistory(){ if(!$("history").hidden){ renderHistory(); if(hTab==="lb"&&window.TQ_LB) window.TQ_LB.render($("lbbody")); } showPB(); paintGoal(); }};
 try{window.dispatchEvent(new Event("tq:ready"));}catch(e){}
 })();
 

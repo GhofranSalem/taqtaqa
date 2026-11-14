@@ -15,6 +15,11 @@
   "use strict";
   var BETA = true;
   var CHANGES = [
+    { v: "0.6.2", d: "2026-11-14", items: [
+      ["حفظ إعداداتك في حسابك بقى مضمون أكتر: اللي تغيّره على جهاز بيوصل للجهاز التاني حتى لو قفلت التاب على طول، ومدة الاختبار وعدد الكلمات بقوا بيتحفظوا كمان", "Saving your settings to your account is more reliable: changes reach your other devices even if you close the tab right away, and test duration and word count are saved too"],
+      ["طقطقة كبرنامج على الويندوز رجع لها الشريط اللي فوق، فتقدر تمسك الشباك وتحركه", "The installed Taqtaqa app on Windows has its title bar back, so you can grab and move the window"],
+      ["تحسينات في واجهة الموقع", "Interface improvements"]
+    ]},
     { v: "0.6.1", d: "2026-11-08", items: [
       ["طقطقة بقت رسميًا من سويتش آند كاب (Switch & Cap)، واللوجو بتاعها فوق تحت اسم الموقع وتحت في آخر الصفحة", "Taqtaqa is now officially by Switch & Cap, with its logo under the site name and at the bottom of the page"],
       ["تحديثات أمنية", "Security updates"]
