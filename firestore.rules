@@ -3,19 +3,64 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function smallString(d, k, max) {
+      return !(k in d) || d[k] == null || (d[k] is string && d[k].size() <= max);
+    }
+    function speedCap(lg) {
+      return lg == 1 ? 45 : lg == 2 ? 60 : lg == 3 ? 75 : lg == 4 ? 95 : 200;
+    }
+
     match /users/{uid} {
-      allow read, delete: if request.auth != null && request.auth.uid == uid;
-      allow create, update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.pb is map;
+      allow read, delete: if owner(uid);
+      allow create, update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['name', 'email', 'pb', 'fav', 'ql', 'lb', 'cfg', 'createdAt', 'updatedAt'])
+        && request.resource.data.pb is map
+        && request.resource.data.pb.size() <= 1000
+        && (!('fav' in request.resource.data) || (request.resource.data.fav is list && request.resource.data.fav.size() <= 500))
+        && (!('ql' in request.resource.data) || (request.resource.data.ql is map && request.resource.data.ql.size() <= 3000))
+        && (!('lb' in request.resource.data) || (request.resource.data.lb is map
+            && request.resource.data.lb.keys().hasOnly(['name', 'hide'])
+            && smallString(request.resource.data.lb, 'name', 20)))
+        && (!('cfg' in request.resource.data) || (request.resource.data.cfg is map
+            && request.resource.data.cfg.keys().hasOnly(['v', 't'])
+            && request.resource.data.cfg.v is map
+            && request.resource.data.cfg.v.size() <= 40
+            && request.resource.data.cfg.t is int))
+        && smallString(request.resource.data, 'name', 200)
+        && smallString(request.resource.data, 'email', 320);
 
       match /results/{rid} {
-        allow read, delete: if request.auth != null && request.auth.uid == uid;
-        allow create, update: if request.auth != null && request.auth.uid == uid
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid)
+          && request.resource.data.keys().hasOnly(['v', 't', 'wpm', 'raw', 'acc', 'el', 'c', 'b', 'x', 'm', 'mode', 'n', 'src', 'q', 'label', 'lang', 'ek'])
           && request.resource.data.t is int
           && rid == string(request.resource.data.t)
-          && request.resource.data.wpm is number
-          && request.resource.data.acc is number;
+          && request.resource.data.wpm is number && request.resource.data.wpm >= 0 && request.resource.data.wpm < 5000
+          && request.resource.data.acc is number && request.resource.data.acc >= 0 && request.resource.data.acc <= 100
+          && smallString(request.resource.data, 'q', 300)
+          && smallString(request.resource.data, 'label', 300)
+          && (!('ek' in request.resource.data) || (request.resource.data.ek is map && request.resource.data.ek.size() <= 100));
       }
+    }
+
+    // الترتيب الأسبوعي: أي حد يقدر يشوفه، وكل واحد بيكتب مكانه هو بس
+    match /leaderboard/{board}/players/{uid} {
+      allow read: if true;
+      allow delete: if owner(uid);
+      allow create, update: if owner(uid)
+        && board.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_(ar|en)_[1-5]$')
+        && request.resource.data.keys().hasOnly(['name', 'speed', 'tests', 'minutes', 'improve', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 20
+        && request.resource.data.speed is number && request.resource.data.speed >= 0
+        && request.resource.data.speed <= speedCap(int(board.split('_')[2]))
+        && request.resource.data.tests is int && request.resource.data.tests >= 0 && request.resource.data.tests <= 5000
+        && request.resource.data.minutes is number && request.resource.data.minutes >= 0 && request.resource.data.minutes <= 10080
+        && (request.resource.data.improve == null
+            || (request.resource.data.improve is number && request.resource.data.improve >= -100 && request.resource.data.improve <= 1000));
     }
 
     match /{document=**} {

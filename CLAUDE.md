@@ -59,7 +59,7 @@
 - Cloudflare Worker (Variables and Secrets): `TURNSTILE_SECRET`، و`TG_TOKEN`، و`GITHUB_TOKEN` (Fine-grained على ريبو taqtaqa بس، Contents: Read and write، عشان لوحة التحكم تحفظ النصوص).
 - GitHub Actions secrets: `CLOUDFLARE_API_TOKEN`، و`CLOUDFLARE_ACCOUNT_ID`.
 - مفتاح Turnstile العام، وإعدادات Firebase اللي في cloud.js: دول مش سريين.
-- قواعد Firestore المنشورة في Firebase **أحدث** من `firestore.rules` اللي في الريبو (فيها الترتيب الأسبوعي). ما تعتمدش على الملف ده كمرجع.
+- قواعد Firestore بتتنشر بإيد صاحب المشروع من Firebase Console. `firestore.rules` في الريبو متزامن معاها من 2026-11-14 (فيه الترتيب الأسبوعي و`cfg`). أي مفتاح جديد في users/{uid} لازم يتضاف لـ `hasOnly` في القواعد وصاحب المشروع ينشرها، وإلا الحفظ بيترفض من غير ما حد يحس.
 
 ## حاجات اتعلمناها
 - `pkill -f "wrangler dev"` ممكن يقتل الشِل نفسه. شغّل الـ pkill في أمر لوحده.
